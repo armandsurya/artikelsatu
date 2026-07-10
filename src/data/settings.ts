@@ -14,7 +14,7 @@ export const settings: GlobalSettings = {
     label: "Konsultasi Gratis",
     message: "Halo, saya ingin konsultasi mengenai jasa pembuatan artikel SEO.",
   },
-  copyright: `© ${new Date().getFullYear()} ArtikelPro. Semua hak dilindungi.`,
+  copyright: `© 2026 ArtikelPro. Semua hak dilindungi.`,
   seo: {
     title: "ArtikelPro — Jasa Pembuatan Artikel SEO Berkualitas",
     description:
