@@ -21,11 +21,19 @@ export interface CtaLink {
 }
 
 export interface HeroData {
-  eyebrow?: string;
+  badge?: string;
   title: string;
-  subtitle: string;
-  primaryCta: CtaLink;
-  secondaryCta?: CtaLink;
+  description: string;
+  primaryButtonText: string;
+  primaryButtonLink: string;
+  primaryButtonMessage?: string;
+  secondaryButtonText: string;
+  secondaryButtonTarget: string;
+  image: string;
+  imageAlt: string;
+  imageWidth: number;
+  imageHeight: number;
+  isVisible: boolean;
 }
 
 export interface Statistic {
