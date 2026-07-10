@@ -1,24 +1,61 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { SiteLayout } from "@/components/layouts/SiteLayout";
+import { SectionRenderer } from "@/components/SectionRenderer";
+import { homepageSections } from "@/data/homepageSections";
+import { settings } from "@/data/settings";
+import { faq } from "@/data/faq";
+import { services } from "@/data/services";
 
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
 export const Route = createFileRoute("/")({
-  component: Index,
+  head: () => ({
+    meta: [
+      { title: settings.seo.title },
+      { name: "description", content: settings.seo.description },
+      { property: "og:title", content: settings.seo.title },
+      { property: "og:description", content: settings.seo.description },
+      { property: "og:url", content: "/" },
+    ],
+    links: [{ rel: "canonical", href: "/" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: faq.map((f) => ({
+            "@type": "Question",
+            name: f.question,
+            acceptedAnswer: { "@type": "Answer", text: f.answer },
+          })),
+        }),
+      },
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Service",
+          name: "Jasa Pembuatan Artikel SEO",
+          provider: { "@type": "Organization", name: settings.siteName },
+          areaServed: "ID",
+          hasOfferCatalog: {
+            "@type": "OfferCatalog",
+            name: "Layanan Konten",
+            itemListElement: services.map((s) => ({
+              "@type": "Offer",
+              itemOffered: { "@type": "Service", name: s.title, description: s.description },
+            })),
+          },
+        }),
+      },
+    ],
+  }),
+  component: HomePage,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
-function Index() {
+function HomePage() {
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
+    <SiteLayout>
+      <SectionRenderer sections={homepageSections} />
+    </SiteLayout>
   );
 }
