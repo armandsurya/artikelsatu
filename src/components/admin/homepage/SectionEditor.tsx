@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { PUBLISHED_QUERY_KEY } from "@/lib/publishedContent";
+import { trackMediaUsage, clearMediaUsage } from "@/lib/media/usage";
 import { ArrowLeft, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
