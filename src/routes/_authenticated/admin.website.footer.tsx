@@ -1,5 +1,7 @@
 import { createFileRoute, useBlocker } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { PUBLISHED_QUERY_KEY } from "@/lib/publishedContent";
 import { toast } from "sonner";
 import { PageHeader, Card } from "@/components/admin/ui";
 import { TextField, TextareaField, Repeater, inputCls } from "@/components/admin/homepage/primitives";
@@ -33,6 +35,7 @@ export const Route = createFileRoute("/_authenticated/admin/website/footer")({
 });
 
 function FooterEditor() {
+  const queryClient = useQueryClient();
   const [live, setLive] = useState<FooterData | null>(null);
   const [serverDraft, setServerDraft] = useState<FooterData | null>(null);
   const [local, setLocal] = useState<FooterData | null>(null);
@@ -86,6 +89,7 @@ function FooterEditor() {
       const { error } = await patchSiteSettings({ footer: local });
       if (error) { console.error("[footer publish]", error); toast.error("Gagal mem-publish footer", { description: error.message }); return; }
       setLive(local);
+      queryClient.invalidateQueries({ queryKey: PUBLISHED_QUERY_KEY });
       await logActivity("publish_footer", "site_settings", "footer");
       toast.success("Footer berhasil di-publish");
     } finally { setPublishing(false); }

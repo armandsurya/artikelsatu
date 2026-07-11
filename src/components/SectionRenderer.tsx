@@ -1,4 +1,3 @@
-import type { HomepageSection } from "@/types";
 import { HeroSection } from "./sections/HeroSection";
 import { StatsSection } from "./sections/StatsSection";
 import { ProblemsSection } from "./sections/ProblemsSection";
@@ -12,43 +11,48 @@ import { ComparisonSection } from "./sections/ComparisonSection";
 import { FAQSection } from "./sections/FAQSection";
 import { BlogPreviewSection } from "./sections/BlogPreviewSection";
 import { CTASection } from "./sections/CTASection";
+import { DebugSource } from "./DebugSource";
+import type { SectionArrangement, MappedSection } from "@/lib/mapPublished";
+import type { SectionKey } from "@/data/homepageDefaults";
 
-import { hero } from "@/data/hero";
-import { stats } from "@/data/stats";
-import { problems } from "@/data/problems";
-import { solutions } from "@/data/solutions";
-import { workflow } from "@/data/workflow";
-import { advantages } from "@/data/advantages";
-import { services } from "@/data/services";
-import { portfolio } from "@/data/portfolio";
-import { pricing } from "@/data/pricing";
-import { comparison } from "@/data/comparison";
-import { faq } from "@/data/faq";
-import { blogPosts } from "@/data/blog";
-import { ctaSection } from "@/data/cta";
-
-export function SectionRenderer({ sections }: { sections: HomepageSection[] }) {
-  const visible = [...sections].filter((s) => s.isVisible).sort((a, b) => a.sortOrder - b.sortOrder);
+export function SectionRenderer({
+  arrangement,
+  payload,
+}: {
+  arrangement: SectionArrangement[];
+  payload: Record<SectionKey, MappedSection>;
+}) {
+  const visible = arrangement.filter((s) => s.isVisible).sort((a, b) => a.sortOrder - b.sortOrder);
   return (
     <>
       {visible.map((s) => {
-        switch (s.type) {
-          case "hero": return <HeroSection key={s.id} data={hero} />;
-          case "stats": return <StatsSection key={s.id} data={stats} />;
-          case "problems": return <ProblemsSection key={s.id} title={s.title} data={problems} />;
-          case "solutions": return <SolutionsSection key={s.id} title={s.title} data={solutions} />;
-          case "workflow": return <WorkflowSection key={s.id} title={s.title} data={workflow} />;
-          case "advantages": return <AdvantagesSection key={s.id} title={s.title} data={advantages} />;
-          case "services": return <ServicesSection key={s.id} title={s.title} data={services} />;
-          case "portfolio": return <PortfolioSection key={s.id} title={s.title} data={portfolio} />;
-          case "pricing": return <PricingSection key={s.id} title={s.title} data={pricing} />;
-          case "comparison": return <ComparisonSection key={s.id} title={s.title} data={comparison} />;
-          case "faq": return <FAQSection key={s.id} title={s.title} data={faq} />;
-          case "blogPreview": return <BlogPreviewSection key={s.id} title={s.title} data={blogPosts} />;
-          case "cta": return <CTASection key={s.id} data={ctaSection} />;
-          default: return null;
-        }
+        const p = payload[s.key];
+        if (!p) return null;
+        return (
+          <div key={s.key} className="relative">
+            <DebugSource label={s.key} source={p.source} />
+            {renderOne(p)}
+          </div>
+        );
       })}
     </>
   );
+}
+
+function renderOne(p: MappedSection) {
+  switch (p.type) {
+    case "hero": return <HeroSection data={p.data} />;
+    case "stats": return <StatsSection data={p.data} />;
+    case "problems": return <ProblemsSection title={p.title} data={p.data} />;
+    case "solutions": return <SolutionsSection title={p.title} data={p.data} />;
+    case "workflow": return <WorkflowSection title={p.title} data={p.data} />;
+    case "advantages": return <AdvantagesSection title={p.title} data={p.data} />;
+    case "services": return <ServicesSection title={p.title} data={p.data} />;
+    case "portfolio": return <PortfolioSection title={p.title} data={p.data} />;
+    case "pricing": return <PricingSection title={p.title} data={p.data} />;
+    case "comparison": return <ComparisonSection title={p.title} data={p.data} />;
+    case "faq": return <FAQSection title={p.title} data={p.data} />;
+    case "blogPreview": return <BlogPreviewSection title={p.title} data={p.data} />;
+    case "cta": return <CTASection data={p.data} />;
+  }
 }

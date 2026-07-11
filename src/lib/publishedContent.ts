@@ -1,0 +1,120 @@
+/**
+ * Client-side reader that fetches PUBLISHED content from the database.
+ * This is the single source of truth for what the frontend renders.
+ *
+ * Static files under src/data/* are only used as a fallback while the
+ * database is still empty (fresh install) or unreachable.
+ */
+import { useQuery, type UseQueryResult } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import type { SectionKey } from "@/data/homepageDefaults";
+
+export type PublishedSectionRow = {
+  section_key: SectionKey;
+  title: string | null;
+  sort_order: number;
+  is_visible: boolean;
+  data: Record<string, unknown> | null;
+  last_published_at: string | null;
+};
+
+export type PublishedBlogPostRow = {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string | null;
+  featured_image: string | null;
+  category_id: string | null;
+  tags: string[] | null;
+  author_id: string | null;
+  status: string;
+  read_time: number | null;
+  published_at: string | null;
+  meta_title: string | null;
+  meta_description: string | null;
+};
+
+export type PublishedCategoryRow = {
+  id: string;
+  name: string;
+  slug: string;
+};
+
+export type SiteSettingsBlob = Record<string, unknown>;
+
+/* ---------------- Fetchers ---------------- */
+
+export async function fetchPublishedSections(): Promise<PublishedSectionRow[]> {
+  const { data, error } = await supabase
+    .from("homepage_sections")
+    .select("section_key,title,sort_order,is_visible,data,last_published_at")
+    .order("sort_order");
+  if (error) throw error;
+  return (data ?? []) as PublishedSectionRow[];
+}
+
+export async function fetchSiteSettings(): Promise<SiteSettingsBlob> {
+  const { data, error } = await supabase
+    .from("site_settings")
+    .select("data")
+    .order("id")
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  return ((data?.data as SiteSettingsBlob) ?? {}) as SiteSettingsBlob;
+}
+
+export async function fetchPublishedBlogPosts(): Promise<PublishedBlogPostRow[]> {
+  const { data, error } = await supabase
+    .from("blog_posts")
+    .select("id,title,slug,excerpt,featured_image,category_id,tags,author_id,status,read_time,published_at,meta_title,meta_description")
+    .eq("status", "published")
+    .order("published_at", { ascending: false, nullsFirst: false });
+  if (error) throw error;
+  return (data ?? []) as PublishedBlogPostRow[];
+}
+
+export async function fetchBlogCategories(): Promise<PublishedCategoryRow[]> {
+  const { data, error } = await supabase
+    .from("blog_categories")
+    .select("id,name,slug")
+    .order("name");
+  if (error) throw error;
+  return (data ?? []) as PublishedCategoryRow[];
+}
+
+/* ---------------- Hooks ---------------- */
+
+export const PUBLISHED_QUERY_KEY = ["published"] as const;
+
+export function usePublishedSections(): UseQueryResult<PublishedSectionRow[]> {
+  return useQuery({
+    queryKey: [...PUBLISHED_QUERY_KEY, "homepage"],
+    queryFn: fetchPublishedSections,
+    staleTime: 30_000,
+  });
+}
+
+export function useSiteSettings(): UseQueryResult<SiteSettingsBlob> {
+  return useQuery({
+    queryKey: [...PUBLISHED_QUERY_KEY, "site_settings"],
+    queryFn: fetchSiteSettings,
+    staleTime: 30_000,
+  });
+}
+
+export function usePublishedBlogPosts(): UseQueryResult<PublishedBlogPostRow[]> {
+  return useQuery({
+    queryKey: [...PUBLISHED_QUERY_KEY, "blog_posts"],
+    queryFn: fetchPublishedBlogPosts,
+    staleTime: 30_000,
+  });
+}
+
+export function usePublishedBlogCategories(): UseQueryResult<PublishedCategoryRow[]> {
+  return useQuery({
+    queryKey: [...PUBLISHED_QUERY_KEY, "blog_categories"],
+    queryFn: fetchBlogCategories,
+    staleTime: 30_000,
+  });
+}
