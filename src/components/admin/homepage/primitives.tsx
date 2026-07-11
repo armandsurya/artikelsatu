@@ -319,7 +319,7 @@ function MediaLibraryModal({ onClose, onPick }: { onClose: () => void; onPick: (
       const { data: pub } = supabase.storage.from("media").getPublicUrl(path);
       const user = (await supabase.auth.getUser()).data.user;
       await supabase.from("media").insert({
-        name: file.name, path, url: pub.publicUrl, mime_type: file.type, size: file.size, uploaded_by: user?.id,
+        name: file.name, path, url: pub.publicUrl, mime_type: file.type, size_bytes: file.size, uploaded_by: user?.id,
       });
       await load();
     } finally { setUploading(false); }
