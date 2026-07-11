@@ -118,9 +118,12 @@ export const servicesDefault: { items: ServiceItem[] } = {
 };
 
 export const portfolioDefault: { items: PortfolioItem[] } = {
-  items: portfolio.map((p) => ({
-    thumbnail: "", title: p.title, category: p.category, keyword: p.keyword,
-    wordCount: p.wordCount, link: "", isVisible: true,
+  items: portfolio.map((p, i) => ({
+    title: p.title, category: p.category, excerpt: p.excerpt ?? "",
+    keyword: p.keyword, wordCount: p.wordCount,
+    labels: (p.labels ?? ["SEO Optimized", "Human Written"]).map((t) => ({ text: t })),
+    ctaLabel: p.ctaLabel ?? "Lihat Preview", ctaUrl: p.ctaUrl ?? "#",
+    sortOrder: i + 1, isVisible: true,
   })),
 };
 

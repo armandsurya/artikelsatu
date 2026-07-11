@@ -82,8 +82,12 @@ export interface Portfolio {
   id: string;
   category: string;
   title: string;
+  excerpt?: string;
   keyword: string;
   wordCount: number;
+  labels?: string[];
+  ctaLabel?: string;
+  ctaUrl?: string;
 }
 
 export interface PricingPackage {

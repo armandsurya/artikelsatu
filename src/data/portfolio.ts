@@ -1,10 +1,12 @@
 import type { Portfolio } from "@/types";
 
+const defaultLabels = ["SEO Optimized", "Human Written"];
+
 export const portfolio: Portfolio[] = [
-  { id: "pf1", category: "Kesehatan", title: "Manfaat Vitamin D untuk Imunitas Tubuh", keyword: "manfaat vitamin d", wordCount: 1500 },
-  { id: "pf2", category: "Bisnis", title: "Strategi Digital Marketing untuk UMKM 2025", keyword: "digital marketing umkm", wordCount: 1800 },
-  { id: "pf3", category: "Teknologi", title: "Panduan Memilih Laptop untuk Programmer", keyword: "laptop programmer terbaik", wordCount: 2000 },
-  { id: "pf4", category: "Keuangan", title: "Cara Mengatur Keuangan Pribadi bagi Pemula", keyword: "cara mengatur keuangan", wordCount: 1600 },
-  { id: "pf5", category: "Traveling", title: "10 Destinasi Wisata Tersembunyi di Bali", keyword: "wisata tersembunyi bali", wordCount: 1400 },
-  { id: "pf6", category: "Kuliner", title: "Resep Nasi Goreng Rumahan Ala Restoran", keyword: "resep nasi goreng enak", wordCount: 1200 },
+  { id: "pf1", category: "Kesehatan", title: "Manfaat Vitamin D untuk Imunitas Tubuh", excerpt: "Ulasan lengkap peran vitamin D untuk daya tahan tubuh dan sumber terbaiknya.", keyword: "manfaat vitamin d", wordCount: 1500, labels: defaultLabels, ctaLabel: "Lihat Preview", ctaUrl: "#" },
+  { id: "pf2", category: "Bisnis", title: "Strategi Digital Marketing untuk UMKM 2025", excerpt: "Panduan praktis strategi digital marketing yang efektif untuk skala UMKM.", keyword: "digital marketing umkm", wordCount: 1800, labels: defaultLabels, ctaLabel: "Lihat Preview", ctaUrl: "#" },
+  { id: "pf3", category: "Teknologi", title: "Panduan Memilih Laptop untuk Programmer", excerpt: "Kriteria teknis memilih laptop sesuai kebutuhan development modern.", keyword: "laptop programmer terbaik", wordCount: 2000, labels: defaultLabels, ctaLabel: "Lihat Preview", ctaUrl: "#" },
+  { id: "pf4", category: "Keuangan", title: "Cara Mengatur Keuangan Pribadi bagi Pemula", excerpt: "Langkah sederhana menyusun anggaran, menabung, dan mulai berinvestasi.", keyword: "cara mengatur keuangan", wordCount: 1600, labels: defaultLabels, ctaLabel: "Lihat Preview", ctaUrl: "#" },
+  { id: "pf5", category: "Traveling", title: "10 Destinasi Wisata Tersembunyi di Bali", excerpt: "Rekomendasi destinasi Bali yang belum ramai turis, cocok untuk healing.", keyword: "wisata tersembunyi bali", wordCount: 1400, labels: defaultLabels, ctaLabel: "Lihat Preview", ctaUrl: "#" },
+  { id: "pf6", category: "Kuliner", title: "Resep Nasi Goreng Rumahan Ala Restoran", excerpt: "Trik memasak nasi goreng rumahan dengan rasa setara restoran ternama.", keyword: "resep nasi goreng enak", wordCount: 1200, labels: defaultLabels, ctaLabel: "Lihat Preview", ctaUrl: "#" },
 ];

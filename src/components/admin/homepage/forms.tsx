@@ -183,22 +183,74 @@ export function ServicesForm({ value, onChange }: { value: { items: ServiceItem[
 
 /* ---------------- PORTFOLIO ---------------- */
 
-export type PortfolioItem = { thumbnail: string; title: string; category: string; keyword: string; wordCount: number; link: string; isVisible: boolean };
+export type PortfolioItem = {
+  title: string;
+  category: string;
+  excerpt: string;
+  keyword: string;
+  wordCount: number;
+  labels: { text: string }[];
+  ctaLabel: string;
+  ctaUrl: string;
+  sortOrder: number;
+  isVisible: boolean;
+};
 export function PortfolioForm({ value, onChange }: { value: { items: PortfolioItem[] }; onChange: (v: { items: PortfolioItem[] }) => void }) {
   return (
     <Repeater<PortfolioItem>
       items={value.items ?? []} onChange={(items) => onChange({ items })} addLabel="Tambah Portfolio"
       itemTitle={(it, i) => it.title || `Portfolio #${i + 1}`}
-      newItem={() => ({ thumbnail: "", title: "", category: "", keyword: "", wordCount: 1000, link: "", isVisible: true })}
+      newItem={() => ({
+        title: "", category: "", excerpt: "", keyword: "", wordCount: 1000,
+        labels: [{ text: "SEO Optimized" }, { text: "Human Written" }],
+        ctaLabel: "Lihat Preview", ctaUrl: "#", sortOrder: (value.items?.length ?? 0) + 1, isVisible: true,
+      })}
       renderItem={(it, up) => (
         <div className="grid gap-4 md:grid-cols-2">
-          <div className="md:col-span-2"><MediaPicker label="Thumbnail" value={it.thumbnail} onChange={(thumbnail) => up({ thumbnail })} /></div>
-          <TextField label="Judul" value={it.title} onChange={(title) => up({ title })} max={120} />
-          <TextField label="Kategori" value={it.category} onChange={(category) => up({ category })} />
-          <TextField label="Keyword" value={it.keyword} onChange={(keyword) => up({ keyword })} />
+          <TextField label="Kategori" value={it.category} onChange={(category) => up({ category })} max={40} />
+          <TextField label="Judul Artikel" value={it.title} onChange={(title) => up({ title })} max={120} />
+          <div className="md:col-span-2">
+            <TextareaField label="Ringkasan Singkat" value={it.excerpt ?? ""} onChange={(excerpt) => up({ excerpt })} max={120} rows={2} hint="Maksimal 120 karakter, tampil 2 baris." />
+          </div>
+          <TextField label="Keyword Utama" value={it.keyword} onChange={(keyword) => up({ keyword })} max={80} />
           <NumberField label="Jumlah Kata" value={it.wordCount} onChange={(wordCount) => up({ wordCount })} />
-          <TextField label="Link" value={it.link} onChange={(link) => up({ link })} />
+          <TextField label="CTA Text" required value={it.ctaLabel ?? ""} onChange={(ctaLabel) => up({ ctaLabel })} max={30} placeholder="Lihat Preview" />
+          <TextField label="CTA URL" required value={it.ctaUrl ?? ""} onChange={(ctaUrl) => up({ ctaUrl })} placeholder="https://…" />
+          <NumberField label="Urutan" value={it.sortOrder ?? 0} onChange={(sortOrder) => up({ sortOrder })} />
           <Field label="Visibility"><Switch checked={it.isVisible} onChange={(isVisible) => up({ isVisible })} /></Field>
+          <div className="md:col-span-2">
+            <Field label="Label Tambahan (maks 3)" hint="Contoh: SEO Optimized, Human Written, Google Friendly.">
+              <div className="space-y-2">
+                {(it.labels ?? []).slice(0, 3).map((l, idx) => (
+                  <div key={idx} className="flex gap-2">
+                    <input
+                      className={inputCls}
+                      value={l.text}
+                      maxLength={30}
+                      onChange={(e) => {
+                        const next = [...(it.labels ?? [])];
+                        next[idx] = { text: e.target.value };
+                        up({ labels: next });
+                      }}
+                      placeholder="SEO Optimized"
+                    />
+                    <button
+                      type="button"
+                      className="rounded border border-border px-2 text-xs"
+                      onClick={() => up({ labels: (it.labels ?? []).filter((_, i2) => i2 !== idx) })}
+                    >Hapus</button>
+                  </div>
+                ))}
+                {(it.labels ?? []).length < 3 && (
+                  <button
+                    type="button"
+                    className="rounded border border-border px-3 py-1.5 text-xs"
+                    onClick={() => up({ labels: [...(it.labels ?? []), { text: "" }] })}
+                  >+ Tambah Label</button>
+                )}
+              </div>
+            </Field>
+          </div>
         </div>
       )}
     />

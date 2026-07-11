@@ -126,7 +126,18 @@ const mapServices = (v: { items: ServiceItem[] }): Service[] =>
 
 const mapPortfolio = (v: { items: PortfolioItem[] }): Portfolio[] =>
   (v.items ?? []).filter((p) => p.isVisible !== false)
-    .map((p, i) => ({ id: `pf-${i}`, category: p.category, title: p.title, keyword: p.keyword, wordCount: p.wordCount }));
+    .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+    .map((p, i) => ({
+      id: `pf-${i}`,
+      category: p.category,
+      title: p.title,
+      excerpt: (p.excerpt ?? "").trim() || undefined,
+      keyword: p.keyword,
+      wordCount: p.wordCount,
+      labels: (p.labels ?? []).map((l) => l.text).filter(Boolean).slice(0, 3),
+      ctaLabel: (p.ctaLabel ?? "").trim() || "Lihat Preview",
+      ctaUrl: (p.ctaUrl ?? "").trim() || "#",
+    }));
 
 const mapPricing = (v: { items: PricingItem[] }): PricingPackage[] =>
   (v.items ?? []).filter((p) => p.isVisible !== false).map((p, i) => ({
