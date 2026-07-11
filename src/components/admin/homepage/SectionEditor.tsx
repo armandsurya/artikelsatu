@@ -197,10 +197,17 @@ export function SectionEditor<T>({
     }
     setSaving(true);
     try {
-      const user = (await supabase.auth.getUser()).data.user;
+      const { data: userData, error: userErr } = await supabase.auth.getUser();
+      if (userErr || !userData.user) {
+        console.error("[saveDraft] no auth session", userErr);
+        toast.error("Sesi login berakhir", { description: "Silakan login ulang sebelum menyimpan." });
+        return false;
+      }
+      const user = userData.user;
       const payload = joinMeta(sectionMeta, content);
       const nowIso = new Date().toISOString();
-      const { error } = await supabase
+      console.info("[saveDraft] payload", { sectionKey, userId: user.id, title, payloadSize: JSON.stringify(payload).length });
+      const { data: updated, error } = await supabase
         .from("homepage_sections")
         .update({
           title,
@@ -209,13 +216,37 @@ export function SectionEditor<T>({
           draft_data: payload as never,
           status: serverPublished && jsonEqual(serverPublished, payload) ? "published" : (serverPublished ? "modified" : "draft"),
           last_saved_at: nowIso,
-          last_saved_by: user?.id ?? null,
+          last_saved_by: user.id,
         })
-        .eq("section_key", sectionKey);
+        .eq("section_key", sectionKey)
+        .select();
       if (error) {
-        toast.error("Perubahan gagal disimpan", { description: "Silakan coba lagi." });
+        console.error("[saveDraft] update error", error);
+        const desc = [error.message, error.code && `(code ${error.code})`, error.hint].filter(Boolean).join(" ");
+        toast.error("Perubahan gagal disimpan", { description: desc || "Silakan coba lagi." });
         return false;
       }
+      if (!updated || updated.length === 0) {
+        console.error("[saveDraft] 0 rows updated — RLS likely blocked write", { sectionKey, userId: user.id });
+        toast.error("Perubahan tidak tersimpan", {
+          description: "Tidak ada baris yang ter-update. Akun Anda kemungkinan bukan super_admin atau session sudah kadaluarsa. Silakan login ulang.",
+        });
+        return false;
+      }
+      setServerDraft(payload);
+      setSavedAt(nowIso);
+      setRowSnap({ title, sortOrder, visible });
+      await logActivity("save_draft_section", "homepage_sections", sectionKey);
+      toast.success("Perubahan berhasil disimpan sebagai draft");
+      return true;
+    } catch (e) {
+      console.error("[saveDraft] unexpected", e);
+      toast.error("Perubahan gagal disimpan", { description: e instanceof Error ? e.message : String(e) });
+      return false;
+    } finally {
+      setSaving(false);
+    }
+  }
       setServerDraft(payload);
       setSavedAt(nowIso);
       setRowSnap({ title, sortOrder, visible });
