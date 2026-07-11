@@ -3,6 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { PageHeader, Card, Field, inputCls, btnPrimary, btnGhost } from "./ui";
 import { TiptapEditor } from "./TiptapEditor";
+import { MediaPicker } from "./homepage/primitives";
+import { trackMediaUsage, clearMediaUsage } from "@/lib/media/usage";
 import { logActivity, slugify } from "@/lib/admin/log";
 import { Link } from "@tanstack/react-router";
 import { ArrowLeft, Save, Loader2 } from "lucide-react";
