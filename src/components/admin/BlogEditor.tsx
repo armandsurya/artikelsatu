@@ -359,7 +359,7 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
                     {busy === "unpublish" ? <Loader2 className="h-4 w-4 animate-spin" /> : <EyeOff className="h-4 w-4" />} Unpublish
                   </button>
                 )}
-                {currentId.current && status !== "archived" && (
+                {currentId.current && (
                   <button onClick={() => handle("archive")} disabled={!!busy} className={btnDanger + " !py-1.5"}>
                     {busy === "archive" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Archive className="h-4 w-4" />} Archive
                   </button>
