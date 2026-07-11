@@ -4,8 +4,8 @@
  * empty object. Returns a per-section "source" tag for the debug badge.
  */
 import type { SectionKey } from "@/data/homepageDefaults";
-import { DEFAULTS } from "@/data/homepageDefaults";
-import { splitMeta } from "@/lib/admin/sectionMeta";
+import { DEFAULTS, SECTION_META_DEFAULTS } from "@/data/homepageDefaults";
+import { splitMeta, DEFAULT_META, type SectionMeta } from "@/lib/admin/sectionMeta";
 import type {
   HeroFormData, StatItem, ProblemItem, SolutionRow, WorkflowItem, AdvantageItem,
   ServiceItem, PortfolioItem, PricingItem, ComparisonRow, FAQItem, BlogPreviewData, CTAData,
@@ -22,31 +22,58 @@ import { mainNav as staticMainNav } from "@/data/navigation";
 
 export type SectionSource = "database" | "fallback";
 
+/** Per-section meta after merging DB values with SECTION_META_DEFAULTS. */
+export type ResolvedMeta = {
+  eyebrow: string;    // meta.badge → SectionHeader eyebrow
+  subtitle: string;   // meta.subtitle → SectionHeader description
+  bgColor: string;
+  bgImage: string;
+  paddingTop: number;
+  paddingBottom: number;
+};
+
+type MappedBase = { source: SectionSource; title?: string; meta: ResolvedMeta; lastPublishedAt?: string | null };
+
 export type MappedSection =
-  | { type: "hero"; source: SectionSource; title?: string; data: HeroData }
-  | { type: "stats"; source: SectionSource; title?: string; data: Statistic[] }
-  | { type: "problems"; source: SectionSource; title?: string; data: ProblemT[] }
-  | { type: "solutions"; source: SectionSource; title?: string; data: ComparisonItem[] }
-  | { type: "workflow"; source: SectionSource; title?: string; data: WorkflowStep[] }
-  | { type: "advantages"; source: SectionSource; title?: string; data: Advantage[] }
-  | { type: "services"; source: SectionSource; title?: string; data: Service[] }
-  | { type: "portfolio"; source: SectionSource; title?: string; data: Portfolio[] }
-  | { type: "pricing"; source: SectionSource; title?: string; data: PricingPackage[] }
-  | { type: "comparison"; source: SectionSource; title?: string; data: CompetitorComparison[] }
-  | { type: "faq"; source: SectionSource; title?: string; data: FAQT[] }
-  | { type: "blogPreview"; source: SectionSource; title?: string; count: number; category: string; data: BlogPost[] }
-  | { type: "cta"; source: SectionSource; data: CTASectionData };
+  | ({ type: "hero"; data: HeroData } & MappedBase)
+  | ({ type: "stats"; data: Statistic[] } & MappedBase)
+  | ({ type: "problems"; data: ProblemT[] } & MappedBase)
+  | ({ type: "solutions"; data: ComparisonItem[] } & MappedBase)
+  | ({ type: "workflow"; data: WorkflowStep[] } & MappedBase)
+  | ({ type: "advantages"; data: Advantage[] } & MappedBase)
+  | ({ type: "services"; data: Service[] } & MappedBase)
+  | ({ type: "portfolio"; data: Portfolio[] } & MappedBase)
+  | ({ type: "pricing"; data: PricingPackage[] } & MappedBase)
+  | ({ type: "comparison"; data: CompetitorComparison[] } & MappedBase)
+  | ({ type: "faq"; data: FAQT[] } & MappedBase)
+  | ({ type: "blogPreview"; count: number; category: string; data: BlogPost[] } & MappedBase)
+  | ({ type: "cta"; data: CTASectionData } & MappedBase);
 
 const isEmpty = (v: unknown) =>
   !v || typeof v !== "object" || Array.isArray(v) || Object.keys(v as object).length === 0;
 
-/** Pick DB content or static default (returns source + content). */
-function pickContent<T>(key: SectionKey, dbData: Record<string, unknown> | null): { source: SectionSource; content: T } {
+/** Merge stored meta with per-section defaults so empty badge/subtitle falls back to frontend literals. */
+export function resolveMeta(key: SectionKey, m: SectionMeta | null | undefined): ResolvedMeta {
+  const src = { ...DEFAULT_META, ...(m ?? {}) };
+  const d = SECTION_META_DEFAULTS[key];
+  return {
+    eyebrow: (src.badge && src.badge.trim()) || d.badge,
+    subtitle: (src.subtitle && src.subtitle.trim()) || d.subtitle,
+    bgColor: src.bgColor || "",
+    bgImage: src.bgImage || "",
+    paddingTop: Number.isFinite(src.paddingTop) ? src.paddingTop : 96,
+    paddingBottom: Number.isFinite(src.paddingBottom) ? src.paddingBottom : 96,
+  };
+}
+
+/** Pick DB content or static default (returns source + content + raw meta). */
+function pickContent<T>(key: SectionKey, dbData: Record<string, unknown> | null): { source: SectionSource; content: T; meta: SectionMeta } {
   if (dbData && !isEmpty(dbData)) {
-    const { content } = splitMeta<T>(dbData);
-    if (!isEmpty(content as unknown)) return { source: "database", content };
+    const { content, meta } = splitMeta<T>(dbData);
+    if (!isEmpty(content as unknown)) return { source: "database", content, meta };
   }
-  return { source: "fallback", content: DEFAULTS[key] as T };
+  const { content, meta } = splitMeta<T>(DEFAULTS[key]);
+  return { source: "fallback", content, meta };
 }
 
 /* ---------------- Section mappers ---------------- */
