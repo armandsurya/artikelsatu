@@ -16,6 +16,22 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
+import { Route as AuthenticatedAdminSeoRouteImport } from './routes/_authenticated/admin.seo'
+import { Route as AuthenticatedAdminRolesRouteImport } from './routes/_authenticated/admin.roles'
+import { Route as AuthenticatedAdminRedirectRouteImport } from './routes/_authenticated/admin.redirect'
+import { Route as AuthenticatedAdminPenggunaRouteImport } from './routes/_authenticated/admin.pengguna'
+import { Route as AuthenticatedAdminPengaturanRouteImport } from './routes/_authenticated/admin.pengaturan'
+import { Route as AuthenticatedAdminMenuRouteImport } from './routes/_authenticated/admin.menu'
+import { Route as AuthenticatedAdminMediaRouteImport } from './routes/_authenticated/admin.media'
+import { Route as AuthenticatedAdminLogRouteImport } from './routes/_authenticated/admin.log'
+import { Route as AuthenticatedAdminKeamananRouteImport } from './routes/_authenticated/admin.keamanan'
+import { Route as AuthenticatedAdminBlogIndexRouteImport } from './routes/_authenticated/admin.blog.index'
+import { Route as AuthenticatedAdminWebsiteHomepageRouteImport } from './routes/_authenticated/admin.website.homepage'
+import { Route as AuthenticatedAdminWebsiteHeaderRouteImport } from './routes/_authenticated/admin.website.header'
+import { Route as AuthenticatedAdminWebsiteFooterRouteImport } from './routes/_authenticated/admin.website.footer'
+import { Route as AuthenticatedAdminBlogNewRouteImport } from './routes/_authenticated/admin.blog.new'
+import { Route as AuthenticatedAdminBlogKategoriRouteImport } from './routes/_authenticated/admin.blog.kategori'
+import { Route as AuthenticatedAdminBlogIdRouteImport } from './routes/_authenticated/admin.blog.$id'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
@@ -51,6 +67,97 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
+const AuthenticatedAdminSeoRoute = AuthenticatedAdminSeoRouteImport.update({
+  id: '/seo',
+  path: '/seo',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
+const AuthenticatedAdminRolesRoute = AuthenticatedAdminRolesRouteImport.update({
+  id: '/roles',
+  path: '/roles',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
+const AuthenticatedAdminRedirectRoute =
+  AuthenticatedAdminRedirectRouteImport.update({
+    id: '/redirect',
+    path: '/redirect',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminPenggunaRoute =
+  AuthenticatedAdminPenggunaRouteImport.update({
+    id: '/pengguna',
+    path: '/pengguna',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminPengaturanRoute =
+  AuthenticatedAdminPengaturanRouteImport.update({
+    id: '/pengaturan',
+    path: '/pengaturan',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminMenuRoute = AuthenticatedAdminMenuRouteImport.update({
+  id: '/menu',
+  path: '/menu',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
+const AuthenticatedAdminMediaRoute = AuthenticatedAdminMediaRouteImport.update({
+  id: '/media',
+  path: '/media',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
+const AuthenticatedAdminLogRoute = AuthenticatedAdminLogRouteImport.update({
+  id: '/log',
+  path: '/log',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
+const AuthenticatedAdminKeamananRoute =
+  AuthenticatedAdminKeamananRouteImport.update({
+    id: '/keamanan',
+    path: '/keamanan',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminBlogIndexRoute =
+  AuthenticatedAdminBlogIndexRouteImport.update({
+    id: '/blog/',
+    path: '/blog/',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminWebsiteHomepageRoute =
+  AuthenticatedAdminWebsiteHomepageRouteImport.update({
+    id: '/website/homepage',
+    path: '/website/homepage',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminWebsiteHeaderRoute =
+  AuthenticatedAdminWebsiteHeaderRouteImport.update({
+    id: '/website/header',
+    path: '/website/header',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminWebsiteFooterRoute =
+  AuthenticatedAdminWebsiteFooterRouteImport.update({
+    id: '/website/footer',
+    path: '/website/footer',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminBlogNewRoute =
+  AuthenticatedAdminBlogNewRouteImport.update({
+    id: '/blog/new',
+    path: '/blog/new',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminBlogKategoriRoute =
+  AuthenticatedAdminBlogKategoriRouteImport.update({
+    id: '/blog/kategori',
+    path: '/blog/kategori',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminBlogIdRoute =
+  AuthenticatedAdminBlogIdRouteImport.update({
+    id: '/blog/$id',
+    path: '/blog/$id',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -58,14 +165,46 @@ export interface FileRoutesByFullPath {
   '/blog': typeof BlogRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
+  '/admin/keamanan': typeof AuthenticatedAdminKeamananRoute
+  '/admin/log': typeof AuthenticatedAdminLogRoute
+  '/admin/media': typeof AuthenticatedAdminMediaRoute
+  '/admin/menu': typeof AuthenticatedAdminMenuRoute
+  '/admin/pengaturan': typeof AuthenticatedAdminPengaturanRoute
+  '/admin/pengguna': typeof AuthenticatedAdminPenggunaRoute
+  '/admin/redirect': typeof AuthenticatedAdminRedirectRoute
+  '/admin/roles': typeof AuthenticatedAdminRolesRoute
+  '/admin/seo': typeof AuthenticatedAdminSeoRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
+  '/admin/blog/$id': typeof AuthenticatedAdminBlogIdRoute
+  '/admin/blog/kategori': typeof AuthenticatedAdminBlogKategoriRoute
+  '/admin/blog/new': typeof AuthenticatedAdminBlogNewRoute
+  '/admin/website/footer': typeof AuthenticatedAdminWebsiteFooterRoute
+  '/admin/website/header': typeof AuthenticatedAdminWebsiteHeaderRoute
+  '/admin/website/homepage': typeof AuthenticatedAdminWebsiteHomepageRoute
+  '/admin/blog/': typeof AuthenticatedAdminBlogIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/blog': typeof BlogRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/admin/keamanan': typeof AuthenticatedAdminKeamananRoute
+  '/admin/log': typeof AuthenticatedAdminLogRoute
+  '/admin/media': typeof AuthenticatedAdminMediaRoute
+  '/admin/menu': typeof AuthenticatedAdminMenuRoute
+  '/admin/pengaturan': typeof AuthenticatedAdminPengaturanRoute
+  '/admin/pengguna': typeof AuthenticatedAdminPenggunaRoute
+  '/admin/redirect': typeof AuthenticatedAdminRedirectRoute
+  '/admin/roles': typeof AuthenticatedAdminRolesRoute
+  '/admin/seo': typeof AuthenticatedAdminSeoRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
+  '/admin/blog/$id': typeof AuthenticatedAdminBlogIdRoute
+  '/admin/blog/kategori': typeof AuthenticatedAdminBlogKategoriRoute
+  '/admin/blog/new': typeof AuthenticatedAdminBlogNewRoute
+  '/admin/website/footer': typeof AuthenticatedAdminWebsiteFooterRoute
+  '/admin/website/header': typeof AuthenticatedAdminWebsiteHeaderRoute
+  '/admin/website/homepage': typeof AuthenticatedAdminWebsiteHomepageRoute
+  '/admin/blog': typeof AuthenticatedAdminBlogIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -75,13 +214,72 @@ export interface FileRoutesById {
   '/blog': typeof BlogRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
+  '/_authenticated/admin/keamanan': typeof AuthenticatedAdminKeamananRoute
+  '/_authenticated/admin/log': typeof AuthenticatedAdminLogRoute
+  '/_authenticated/admin/media': typeof AuthenticatedAdminMediaRoute
+  '/_authenticated/admin/menu': typeof AuthenticatedAdminMenuRoute
+  '/_authenticated/admin/pengaturan': typeof AuthenticatedAdminPengaturanRoute
+  '/_authenticated/admin/pengguna': typeof AuthenticatedAdminPenggunaRoute
+  '/_authenticated/admin/redirect': typeof AuthenticatedAdminRedirectRoute
+  '/_authenticated/admin/roles': typeof AuthenticatedAdminRolesRoute
+  '/_authenticated/admin/seo': typeof AuthenticatedAdminSeoRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
+  '/_authenticated/admin/blog/$id': typeof AuthenticatedAdminBlogIdRoute
+  '/_authenticated/admin/blog/kategori': typeof AuthenticatedAdminBlogKategoriRoute
+  '/_authenticated/admin/blog/new': typeof AuthenticatedAdminBlogNewRoute
+  '/_authenticated/admin/website/footer': typeof AuthenticatedAdminWebsiteFooterRoute
+  '/_authenticated/admin/website/header': typeof AuthenticatedAdminWebsiteHeaderRoute
+  '/_authenticated/admin/website/homepage': typeof AuthenticatedAdminWebsiteHomepageRoute
+  '/_authenticated/admin/blog/': typeof AuthenticatedAdminBlogIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/blog' | '/sitemap.xml' | '/admin' | '/admin/'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/blog'
+    | '/sitemap.xml'
+    | '/admin'
+    | '/admin/keamanan'
+    | '/admin/log'
+    | '/admin/media'
+    | '/admin/menu'
+    | '/admin/pengaturan'
+    | '/admin/pengguna'
+    | '/admin/redirect'
+    | '/admin/roles'
+    | '/admin/seo'
+    | '/admin/'
+    | '/admin/blog/$id'
+    | '/admin/blog/kategori'
+    | '/admin/blog/new'
+    | '/admin/website/footer'
+    | '/admin/website/header'
+    | '/admin/website/homepage'
+    | '/admin/blog/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/blog' | '/sitemap.xml' | '/admin'
+  to:
+    | '/'
+    | '/auth'
+    | '/blog'
+    | '/sitemap.xml'
+    | '/admin/keamanan'
+    | '/admin/log'
+    | '/admin/media'
+    | '/admin/menu'
+    | '/admin/pengaturan'
+    | '/admin/pengguna'
+    | '/admin/redirect'
+    | '/admin/roles'
+    | '/admin/seo'
+    | '/admin'
+    | '/admin/blog/$id'
+    | '/admin/blog/kategori'
+    | '/admin/blog/new'
+    | '/admin/website/footer'
+    | '/admin/website/header'
+    | '/admin/website/homepage'
+    | '/admin/blog'
   id:
     | '__root__'
     | '/'
@@ -90,7 +288,23 @@ export interface FileRouteTypes {
     | '/blog'
     | '/sitemap.xml'
     | '/_authenticated/admin'
+    | '/_authenticated/admin/keamanan'
+    | '/_authenticated/admin/log'
+    | '/_authenticated/admin/media'
+    | '/_authenticated/admin/menu'
+    | '/_authenticated/admin/pengaturan'
+    | '/_authenticated/admin/pengguna'
+    | '/_authenticated/admin/redirect'
+    | '/_authenticated/admin/roles'
+    | '/_authenticated/admin/seo'
     | '/_authenticated/admin/'
+    | '/_authenticated/admin/blog/$id'
+    | '/_authenticated/admin/blog/kategori'
+    | '/_authenticated/admin/blog/new'
+    | '/_authenticated/admin/website/footer'
+    | '/_authenticated/admin/website/header'
+    | '/_authenticated/admin/website/homepage'
+    | '/_authenticated/admin/blog/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -152,15 +366,160 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/seo': {
+      id: '/_authenticated/admin/seo'
+      path: '/seo'
+      fullPath: '/admin/seo'
+      preLoaderRoute: typeof AuthenticatedAdminSeoRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/roles': {
+      id: '/_authenticated/admin/roles'
+      path: '/roles'
+      fullPath: '/admin/roles'
+      preLoaderRoute: typeof AuthenticatedAdminRolesRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/redirect': {
+      id: '/_authenticated/admin/redirect'
+      path: '/redirect'
+      fullPath: '/admin/redirect'
+      preLoaderRoute: typeof AuthenticatedAdminRedirectRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/pengguna': {
+      id: '/_authenticated/admin/pengguna'
+      path: '/pengguna'
+      fullPath: '/admin/pengguna'
+      preLoaderRoute: typeof AuthenticatedAdminPenggunaRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/pengaturan': {
+      id: '/_authenticated/admin/pengaturan'
+      path: '/pengaturan'
+      fullPath: '/admin/pengaturan'
+      preLoaderRoute: typeof AuthenticatedAdminPengaturanRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/menu': {
+      id: '/_authenticated/admin/menu'
+      path: '/menu'
+      fullPath: '/admin/menu'
+      preLoaderRoute: typeof AuthenticatedAdminMenuRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/media': {
+      id: '/_authenticated/admin/media'
+      path: '/media'
+      fullPath: '/admin/media'
+      preLoaderRoute: typeof AuthenticatedAdminMediaRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/log': {
+      id: '/_authenticated/admin/log'
+      path: '/log'
+      fullPath: '/admin/log'
+      preLoaderRoute: typeof AuthenticatedAdminLogRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/keamanan': {
+      id: '/_authenticated/admin/keamanan'
+      path: '/keamanan'
+      fullPath: '/admin/keamanan'
+      preLoaderRoute: typeof AuthenticatedAdminKeamananRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/blog/': {
+      id: '/_authenticated/admin/blog/'
+      path: '/blog'
+      fullPath: '/admin/blog/'
+      preLoaderRoute: typeof AuthenticatedAdminBlogIndexRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/website/homepage': {
+      id: '/_authenticated/admin/website/homepage'
+      path: '/website/homepage'
+      fullPath: '/admin/website/homepage'
+      preLoaderRoute: typeof AuthenticatedAdminWebsiteHomepageRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/website/header': {
+      id: '/_authenticated/admin/website/header'
+      path: '/website/header'
+      fullPath: '/admin/website/header'
+      preLoaderRoute: typeof AuthenticatedAdminWebsiteHeaderRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/website/footer': {
+      id: '/_authenticated/admin/website/footer'
+      path: '/website/footer'
+      fullPath: '/admin/website/footer'
+      preLoaderRoute: typeof AuthenticatedAdminWebsiteFooterRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/blog/new': {
+      id: '/_authenticated/admin/blog/new'
+      path: '/blog/new'
+      fullPath: '/admin/blog/new'
+      preLoaderRoute: typeof AuthenticatedAdminBlogNewRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/blog/kategori': {
+      id: '/_authenticated/admin/blog/kategori'
+      path: '/blog/kategori'
+      fullPath: '/admin/blog/kategori'
+      preLoaderRoute: typeof AuthenticatedAdminBlogKategoriRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/blog/$id': {
+      id: '/_authenticated/admin/blog/$id'
+      path: '/blog/$id'
+      fullPath: '/admin/blog/$id'
+      preLoaderRoute: typeof AuthenticatedAdminBlogIdRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
   }
 }
 
 interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminKeamananRoute: typeof AuthenticatedAdminKeamananRoute
+  AuthenticatedAdminLogRoute: typeof AuthenticatedAdminLogRoute
+  AuthenticatedAdminMediaRoute: typeof AuthenticatedAdminMediaRoute
+  AuthenticatedAdminMenuRoute: typeof AuthenticatedAdminMenuRoute
+  AuthenticatedAdminPengaturanRoute: typeof AuthenticatedAdminPengaturanRoute
+  AuthenticatedAdminPenggunaRoute: typeof AuthenticatedAdminPenggunaRoute
+  AuthenticatedAdminRedirectRoute: typeof AuthenticatedAdminRedirectRoute
+  AuthenticatedAdminRolesRoute: typeof AuthenticatedAdminRolesRoute
+  AuthenticatedAdminSeoRoute: typeof AuthenticatedAdminSeoRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
+  AuthenticatedAdminBlogIdRoute: typeof AuthenticatedAdminBlogIdRoute
+  AuthenticatedAdminBlogKategoriRoute: typeof AuthenticatedAdminBlogKategoriRoute
+  AuthenticatedAdminBlogNewRoute: typeof AuthenticatedAdminBlogNewRoute
+  AuthenticatedAdminWebsiteFooterRoute: typeof AuthenticatedAdminWebsiteFooterRoute
+  AuthenticatedAdminWebsiteHeaderRoute: typeof AuthenticatedAdminWebsiteHeaderRoute
+  AuthenticatedAdminWebsiteHomepageRoute: typeof AuthenticatedAdminWebsiteHomepageRoute
+  AuthenticatedAdminBlogIndexRoute: typeof AuthenticatedAdminBlogIndexRoute
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminKeamananRoute: AuthenticatedAdminKeamananRoute,
+  AuthenticatedAdminLogRoute: AuthenticatedAdminLogRoute,
+  AuthenticatedAdminMediaRoute: AuthenticatedAdminMediaRoute,
+  AuthenticatedAdminMenuRoute: AuthenticatedAdminMenuRoute,
+  AuthenticatedAdminPengaturanRoute: AuthenticatedAdminPengaturanRoute,
+  AuthenticatedAdminPenggunaRoute: AuthenticatedAdminPenggunaRoute,
+  AuthenticatedAdminRedirectRoute: AuthenticatedAdminRedirectRoute,
+  AuthenticatedAdminRolesRoute: AuthenticatedAdminRolesRoute,
+  AuthenticatedAdminSeoRoute: AuthenticatedAdminSeoRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
+  AuthenticatedAdminBlogIdRoute: AuthenticatedAdminBlogIdRoute,
+  AuthenticatedAdminBlogKategoriRoute: AuthenticatedAdminBlogKategoriRoute,
+  AuthenticatedAdminBlogNewRoute: AuthenticatedAdminBlogNewRoute,
+  AuthenticatedAdminWebsiteFooterRoute: AuthenticatedAdminWebsiteFooterRoute,
+  AuthenticatedAdminWebsiteHeaderRoute: AuthenticatedAdminWebsiteHeaderRoute,
+  AuthenticatedAdminWebsiteHomepageRoute:
+    AuthenticatedAdminWebsiteHomepageRoute,
+  AuthenticatedAdminBlogIndexRoute: AuthenticatedAdminBlogIndexRoute,
 }
 
 const AuthenticatedAdminRouteWithChildren =
