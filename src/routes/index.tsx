@@ -1,7 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useMemo } from "react";
 import { SiteLayout } from "@/components/layouts/SiteLayout";
 import { SectionRenderer } from "@/components/SectionRenderer";
-import { homepageSections } from "@/data/homepageSections";
+import {
+  usePublishedSections,
+  usePublishedBlogPosts,
+  usePublishedBlogCategories,
+} from "@/lib/publishedContent";
+import {
+  buildHomepageArrangement,
+  mapPublishedSection,
+  mapBlogPosts,
+  type MappedSection,
+} from "@/lib/mapPublished";
+import { SECTION_KEYS, type SectionKey } from "@/data/homepageDefaults";
 import { settings } from "@/data/settings";
 import { faq } from "@/data/faq";
 import { services } from "@/data/services";
@@ -53,9 +65,30 @@ export const Route = createFileRoute("/")({
 });
 
 function HomePage() {
+  const sectionsQ = usePublishedSections();
+  const postsQ = usePublishedBlogPosts();
+  const catsQ = usePublishedBlogCategories();
+
+  const arrangement = useMemo(() => buildHomepageArrangement(sectionsQ.data), [sectionsQ.data]);
+
+  const blogPosts = useMemo(
+    () => mapBlogPosts(postsQ.data ?? [], catsQ.data ?? []),
+    [postsQ.data, catsQ.data],
+  );
+
+  const payload = useMemo(() => {
+    const byKey = new Map((sectionsQ.data ?? []).map((r) => [r.section_key, r]));
+    const out = {} as Record<SectionKey, MappedSection>;
+    for (const key of SECTION_KEYS) {
+      const row = byKey.get(key);
+      out[key] = mapPublishedSection(key, row?.data ?? null, row?.title ?? null, blogPosts);
+    }
+    return out;
+  }, [sectionsQ.data, blogPosts]);
+
   return (
     <SiteLayout>
-      <SectionRenderer sections={homepageSections} />
+      <SectionRenderer arrangement={arrangement} payload={payload} />
     </SiteLayout>
   );
 }
