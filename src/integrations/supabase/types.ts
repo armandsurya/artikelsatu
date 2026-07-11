@@ -74,7 +74,7 @@ export type Database = {
         }
         Relationships: []
       }
-      blog_posts: {
+      blog_post_revisions: {
         Row: {
           author_id: string | null
           canonical_url: string | null
@@ -86,13 +86,14 @@ export type Database = {
           id: string
           meta_description: string | null
           meta_title: string | null
-          published_at: string | null
-          read_time: number
-          slug: string
-          status: Database["public"]["Enums"]["post_status"]
+          post_id: string
+          reason: string | null
+          revision_number: number
+          seo_score: number | null
+          slug: string | null
+          status: Database["public"]["Enums"]["post_status"] | null
           tags: string[]
-          title: string
-          updated_at: string
+          title: string | null
         }
         Insert: {
           author_id?: string | null
@@ -105,13 +106,14 @@ export type Database = {
           id?: string
           meta_description?: string | null
           meta_title?: string | null
-          published_at?: string | null
-          read_time?: number
-          slug: string
-          status?: Database["public"]["Enums"]["post_status"]
+          post_id: string
+          reason?: string | null
+          revision_number: number
+          seo_score?: number | null
+          slug?: string | null
+          status?: Database["public"]["Enums"]["post_status"] | null
           tags?: string[]
-          title: string
-          updated_at?: string
+          title?: string | null
         }
         Update: {
           author_id?: string | null
@@ -124,8 +126,92 @@ export type Database = {
           id?: string
           meta_description?: string | null
           meta_title?: string | null
+          post_id?: string
+          reason?: string | null
+          revision_number?: number
+          seo_score?: number | null
+          slug?: string | null
+          status?: Database["public"]["Enums"]["post_status"] | null
+          tags?: string[]
+          title?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_post_revisions_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "blog_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      blog_posts: {
+        Row: {
+          author_id: string | null
+          canonical_url: string | null
+          category_id: string | null
+          content: Json | null
+          created_at: string
+          deleted_at: string | null
+          excerpt: string | null
+          featured_image: string | null
+          id: string
+          last_editor_id: string | null
+          meta_description: string | null
+          meta_title: string | null
+          published_at: string | null
+          read_time: number
+          scheduled_at: string | null
+          seo_report: Json | null
+          seo_score: number | null
+          slug: string
+          status: Database["public"]["Enums"]["post_status"]
+          tags: string[]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author_id?: string | null
+          canonical_url?: string | null
+          category_id?: string | null
+          content?: Json | null
+          created_at?: string
+          deleted_at?: string | null
+          excerpt?: string | null
+          featured_image?: string | null
+          id?: string
+          last_editor_id?: string | null
+          meta_description?: string | null
+          meta_title?: string | null
           published_at?: string | null
           read_time?: number
+          scheduled_at?: string | null
+          seo_report?: Json | null
+          seo_score?: number | null
+          slug: string
+          status?: Database["public"]["Enums"]["post_status"]
+          tags?: string[]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string | null
+          canonical_url?: string | null
+          category_id?: string | null
+          content?: Json | null
+          created_at?: string
+          deleted_at?: string | null
+          excerpt?: string | null
+          featured_image?: string | null
+          id?: string
+          last_editor_id?: string | null
+          meta_description?: string | null
+          meta_title?: string | null
+          published_at?: string | null
+          read_time?: number
+          scheduled_at?: string | null
+          seo_report?: Json | null
+          seo_score?: number | null
           slug?: string
           status?: Database["public"]["Enums"]["post_status"]
           tags?: string[]
@@ -466,10 +552,11 @@ export type Database = {
         }
         Returns: boolean
       }
+      publish_due_scheduled_posts: { Args: never; Returns: number }
     }
     Enums: {
       app_role: "super_admin" | "editor" | "author"
-      post_status: "draft" | "published"
+      post_status: "draft" | "published" | "scheduled" | "archived"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -598,7 +685,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["super_admin", "editor", "author"],
-      post_status: ["draft", "published"],
+      post_status: ["draft", "published", "scheduled", "archived"],
     },
   },
 } as const

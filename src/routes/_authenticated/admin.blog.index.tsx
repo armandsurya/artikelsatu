@@ -11,15 +11,20 @@ export const Route = createFileRoute("/_authenticated/admin/blog/")({
   component: BlogList,
 });
 
+type StatusFilter = "all" | "draft" | "published" | "scheduled" | "archived";
+
 function BlogList() {
   const qc = useQueryClient();
   const [q, setQ] = useState("");
-  const [status, setStatus] = useState<"all" | "draft" | "published">("all");
+  const [status, setStatus] = useState<StatusFilter>("all");
 
   const { data: posts = [] } = useQuery({
     queryKey: ["blog-posts", q, status],
     queryFn: async () => {
-      let query = supabase.from("blog_posts").select("id, title, slug, status, updated_at, category_id, blog_categories(name)").order("updated_at", { ascending: false });
+      let query = supabase.from("blog_posts")
+        .select("id, title, slug, status, updated_at, scheduled_at, seo_score, category_id, blog_categories(name)")
+        .is("deleted_at", null)
+        .order("updated_at", { ascending: false });
       if (status !== "all") query = query.eq("status", status);
       if (q) query = query.ilike("title", `%${q}%`);
       const { data, error } = await query;
@@ -29,8 +34,8 @@ function BlogList() {
   });
 
   async function remove(id: string) {
-    if (!confirm("Hapus artikel ini?")) return;
-    await supabase.from("blog_posts").delete().eq("id", id);
+    if (!confirm("Hapus artikel ini (soft delete)?")) return;
+    await supabase.from("blog_posts").update({ deleted_at: new Date().toISOString() }).eq("id", id);
     await logActivity("delete_post", "blog_posts", id);
     qc.invalidateQueries({ queryKey: ["blog-posts"] });
   }
@@ -48,10 +53,12 @@ function BlogList() {
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Cari judul..." className={`${inputCls} pl-9`} />
           </div>
-          <select value={status} onChange={(e) => setStatus(e.target.value as "all" | "draft" | "published")} className={inputCls + " w-auto"}>
+          <select value={status} onChange={(e) => setStatus(e.target.value as StatusFilter)} className={inputCls + " w-auto"}>
             <option value="all">Semua Status</option>
             <option value="draft">Draft</option>
+            <option value="scheduled">Scheduled</option>
             <option value="published">Published</option>
+            <option value="archived">Archived</option>
           </select>
         </div>
       </Card>
@@ -76,7 +83,18 @@ function BlogList() {
                 <td className="px-4 py-3 font-medium text-secondary">{p.title}</td>
                 <td className="px-4 py-3 text-muted-foreground">{p.blog_categories?.name ?? "—"}</td>
                 <td className="px-4 py-3">
-                  <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${p.status === "published" ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>{p.status}</span>
+                  <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
+                    p.status === "published" ? "bg-green-50 text-green-700"
+                    : p.status === "scheduled" ? "bg-blue-50 text-blue-700"
+                    : p.status === "archived" ? "bg-slate-200 text-slate-700"
+                    : "bg-amber-50 text-amber-700"
+                  }`}>{p.status}</span>
+                  {p.status === "scheduled" && p.scheduled_at && (
+                    <span className="ml-2 text-[11px] text-muted-foreground">→ {new Date(p.scheduled_at).toLocaleString("id-ID")}</span>
+                  )}
+                  {typeof p.seo_score === "number" && (
+                    <span className={`ml-2 text-[11px] ${p.seo_score >= 75 ? "text-green-700" : p.seo_score >= 50 ? "text-amber-700" : "text-red-700"}`}>SEO {p.seo_score}</span>
+                  )}
                 </td>
                 <td className="px-4 py-3 text-muted-foreground">{new Date(p.updated_at).toLocaleDateString("id-ID")}</td>
                 <td className="px-4 py-3 text-right">
