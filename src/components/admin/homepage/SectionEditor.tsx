@@ -73,7 +73,9 @@ export function SectionEditor<T>({
       const { data: existing } = await supabase
         .from("homepage_sections").select("*").eq("section_key", sectionKey).maybeSingle();
 
-      const defaultRaw = joinMeta(DEFAULT_META, DEFAULTS[sectionKey]);
+      // Seed defaults with per-section meta so admin sees the current frontend badge/subtitle.
+      const seedMeta: SectionMeta = { ...DEFAULT_META, ...SECTION_META_DEFAULTS[sectionKey] };
+      const defaultRaw = joinMeta(seedMeta, DEFAULTS[sectionKey]);
       const isEmpty = (v: unknown) =>
         !v || typeof v !== "object" || Array.isArray(v) || Object.keys(v as object).length === 0;
 
