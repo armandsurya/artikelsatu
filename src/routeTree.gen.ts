@@ -21,12 +21,10 @@ import { Route as AuthenticatedAdminRolesRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminRedirectRouteImport } from './routes/_authenticated/admin.redirect'
 import { Route as AuthenticatedAdminPenggunaRouteImport } from './routes/_authenticated/admin.pengguna'
 import { Route as AuthenticatedAdminPengaturanRouteImport } from './routes/_authenticated/admin.pengaturan'
-import { Route as AuthenticatedAdminMenuRouteImport } from './routes/_authenticated/admin.menu'
 import { Route as AuthenticatedAdminMediaRouteImport } from './routes/_authenticated/admin.media'
 import { Route as AuthenticatedAdminLogRouteImport } from './routes/_authenticated/admin.log'
 import { Route as AuthenticatedAdminKeamananRouteImport } from './routes/_authenticated/admin.keamanan'
 import { Route as AuthenticatedAdminBlogIndexRouteImport } from './routes/_authenticated/admin.blog.index'
-import { Route as AuthenticatedAdminWebsiteHomepageRouteImport } from './routes/_authenticated/admin.website.homepage'
 import { Route as AuthenticatedAdminWebsiteHeaderRouteImport } from './routes/_authenticated/admin.website.header'
 import { Route as AuthenticatedAdminWebsiteFooterRouteImport } from './routes/_authenticated/admin.website.footer'
 import { Route as AuthenticatedAdminBlogNewRouteImport } from './routes/_authenticated/admin.blog.new'
@@ -95,11 +93,6 @@ const AuthenticatedAdminPengaturanRoute =
     path: '/pengaturan',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
-const AuthenticatedAdminMenuRoute = AuthenticatedAdminMenuRouteImport.update({
-  id: '/menu',
-  path: '/menu',
-  getParentRoute: () => AuthenticatedAdminRoute,
-} as any)
 const AuthenticatedAdminMediaRoute = AuthenticatedAdminMediaRouteImport.update({
   id: '/media',
   path: '/media',
@@ -120,12 +113,6 @@ const AuthenticatedAdminBlogIndexRoute =
   AuthenticatedAdminBlogIndexRouteImport.update({
     id: '/blog/',
     path: '/blog/',
-    getParentRoute: () => AuthenticatedAdminRoute,
-  } as any)
-const AuthenticatedAdminWebsiteHomepageRoute =
-  AuthenticatedAdminWebsiteHomepageRouteImport.update({
-    id: '/website/homepage',
-    path: '/website/homepage',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 const AuthenticatedAdminWebsiteHeaderRoute =
@@ -168,7 +155,6 @@ export interface FileRoutesByFullPath {
   '/admin/keamanan': typeof AuthenticatedAdminKeamananRoute
   '/admin/log': typeof AuthenticatedAdminLogRoute
   '/admin/media': typeof AuthenticatedAdminMediaRoute
-  '/admin/menu': typeof AuthenticatedAdminMenuRoute
   '/admin/pengaturan': typeof AuthenticatedAdminPengaturanRoute
   '/admin/pengguna': typeof AuthenticatedAdminPenggunaRoute
   '/admin/redirect': typeof AuthenticatedAdminRedirectRoute
@@ -180,7 +166,6 @@ export interface FileRoutesByFullPath {
   '/admin/blog/new': typeof AuthenticatedAdminBlogNewRoute
   '/admin/website/footer': typeof AuthenticatedAdminWebsiteFooterRoute
   '/admin/website/header': typeof AuthenticatedAdminWebsiteHeaderRoute
-  '/admin/website/homepage': typeof AuthenticatedAdminWebsiteHomepageRoute
   '/admin/blog/': typeof AuthenticatedAdminBlogIndexRoute
 }
 export interface FileRoutesByTo {
@@ -191,7 +176,6 @@ export interface FileRoutesByTo {
   '/admin/keamanan': typeof AuthenticatedAdminKeamananRoute
   '/admin/log': typeof AuthenticatedAdminLogRoute
   '/admin/media': typeof AuthenticatedAdminMediaRoute
-  '/admin/menu': typeof AuthenticatedAdminMenuRoute
   '/admin/pengaturan': typeof AuthenticatedAdminPengaturanRoute
   '/admin/pengguna': typeof AuthenticatedAdminPenggunaRoute
   '/admin/redirect': typeof AuthenticatedAdminRedirectRoute
@@ -203,7 +187,6 @@ export interface FileRoutesByTo {
   '/admin/blog/new': typeof AuthenticatedAdminBlogNewRoute
   '/admin/website/footer': typeof AuthenticatedAdminWebsiteFooterRoute
   '/admin/website/header': typeof AuthenticatedAdminWebsiteHeaderRoute
-  '/admin/website/homepage': typeof AuthenticatedAdminWebsiteHomepageRoute
   '/admin/blog': typeof AuthenticatedAdminBlogIndexRoute
 }
 export interface FileRoutesById {
@@ -217,7 +200,6 @@ export interface FileRoutesById {
   '/_authenticated/admin/keamanan': typeof AuthenticatedAdminKeamananRoute
   '/_authenticated/admin/log': typeof AuthenticatedAdminLogRoute
   '/_authenticated/admin/media': typeof AuthenticatedAdminMediaRoute
-  '/_authenticated/admin/menu': typeof AuthenticatedAdminMenuRoute
   '/_authenticated/admin/pengaturan': typeof AuthenticatedAdminPengaturanRoute
   '/_authenticated/admin/pengguna': typeof AuthenticatedAdminPenggunaRoute
   '/_authenticated/admin/redirect': typeof AuthenticatedAdminRedirectRoute
@@ -229,7 +211,6 @@ export interface FileRoutesById {
   '/_authenticated/admin/blog/new': typeof AuthenticatedAdminBlogNewRoute
   '/_authenticated/admin/website/footer': typeof AuthenticatedAdminWebsiteFooterRoute
   '/_authenticated/admin/website/header': typeof AuthenticatedAdminWebsiteHeaderRoute
-  '/_authenticated/admin/website/homepage': typeof AuthenticatedAdminWebsiteHomepageRoute
   '/_authenticated/admin/blog/': typeof AuthenticatedAdminBlogIndexRoute
 }
 export interface FileRouteTypes {
@@ -243,7 +224,6 @@ export interface FileRouteTypes {
     | '/admin/keamanan'
     | '/admin/log'
     | '/admin/media'
-    | '/admin/menu'
     | '/admin/pengaturan'
     | '/admin/pengguna'
     | '/admin/redirect'
@@ -255,7 +235,6 @@ export interface FileRouteTypes {
     | '/admin/blog/new'
     | '/admin/website/footer'
     | '/admin/website/header'
-    | '/admin/website/homepage'
     | '/admin/blog/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -266,7 +245,6 @@ export interface FileRouteTypes {
     | '/admin/keamanan'
     | '/admin/log'
     | '/admin/media'
-    | '/admin/menu'
     | '/admin/pengaturan'
     | '/admin/pengguna'
     | '/admin/redirect'
@@ -278,7 +256,6 @@ export interface FileRouteTypes {
     | '/admin/blog/new'
     | '/admin/website/footer'
     | '/admin/website/header'
-    | '/admin/website/homepage'
     | '/admin/blog'
   id:
     | '__root__'
@@ -291,7 +268,6 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/keamanan'
     | '/_authenticated/admin/log'
     | '/_authenticated/admin/media'
-    | '/_authenticated/admin/menu'
     | '/_authenticated/admin/pengaturan'
     | '/_authenticated/admin/pengguna'
     | '/_authenticated/admin/redirect'
@@ -303,7 +279,6 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/blog/new'
     | '/_authenticated/admin/website/footer'
     | '/_authenticated/admin/website/header'
-    | '/_authenticated/admin/website/homepage'
     | '/_authenticated/admin/blog/'
   fileRoutesById: FileRoutesById
 }
@@ -401,13 +376,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminPengaturanRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
-    '/_authenticated/admin/menu': {
-      id: '/_authenticated/admin/menu'
-      path: '/menu'
-      fullPath: '/admin/menu'
-      preLoaderRoute: typeof AuthenticatedAdminMenuRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
-    }
     '/_authenticated/admin/media': {
       id: '/_authenticated/admin/media'
       path: '/media'
@@ -434,13 +402,6 @@ declare module '@tanstack/react-router' {
       path: '/blog'
       fullPath: '/admin/blog/'
       preLoaderRoute: typeof AuthenticatedAdminBlogIndexRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
-    }
-    '/_authenticated/admin/website/homepage': {
-      id: '/_authenticated/admin/website/homepage'
-      path: '/website/homepage'
-      fullPath: '/admin/website/homepage'
-      preLoaderRoute: typeof AuthenticatedAdminWebsiteHomepageRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/admin/website/header': {
@@ -485,7 +446,6 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminKeamananRoute: typeof AuthenticatedAdminKeamananRoute
   AuthenticatedAdminLogRoute: typeof AuthenticatedAdminLogRoute
   AuthenticatedAdminMediaRoute: typeof AuthenticatedAdminMediaRoute
-  AuthenticatedAdminMenuRoute: typeof AuthenticatedAdminMenuRoute
   AuthenticatedAdminPengaturanRoute: typeof AuthenticatedAdminPengaturanRoute
   AuthenticatedAdminPenggunaRoute: typeof AuthenticatedAdminPenggunaRoute
   AuthenticatedAdminRedirectRoute: typeof AuthenticatedAdminRedirectRoute
@@ -497,7 +457,6 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminBlogNewRoute: typeof AuthenticatedAdminBlogNewRoute
   AuthenticatedAdminWebsiteFooterRoute: typeof AuthenticatedAdminWebsiteFooterRoute
   AuthenticatedAdminWebsiteHeaderRoute: typeof AuthenticatedAdminWebsiteHeaderRoute
-  AuthenticatedAdminWebsiteHomepageRoute: typeof AuthenticatedAdminWebsiteHomepageRoute
   AuthenticatedAdminBlogIndexRoute: typeof AuthenticatedAdminBlogIndexRoute
 }
 
@@ -505,7 +464,6 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminKeamananRoute: AuthenticatedAdminKeamananRoute,
   AuthenticatedAdminLogRoute: AuthenticatedAdminLogRoute,
   AuthenticatedAdminMediaRoute: AuthenticatedAdminMediaRoute,
-  AuthenticatedAdminMenuRoute: AuthenticatedAdminMenuRoute,
   AuthenticatedAdminPengaturanRoute: AuthenticatedAdminPengaturanRoute,
   AuthenticatedAdminPenggunaRoute: AuthenticatedAdminPenggunaRoute,
   AuthenticatedAdminRedirectRoute: AuthenticatedAdminRedirectRoute,
@@ -517,8 +475,6 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminBlogNewRoute: AuthenticatedAdminBlogNewRoute,
   AuthenticatedAdminWebsiteFooterRoute: AuthenticatedAdminWebsiteFooterRoute,
   AuthenticatedAdminWebsiteHeaderRoute: AuthenticatedAdminWebsiteHeaderRoute,
-  AuthenticatedAdminWebsiteHomepageRoute:
-    AuthenticatedAdminWebsiteHomepageRoute,
   AuthenticatedAdminBlogIndexRoute: AuthenticatedAdminBlogIndexRoute,
 }
 
