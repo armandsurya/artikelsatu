@@ -11,7 +11,7 @@ import { SectionMetaForm } from "./SectionMetaForm";
 import { EditorToolbar, type SectionStatus } from "./EditorToolbar";
 import { UnsavedDialog } from "./UnsavedDialog";
 import { VersionPanel, type VersionRow } from "./VersionPanel";
-import { DEFAULTS, SECTION_META, type SectionKey } from "@/data/homepageDefaults";
+import { DEFAULTS, SECTION_META, SECTION_META_DEFAULTS, type SectionKey } from "@/data/homepageDefaults";
 import {
   splitMeta, joinMeta, jsonEqual, DEFAULT_META, type SectionMeta,
 } from "@/lib/admin/sectionMeta";
@@ -73,7 +73,9 @@ export function SectionEditor<T>({
       const { data: existing } = await supabase
         .from("homepage_sections").select("*").eq("section_key", sectionKey).maybeSingle();
 
-      const defaultRaw = joinMeta(DEFAULT_META, DEFAULTS[sectionKey]);
+      // Seed defaults with per-section meta so admin sees the current frontend badge/subtitle.
+      const seedMeta: SectionMeta = { ...DEFAULT_META, ...SECTION_META_DEFAULTS[sectionKey] };
+      const defaultRaw = joinMeta(seedMeta, DEFAULTS[sectionKey]);
       const isEmpty = (v: unknown) =>
         !v || typeof v !== "object" || Array.isArray(v) || Object.keys(v as object).length === 0;
 
@@ -133,10 +135,27 @@ export function SectionEditor<T>({
     function applyRow(row: Row) {
       const draftRaw = row.draft_data as Record<string, unknown>;
       const pubRaw = row.data as Record<string, unknown>;
-      setServerDraft(draftRaw);
-      setServerPublished(pubRaw);
       const { meta: mm, content: cc } = splitMeta<T>(draftRaw);
-      setSectionMeta(mm);
+      // Backfill badge/subtitle from per-section defaults so admin sees actual
+      // current frontend values instead of empty fields. Normalize serverDraft
+      // with the same merged meta so isDirty doesn't fire on first load.
+      const d = SECTION_META_DEFAULTS[sectionKey];
+      const mergedMeta: SectionMeta = {
+        ...mm,
+        badge: (mm.badge && mm.badge.trim()) || d.badge,
+        subtitle: (mm.subtitle && mm.subtitle.trim()) || d.subtitle,
+      };
+      const normalizedDraft = joinMeta(mergedMeta, cc);
+      const { meta: pubMeta, content: pubContent } = splitMeta<T>(pubRaw);
+      const mergedPubMeta: SectionMeta = {
+        ...pubMeta,
+        badge: (pubMeta.badge && pubMeta.badge.trim()) || d.badge,
+        subtitle: (pubMeta.subtitle && pubMeta.subtitle.trim()) || d.subtitle,
+      };
+      const normalizedPub = joinMeta(mergedPubMeta, pubContent);
+      setServerDraft(normalizedDraft);
+      setServerPublished(normalizedPub);
+      setSectionMeta(mergedMeta);
       setContent(cc);
       setTitle(row.title ?? meta.title);
       setSortOrder(row.sort_order ?? meta.sortOrder);

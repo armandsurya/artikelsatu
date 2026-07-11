@@ -4,8 +4,8 @@
  * empty object. Returns a per-section "source" tag for the debug badge.
  */
 import type { SectionKey } from "@/data/homepageDefaults";
-import { DEFAULTS } from "@/data/homepageDefaults";
-import { splitMeta } from "@/lib/admin/sectionMeta";
+import { DEFAULTS, SECTION_META_DEFAULTS } from "@/data/homepageDefaults";
+import { splitMeta, DEFAULT_META, type SectionMeta } from "@/lib/admin/sectionMeta";
 import type {
   HeroFormData, StatItem, ProblemItem, SolutionRow, WorkflowItem, AdvantageItem,
   ServiceItem, PortfolioItem, PricingItem, ComparisonRow, FAQItem, BlogPreviewData, CTAData,
@@ -22,43 +22,74 @@ import { mainNav as staticMainNav } from "@/data/navigation";
 
 export type SectionSource = "database" | "fallback";
 
+/** Per-section meta after merging DB values with SECTION_META_DEFAULTS. */
+export type ResolvedMeta = {
+  eyebrow: string;    // meta.badge → SectionHeader eyebrow
+  subtitle: string;   // meta.subtitle → SectionHeader description
+  bgColor: string;
+  bgImage: string;
+  paddingTop: number;
+  paddingBottom: number;
+};
+
+type MappedBase = { source: SectionSource; title?: string; meta: ResolvedMeta; lastPublishedAt?: string | null };
+
 export type MappedSection =
-  | { type: "hero"; source: SectionSource; title?: string; data: HeroData }
-  | { type: "stats"; source: SectionSource; title?: string; data: Statistic[] }
-  | { type: "problems"; source: SectionSource; title?: string; data: ProblemT[] }
-  | { type: "solutions"; source: SectionSource; title?: string; data: ComparisonItem[] }
-  | { type: "workflow"; source: SectionSource; title?: string; data: WorkflowStep[] }
-  | { type: "advantages"; source: SectionSource; title?: string; data: Advantage[] }
-  | { type: "services"; source: SectionSource; title?: string; data: Service[] }
-  | { type: "portfolio"; source: SectionSource; title?: string; data: Portfolio[] }
-  | { type: "pricing"; source: SectionSource; title?: string; data: PricingPackage[] }
-  | { type: "comparison"; source: SectionSource; title?: string; data: CompetitorComparison[] }
-  | { type: "faq"; source: SectionSource; title?: string; data: FAQT[] }
-  | { type: "blogPreview"; source: SectionSource; title?: string; count: number; category: string; data: BlogPost[] }
-  | { type: "cta"; source: SectionSource; data: CTASectionData };
+  | ({ type: "hero"; data: HeroData } & MappedBase)
+  | ({ type: "stats"; data: Statistic[] } & MappedBase)
+  | ({ type: "problems"; data: ProblemT[] } & MappedBase)
+  | ({ type: "solutions"; data: ComparisonItem[] } & MappedBase)
+  | ({ type: "workflow"; data: WorkflowStep[] } & MappedBase)
+  | ({ type: "advantages"; data: Advantage[] } & MappedBase)
+  | ({ type: "services"; data: Service[] } & MappedBase)
+  | ({ type: "portfolio"; data: Portfolio[] } & MappedBase)
+  | ({ type: "pricing"; data: PricingPackage[] } & MappedBase)
+  | ({ type: "comparison"; data: CompetitorComparison[] } & MappedBase)
+  | ({ type: "faq"; data: FAQT[] } & MappedBase)
+  | ({ type: "blogPreview"; count: number; category: string; data: BlogPost[] } & MappedBase)
+  | ({ type: "cta"; data: CTASectionData } & MappedBase);
 
 const isEmpty = (v: unknown) =>
   !v || typeof v !== "object" || Array.isArray(v) || Object.keys(v as object).length === 0;
 
-/** Pick DB content or static default (returns source + content). */
-function pickContent<T>(key: SectionKey, dbData: Record<string, unknown> | null): { source: SectionSource; content: T } {
+/** Merge stored meta with per-section defaults so empty badge/subtitle falls back to frontend literals. */
+export function resolveMeta(key: SectionKey, m: SectionMeta | null | undefined): ResolvedMeta {
+  const src = { ...DEFAULT_META, ...(m ?? {}) };
+  const d = SECTION_META_DEFAULTS[key];
+  return {
+    eyebrow: (src.badge && src.badge.trim()) || d.badge,
+    subtitle: (src.subtitle && src.subtitle.trim()) || d.subtitle,
+    bgColor: src.bgColor || "",
+    bgImage: src.bgImage || "",
+    paddingTop: Number.isFinite(src.paddingTop) ? src.paddingTop : 96,
+    paddingBottom: Number.isFinite(src.paddingBottom) ? src.paddingBottom : 96,
+  };
+}
+
+/** Pick DB content or static default (returns source + content + raw meta). */
+function pickContent<T>(key: SectionKey, dbData: Record<string, unknown> | null): { source: SectionSource; content: T; meta: SectionMeta } {
   if (dbData && !isEmpty(dbData)) {
-    const { content } = splitMeta<T>(dbData);
-    if (!isEmpty(content as unknown)) return { source: "database", content };
+    const { content, meta } = splitMeta<T>(dbData);
+    if (!isEmpty(content as unknown)) return { source: "database", content, meta };
   }
-  return { source: "fallback", content: DEFAULTS[key] as T };
+  const { content, meta } = splitMeta<T>(DEFAULTS[key]);
+  return { source: "fallback", content, meta };
 }
 
 /* ---------------- Section mappers ---------------- */
 
-function mapHero(v: HeroFormData): HeroData {
+function mapHero(v: HeroFormData, meta?: ResolvedMeta): HeroData {
   const secondary = v.secondaryButtonTarget === "custom" && v.secondaryButtonCustomUrl
     ? v.secondaryButtonCustomUrl
     : v.secondaryButtonTarget;
+  // For Hero, meta.badge/subtitle from the CMS "Section Badge / Section Subtitle"
+  // override the legacy content.badge/description so admin has a single place to edit.
+  const badge = (meta?.eyebrow || v.badge || "").trim() || undefined;
+  const description = (meta?.subtitle || v.description || "").trim();
   return {
-    badge: v.badge || undefined,
+    badge,
     title: v.title,
-    description: v.description,
+    description,
     primaryButtonText: v.primaryButtonText,
     primaryButtonLink: v.primaryButtonLink,
     secondaryButtonText: v.secondaryButtonText,
@@ -192,60 +223,67 @@ export function mapPublishedSection(
   dbData: Record<string, unknown> | null,
   title: string | null,
   blogPosts: BlogPost[],
+  lastPublishedAt?: string | null,
 ): MappedSection {
+  const base = (source: SectionSource, m: SectionMeta) => ({
+    source,
+    meta: resolveMeta(key, m),
+    lastPublishedAt: lastPublishedAt ?? null,
+  });
   switch (key) {
     case "hero": {
-      const { source, content } = pickContent<HeroFormData>("hero", dbData);
-      return { type: "hero", source, data: mapHero(content) };
+      const { source, content, meta } = pickContent<HeroFormData>("hero", dbData);
+      const b = base(source, meta);
+      return { type: "hero", ...b, data: mapHero(content, b.meta) };
     }
     case "stats": {
-      const { source, content } = pickContent<{ items: StatItem[] }>("stats", dbData);
-      return { type: "stats", source, data: mapStats(content) };
+      const { source, content, meta } = pickContent<{ items: StatItem[] }>("stats", dbData);
+      return { type: "stats", ...base(source, meta), data: mapStats(content) };
     }
     case "problems": {
-      const { source, content } = pickContent<{ items: ProblemItem[] }>("problems", dbData);
-      return { type: "problems", source, title: title ?? undefined, data: mapProblems(content) };
+      const { source, content, meta } = pickContent<{ items: ProblemItem[] }>("problems", dbData);
+      return { type: "problems", ...base(source, meta), title: title ?? undefined, data: mapProblems(content) };
     }
     case "solutions": {
-      const { source, content } = pickContent<{ items: SolutionRow[] }>("solutions", dbData);
-      return { type: "solutions", source, title: title ?? undefined, data: mapSolutions(content) };
+      const { source, content, meta } = pickContent<{ items: SolutionRow[] }>("solutions", dbData);
+      return { type: "solutions", ...base(source, meta), title: title ?? undefined, data: mapSolutions(content) };
     }
     case "workflow": {
-      const { source, content } = pickContent<{ items: WorkflowItem[] }>("workflow", dbData);
-      return { type: "workflow", source, title: title ?? undefined, data: mapWorkflow(content) };
+      const { source, content, meta } = pickContent<{ items: WorkflowItem[] }>("workflow", dbData);
+      return { type: "workflow", ...base(source, meta), title: title ?? undefined, data: mapWorkflow(content) };
     }
     case "advantages": {
-      const { source, content } = pickContent<{ items: AdvantageItem[] }>("advantages", dbData);
-      return { type: "advantages", source, title: title ?? undefined, data: mapAdvantages(content) };
+      const { source, content, meta } = pickContent<{ items: AdvantageItem[] }>("advantages", dbData);
+      return { type: "advantages", ...base(source, meta), title: title ?? undefined, data: mapAdvantages(content) };
     }
     case "services": {
-      const { source, content } = pickContent<{ items: ServiceItem[] }>("services", dbData);
-      return { type: "services", source, title: title ?? undefined, data: mapServices(content) };
+      const { source, content, meta } = pickContent<{ items: ServiceItem[] }>("services", dbData);
+      return { type: "services", ...base(source, meta), title: title ?? undefined, data: mapServices(content) };
     }
     case "portfolio": {
-      const { source, content } = pickContent<{ items: PortfolioItem[] }>("portfolio", dbData);
-      return { type: "portfolio", source, title: title ?? undefined, data: mapPortfolio(content) };
+      const { source, content, meta } = pickContent<{ items: PortfolioItem[] }>("portfolio", dbData);
+      return { type: "portfolio", ...base(source, meta), title: title ?? undefined, data: mapPortfolio(content) };
     }
     case "pricing": {
-      const { source, content } = pickContent<{ items: PricingItem[] }>("pricing", dbData);
-      return { type: "pricing", source, title: title ?? undefined, data: mapPricing(content) };
+      const { source, content, meta } = pickContent<{ items: PricingItem[] }>("pricing", dbData);
+      return { type: "pricing", ...base(source, meta), title: title ?? undefined, data: mapPricing(content) };
     }
     case "comparison": {
-      const { source, content } = pickContent<{ rows: ComparisonRow[] }>("comparison", dbData);
-      return { type: "comparison", source, title: title ?? undefined, data: mapComparison(content) };
+      const { source, content, meta } = pickContent<{ rows: ComparisonRow[] }>("comparison", dbData);
+      return { type: "comparison", ...base(source, meta), title: title ?? undefined, data: mapComparison(content) };
     }
     case "faq": {
-      const { source, content } = pickContent<{ items: FAQItem[] }>("faq", dbData);
-      return { type: "faq", source, title: title ?? undefined, data: mapFaq(content) };
+      const { source, content, meta } = pickContent<{ items: FAQItem[] }>("faq", dbData);
+      return { type: "faq", ...base(source, meta), title: title ?? undefined, data: mapFaq(content) };
     }
     case "blogPreview": {
-      const { source, content } = pickContent<BlogPreviewData>("blogPreview", dbData);
+      const { source, content, meta } = pickContent<BlogPreviewData>("blogPreview", dbData);
       const count = Math.max(1, Number(content.count) || 3);
       const cat = content.category || "auto";
       const filtered = cat === "auto" || !cat ? blogPosts : blogPosts.filter((p) => p.category === cat);
       return {
         type: "blogPreview",
-        source,
+        ...base(source, meta),
         title: title ?? content.sectionTitle ?? "Artikel Terbaru",
         count,
         category: cat,
@@ -253,8 +291,8 @@ export function mapPublishedSection(
       };
     }
     case "cta": {
-      const { source, content } = pickContent<CTAData>("cta", dbData);
-      return { type: "cta", source, data: mapCta(content) };
+      const { source, content, meta } = pickContent<CTAData>("cta", dbData);
+      return { type: "cta", ...base(source, meta), data: mapCta(content) };
     }
   }
 }

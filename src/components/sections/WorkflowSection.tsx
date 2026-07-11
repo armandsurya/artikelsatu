@@ -1,14 +1,14 @@
 import type { WorkflowStep } from "@/types";
 import { SectionHeader } from "@/components/SectionHeader";
 
-export function WorkflowSection({ title, data }: { title?: string; data: WorkflowStep[] }) {
+export function WorkflowSection({ eyebrow, subtitle, title, data }: { eyebrow?: string; subtitle?: string; title?: string; data: WorkflowStep[] }) {
   return (
     <section id="workflow" className="bg-background">
       <div className="container-narrow py-20">
         <SectionHeader
-          eyebrow="Cara Kerja"
+          eyebrow={eyebrow ?? "Cara Kerja"}
           title={title ?? "Alur Pengerjaan yang Jelas"}
-          description="Proses yang transparan dari brief hingga artikel siap publish."
+          description={subtitle ?? "Proses yang transparan dari brief hingga artikel siap publish."}
         />
 
         <ol className="mt-14 grid gap-6 md:grid-cols-5">
