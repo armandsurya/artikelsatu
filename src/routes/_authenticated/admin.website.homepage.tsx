@@ -124,7 +124,7 @@ function SectionPane({ row, onSaved }: { row: SectionRow; onSaved: () => void })
       data: state as never,
     };
     if (opts?.publish) payload.is_visible = true;
-    const { error } = await supabase.from("homepage_sections").update(payload).eq("id", row.id);
+    const { error } = await supabase.from("homepage_sections").update(payload as never).eq("id", row.id);
     if (error) { setSaveState("error"); return; }
     setSaveState("saved");
     setSavedAt(new Date().toISOString());
