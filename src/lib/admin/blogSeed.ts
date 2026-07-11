@@ -42,16 +42,16 @@ export async function ensureBlogSeeded(): Promise<void> {
       excerpt: p.excerpt,
       featured_image: p.featuredImage,
       category_id: catMap.get(p.category) ?? null,
-      author: p.author,
       published_at: p.publishedDate ? new Date(p.publishedDate).toISOString() : null,
       read_time: p.readTime,
       tags: p.tags ?? [],
       status: p.status ?? "published",
-      content: `<p>${p.excerpt}</p>`,
+      content: { html: `<p>${p.excerpt}</p>`, author: p.author } as never,
     }));
     await supabase.from("blog_posts").insert(rows as never);
   }
 }
+
 
 function slugify(s: string): string {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
