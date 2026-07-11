@@ -22,7 +22,6 @@ const NAV: Item[] = [
     { label: "Media", to: "/admin/media" },
   ]},
   { label: "SEO", to: "/admin/seo", icon: Search },
-  { label: "Menu", to: "/admin/menu", icon: Menu },
   { label: "Redirect URL", to: "/admin/redirect", icon: ArrowRightLeft },
   { label: "Pengguna", to: "/admin/pengguna", icon: Users },
   { label: "Role & Permission", to: "/admin/roles", icon: KeyRound },

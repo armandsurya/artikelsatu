@@ -30,6 +30,8 @@ import { Route as AuthenticatedAdminWebsiteFooterRouteImport } from './routes/_a
 import { Route as AuthenticatedAdminBlogNewRouteImport } from './routes/_authenticated/admin.blog.new'
 import { Route as AuthenticatedAdminBlogKategoriRouteImport } from './routes/_authenticated/admin.blog.kategori'
 import { Route as AuthenticatedAdminBlogIdRouteImport } from './routes/_authenticated/admin.blog.$id'
+import { Route as AuthenticatedAdminWebsiteHomepageIndexRouteImport } from './routes/_authenticated/admin.website.homepage.index'
+import { Route as AuthenticatedAdminWebsiteHomepageSectionRouteImport } from './routes/_authenticated/admin.website.homepage.$section'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
@@ -145,6 +147,18 @@ const AuthenticatedAdminBlogIdRoute =
     path: '/blog/$id',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminWebsiteHomepageIndexRoute =
+  AuthenticatedAdminWebsiteHomepageIndexRouteImport.update({
+    id: '/website/homepage/',
+    path: '/website/homepage/',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminWebsiteHomepageSectionRoute =
+  AuthenticatedAdminWebsiteHomepageSectionRouteImport.update({
+    id: '/website/homepage/$section',
+    path: '/website/homepage/$section',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -167,6 +181,8 @@ export interface FileRoutesByFullPath {
   '/admin/website/footer': typeof AuthenticatedAdminWebsiteFooterRoute
   '/admin/website/header': typeof AuthenticatedAdminWebsiteHeaderRoute
   '/admin/blog/': typeof AuthenticatedAdminBlogIndexRoute
+  '/admin/website/homepage/$section': typeof AuthenticatedAdminWebsiteHomepageSectionRoute
+  '/admin/website/homepage/': typeof AuthenticatedAdminWebsiteHomepageIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -188,6 +204,8 @@ export interface FileRoutesByTo {
   '/admin/website/footer': typeof AuthenticatedAdminWebsiteFooterRoute
   '/admin/website/header': typeof AuthenticatedAdminWebsiteHeaderRoute
   '/admin/blog': typeof AuthenticatedAdminBlogIndexRoute
+  '/admin/website/homepage/$section': typeof AuthenticatedAdminWebsiteHomepageSectionRoute
+  '/admin/website/homepage': typeof AuthenticatedAdminWebsiteHomepageIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -212,6 +230,8 @@ export interface FileRoutesById {
   '/_authenticated/admin/website/footer': typeof AuthenticatedAdminWebsiteFooterRoute
   '/_authenticated/admin/website/header': typeof AuthenticatedAdminWebsiteHeaderRoute
   '/_authenticated/admin/blog/': typeof AuthenticatedAdminBlogIndexRoute
+  '/_authenticated/admin/website/homepage/$section': typeof AuthenticatedAdminWebsiteHomepageSectionRoute
+  '/_authenticated/admin/website/homepage/': typeof AuthenticatedAdminWebsiteHomepageIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -236,6 +256,8 @@ export interface FileRouteTypes {
     | '/admin/website/footer'
     | '/admin/website/header'
     | '/admin/blog/'
+    | '/admin/website/homepage/$section'
+    | '/admin/website/homepage/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -257,6 +279,8 @@ export interface FileRouteTypes {
     | '/admin/website/footer'
     | '/admin/website/header'
     | '/admin/blog'
+    | '/admin/website/homepage/$section'
+    | '/admin/website/homepage'
   id:
     | '__root__'
     | '/'
@@ -280,6 +304,8 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/website/footer'
     | '/_authenticated/admin/website/header'
     | '/_authenticated/admin/blog/'
+    | '/_authenticated/admin/website/homepage/$section'
+    | '/_authenticated/admin/website/homepage/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -439,6 +465,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminBlogIdRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/website/homepage/': {
+      id: '/_authenticated/admin/website/homepage/'
+      path: '/website/homepage'
+      fullPath: '/admin/website/homepage/'
+      preLoaderRoute: typeof AuthenticatedAdminWebsiteHomepageIndexRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/website/homepage/$section': {
+      id: '/_authenticated/admin/website/homepage/$section'
+      path: '/website/homepage/$section'
+      fullPath: '/admin/website/homepage/$section'
+      preLoaderRoute: typeof AuthenticatedAdminWebsiteHomepageSectionRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
   }
 }
 
@@ -458,6 +498,8 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminWebsiteFooterRoute: typeof AuthenticatedAdminWebsiteFooterRoute
   AuthenticatedAdminWebsiteHeaderRoute: typeof AuthenticatedAdminWebsiteHeaderRoute
   AuthenticatedAdminBlogIndexRoute: typeof AuthenticatedAdminBlogIndexRoute
+  AuthenticatedAdminWebsiteHomepageSectionRoute: typeof AuthenticatedAdminWebsiteHomepageSectionRoute
+  AuthenticatedAdminWebsiteHomepageIndexRoute: typeof AuthenticatedAdminWebsiteHomepageIndexRoute
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
@@ -476,6 +518,10 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminWebsiteFooterRoute: AuthenticatedAdminWebsiteFooterRoute,
   AuthenticatedAdminWebsiteHeaderRoute: AuthenticatedAdminWebsiteHeaderRoute,
   AuthenticatedAdminBlogIndexRoute: AuthenticatedAdminBlogIndexRoute,
+  AuthenticatedAdminWebsiteHomepageSectionRoute:
+    AuthenticatedAdminWebsiteHomepageSectionRoute,
+  AuthenticatedAdminWebsiteHomepageIndexRoute:
+    AuthenticatedAdminWebsiteHomepageIndexRoute,
 }
 
 const AuthenticatedAdminRouteWithChildren =
