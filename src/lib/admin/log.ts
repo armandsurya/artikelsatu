@@ -4,7 +4,7 @@ export async function logActivity(action: string, entity?: string, entity_id?: s
   const { data } = await supabase.auth.getUser();
   if (!data.user) return;
   await supabase.from("activity_log").insert({
-    user_id: data.user.id, action, entity: entity ?? null, entity_id: entity_id ?? null, meta: meta ?? {},
+    user_id: data.user.id, action, entity: entity ?? null, entity_id: entity_id ?? null, meta: (meta ?? {}) as never,
   });
 }
 
