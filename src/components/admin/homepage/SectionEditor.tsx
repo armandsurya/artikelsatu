@@ -247,16 +247,6 @@ export function SectionEditor<T>({
       setSaving(false);
     }
   }
-      setServerDraft(payload);
-      setSavedAt(nowIso);
-      setRowSnap({ title, sortOrder, visible });
-      await logActivity("save_draft_section", "homepage_sections", sectionKey);
-      toast.success("Perubahan berhasil disimpan sebagai draft");
-      return true;
-    } finally {
-      setSaving(false);
-    }
-  }
 
   async function publish() {
     if (!content) return;
