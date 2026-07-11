@@ -88,6 +88,7 @@ function FooterEditor() {
       const { error } = await patchSiteSettings({ footer: local });
       if (error) { console.error("[footer publish]", error); toast.error("Gagal mem-publish footer", { description: error.message }); return; }
       setLive(local);
+      queryClient.invalidateQueries({ queryKey: PUBLISHED_QUERY_KEY });
       await logActivity("publish_footer", "site_settings", "footer");
       toast.success("Footer berhasil di-publish");
     } finally { setPublishing(false); }

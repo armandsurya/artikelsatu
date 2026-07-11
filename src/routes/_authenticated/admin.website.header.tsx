@@ -92,6 +92,7 @@ function HeaderEditor() {
         return;
       }
       setLive(local);
+      queryClient.invalidateQueries({ queryKey: PUBLISHED_QUERY_KEY });
       await logActivity("publish_header", "site_settings", "header");
       toast.success("Header berhasil di-publish");
     } finally { setPublishing(false); }
