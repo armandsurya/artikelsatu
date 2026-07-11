@@ -11,12 +11,14 @@ import { analyzeSeo } from "@/lib/blog/seoScore";
 import { saveRevision, listRevisions, getRevision } from "@/lib/blog/revisions";
 import {
   ArrowLeft, Save, Loader2, Eye, Send, Copy, EyeOff, Archive, RotateCcw,
-  Check, AlertCircle, FileText, History, Trash2, Clock,
+  Check, AlertCircle, FileText, History, Clock, Image as ImageIcon,
+  Search as SearchIcon, Settings as SettingsIcon, User as UserIcon,
 } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 
 type Props = { mode: "new" | "edit"; id?: string; onSaved?: (id: string) => void };
-type Status = Database["public"]["Enums"]["post_status"]; // draft | published | scheduled | archived
+type Status = Database["public"]["Enums"]["post_status"];
+type TabKey = "konten" | "media" | "seo" | "pengaturan" | "revisi";
 
 function calcReadTime(html: string) {
   const text = html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
@@ -44,6 +46,14 @@ const STATUS_STYLES: Record<Status, string> = {
   archived: "bg-slate-200 text-slate-700",
 };
 
+const TABS: { key: TabKey; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
+  { key: "konten", label: "Konten", icon: FileText },
+  { key: "media", label: "Media", icon: ImageIcon },
+  { key: "seo", label: "SEO", icon: SearchIcon },
+  { key: "pengaturan", label: "Pengaturan", icon: SettingsIcon },
+  { key: "revisi", label: "Revisi", icon: History },
+];
+
 export function BlogEditor({ mode, id, onSaved }: Props) {
   const navigate = useNavigate();
   const qc = useQueryClient();
@@ -53,29 +63,41 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
   const [excerpt, setExcerpt] = useState("");
   const [content, setContent] = useState("");
   const [featuredImage, setFeaturedImage] = useState("");
+  const [imageAlt, setImageAlt] = useState("");
+  const [imageCaption, setImageCaption] = useState("");
   const [categoryId, setCategoryId] = useState<string>("");
   const [metaTitle, setMetaTitle] = useState("");
   const [metaDesc, setMetaDesc] = useState("");
   const [canonical, setCanonical] = useState("");
+  const [ogTitle, setOgTitle] = useState("");
+  const [ogDesc, setOgDesc] = useState("");
+  const [robotsIndex, setRobotsIndex] = useState<"index" | "noindex">("index");
   const [tags, setTags] = useState("");
   const [focusKeyword, setFocusKeyword] = useState("");
   const [status, setStatus] = useState<Status>("draft");
   const [publishedAt, setPublishedAt] = useState("");
   const [scheduledAt, setScheduledAt] = useState("");
   const [readTime, setReadTime] = useState(5);
+  const [authorId, setAuthorId] = useState<string | null>(null);
   const [loading, setLoading] = useState(mode === "edit");
   const [busy, setBusy] = useState<null | "draft" | "publish" | "unpublish" | "duplicate" | "schedule" | "archive" | "restore">(null);
   const [toast, setToast] = useState<{ kind: "ok" | "err"; msg: string } | null>(null);
   const [dirty, setDirty] = useState(false);
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
   const [lastPublishedAt, setLastPublishedAt] = useState<string | null>(null);
-  const [showRevisions, setShowRevisions] = useState(false);
+  const [tab, setTab] = useState<TabKey>("konten");
   const initialized = useRef(false);
   const currentId = useRef<string | undefined>(id);
 
   const { data: categories = [] } = useQuery({
     queryKey: ["categories"],
     queryFn: async () => (await supabase.from("blog_categories").select("id, name").order("name")).data ?? [],
+  });
+
+  const { data: authorName } = useQuery({
+    queryKey: ["profile-name", authorId],
+    enabled: !!authorId,
+    queryFn: async () => (await supabase.from("profiles").select("full_name").eq("id", authorId!).maybeSingle()).data?.full_name ?? null,
   });
 
   useEffect(() => {
@@ -97,6 +119,7 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
       setScheduledAt(data.scheduled_at ? data.scheduled_at.slice(0, 16) : "");
       setLastSavedAt(data.updated_at ?? null);
       setLastPublishedAt(data.published_at ?? null);
+      setAuthorId(data.author_id ?? null);
       setLoading(false);
       setTimeout(() => { initialized.current = true; setDirty(false); }, 0);
     });
@@ -109,7 +132,7 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
   useEffect(() => {
     if (!initialized.current) return;
     setDirty(true);
-  }, [title, slug, excerpt, content, featuredImage, categoryId, metaTitle, metaDesc, canonical, tags, publishedAt, scheduledAt, focusKeyword]);
+  }, [title, slug, excerpt, content, featuredImage, imageAlt, imageCaption, categoryId, metaTitle, metaDesc, canonical, ogTitle, ogDesc, robotsIndex, tags, publishedAt, scheduledAt, focusKeyword]);
 
   const stats = useMemo(() => calcReadTime(content), [content]);
   useEffect(() => { if (stats.minutes && stats.minutes !== readTime) setReadTime(stats.minutes); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [stats.minutes]);
@@ -137,6 +160,8 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
     metaDesc: metaDesc.trim().length >= 50 && metaDesc.trim().length <= 160,
   }), [title, slug, categoryId, stats.words, metaTitle, metaDesc]);
   const publishReady = Object.values(checklist).every(Boolean);
+  const checklistDone = Object.values(checklist).filter(Boolean).length;
+  const checklistTotal = Object.keys(checklist).length;
 
   async function persist(nextStatus: Status, opts: { schedule?: string | null } = {}): Promise<{ id: string; slug: string } | null> {
     if (!title.trim()) throw new Error("Judul artikel wajib diisi");
@@ -168,7 +193,7 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
       scheduled_at: nextStatus === "scheduled" ? scheduleIso : null,
       seo_score: seo.score,
       seo_report: seo as never,
-      author_id: user.user?.id,
+      author_id: authorId ?? user.user?.id,
       last_editor_id: user.user?.id,
     };
 
@@ -196,7 +221,6 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
       "blog_posts", saved.id, { title: payload.title, status: nextStatus },
     );
 
-    // Save revision snapshot
     try {
       await saveRevision({
         post_id: saved.id,
@@ -215,7 +239,6 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
         reason: nextStatus,
       });
     } catch (e) {
-      // Non-fatal
       console.warn("saveRevision failed", e);
     }
 
@@ -231,10 +254,10 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
       let nextStatus: Status;
       let schedule: string | null = null;
       if (action === "publish") {
-        if (!publishReady) throw new Error("Checklist Publish belum lengkap.");
+        if (!publishReady) throw new Error("Checklist Publish belum lengkap. Cek tab SEO & Konten.");
         nextStatus = "published";
       } else if (action === "schedule") {
-        if (!scheduledAt) throw new Error("Tentukan tanggal & waktu publish terlebih dahulu.");
+        if (!scheduledAt) throw new Error("Tentukan tanggal & waktu publish di tab Pengaturan.");
         if (new Date(scheduledAt).getTime() <= Date.now()) throw new Error("Waktu jadwal harus di masa depan.");
         if (!publishReady) throw new Error("Checklist Publish belum lengkap.");
         nextStatus = "scheduled";
@@ -313,31 +336,30 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
 
   return (
     <div>
-      {/* Sticky editor header */}
-      <div className="sticky top-0 z-20 -mx-6 mb-6 border-b border-border bg-background/95 px-6 py-3 backdrop-blur">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2">
-              <Link to="/admin/blog" className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-border text-muted-foreground hover:bg-accent"><ArrowLeft className="h-4 w-4" /></Link>
+      {/* Sticky header: judul, status, meta, tombol aksi */}
+      <div className="sticky top-0 z-20 -mx-6 mb-4 border-b border-border bg-background/95 px-6 py-3 backdrop-blur">
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <Link to="/admin/blog" className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border text-muted-foreground hover:bg-accent"><ArrowLeft className="h-4 w-4" /></Link>
               <span className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold ${STATUS_STYLES[status]}`}>{status.toUpperCase()}</span>
               {status === "scheduled" && scheduledAt && (
                 <span className="inline-flex items-center gap-1 text-[11px] text-blue-700"><Clock className="h-3 w-3" />{fmt(new Date(scheduledAt).toISOString())}</span>
               )}
-              {dirty && <span className="text-[11px] font-medium text-amber-600">• Perubahan belum disimpan</span>}
+              {dirty && <span className="text-[11px] font-medium text-amber-600">• Belum disimpan</span>}
+              <span className={`ml-1 rounded-full border px-2 py-0.5 text-[11px] ${publishReady ? "border-green-200 bg-green-50 text-green-700" : "border-amber-200 bg-amber-50 text-amber-700"}`}>
+                Checklist {checklistDone}/{checklistTotal}
+              </span>
             </div>
             <h1 className="mt-1 truncate text-lg font-semibold text-secondary">{title || (mode === "new" ? "Artikel Baru" : "Tanpa Judul")}</h1>
             <div className="mt-0.5 flex flex-wrap gap-x-4 gap-y-0.5 text-[11px] text-muted-foreground">
-              <span>Last saved: {fmt(lastSavedAt)}</span>
-              <span>Last published: {fmt(lastPublishedAt)}</span>
-              <span>{stats.words} kata • {stats.chars} karakter • ~{stats.minutes} mnt baca</span>
+              <span className="inline-flex items-center gap-1"><UserIcon className="h-3 w-3" />{authorName ?? "—"}</span>
+              <span>Saved: {fmt(lastSavedAt)}</span>
+              <span>Published: {fmt(lastPublishedAt)}</span>
+              <span>{stats.words} kata · ~{stats.minutes} mnt</span>
             </div>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            {currentId.current && (
-              <button onClick={() => setShowRevisions(true)} className={btnGhost} title="Riwayat Revisi">
-                <History className="h-4 w-4" /> Revisi
-              </button>
-            )}
+          <div className="flex flex-wrap items-center justify-end gap-2">
             {currentId.current && (
               <button onClick={handleDuplicate} disabled={!!busy} className={btnGhost} title="Duplikat artikel">
                 {busy === "duplicate" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Copy className="h-4 w-4" />} Duplicate
@@ -373,7 +395,7 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
                   </button>
                 )}
                 <button onClick={() => handle("publish")} disabled={!!busy || !publishReady} className={btnPrimary}
-                  title={publishReady ? "Publish artikel" : "Lengkapi checklist di sidebar terlebih dahulu"}>
+                  title={publishReady ? "Publish artikel" : "Lengkapi checklist (lihat tab SEO)"}>
                   {busy === "publish" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                   {status === "published" ? "Update Publish" : "Publish"}
                 </button>
@@ -386,168 +408,341 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
             {toast.kind === "ok" ? <Check className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />} {toast.msg}
           </div>
         )}
+
+        {/* Tab bar */}
+        <div className="mt-3 flex flex-wrap gap-1 border-b border-border">
+          {TABS.map((t) => {
+            const Icon = t.icon;
+            const active = tab === t.key;
+            return (
+              <button
+                key={t.key}
+                onClick={() => setTab(t.key)}
+                className={`inline-flex items-center gap-1.5 border-b-2 px-3 py-2 text-sm font-medium transition-colors ${
+                  active
+                    ? "border-primary text-primary"
+                    : "border-transparent text-muted-foreground hover:text-secondary"
+                }`}
+              >
+                <Icon className="h-4 w-4" /> {t.label}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
-        <div className="space-y-4">
-          <Field label="Judul"><input value={title} onChange={(e) => setTitle(e.target.value)} className={inputCls} placeholder="Judul artikel" /></Field>
-          <Field label="Slug" hint={`URL akhir: /blog/${slug || "..."}`}>
+      {/* Tab panels */}
+      {tab === "konten" && (
+        <div className="mx-auto max-w-4xl space-y-4">
+          <Field label="Judul Artikel">
+            <input value={title} onChange={(e) => setTitle(e.target.value)} className={inputCls} placeholder="Judul artikel yang menarik & mengandung keyword" />
+          </Field>
+          <Field label="Slug" hint={`URL: /blog/${slug || "..."}`}>
             <input value={slug} onChange={(e) => setSlug(slugify(e.target.value))} className={inputCls} placeholder="slug-artikel" />
           </Field>
-          <Field label="Excerpt" hint="Ringkasan singkat (muncul di daftar & meta description default)">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Kategori">
+              <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className={inputCls}>
+                <option value="">— Pilih —</option>
+                {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+            </Field>
+            <Field label="Tags" hint="Pisahkan dengan koma">
+              <input value={tags} onChange={(e) => setTags(e.target.value)} className={inputCls} placeholder="seo, menulis" />
+            </Field>
+          </div>
+          <Field label="Excerpt" hint="Ringkasan singkat (muncul di daftar & default meta description)">
             <textarea value={excerpt} onChange={(e) => setExcerpt(e.target.value)} rows={2} className={inputCls} />
           </Field>
           <Field label="Konten">
             <TiptapEditor value={content} onChange={setContent} />
           </Field>
-        </div>
-
-        <div className="space-y-4">
-          <Card>
-            <h3 className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-secondary"><FileText className="h-4 w-4" /> Checklist Publish</h3>
-            <ul className="space-y-1.5 text-xs">
-              {[
-                ["Judul", checklist.title],
-                ["Slug", checklist.slug],
-                ["Kategori", checklist.category],
-                ["Konten ≥ 30 kata", checklist.content],
-                ["Meta Title", checklist.metaTitle],
-                ["Meta Description (50–160 karakter)", checklist.metaDesc],
-              ].map(([label, ok]) => (
-                <li key={label as string} className={`flex items-center gap-2 ${ok ? "text-green-700" : "text-muted-foreground"}`}>
-                  {ok ? <Check className="h-3.5 w-3.5" /> : <AlertCircle className="h-3.5 w-3.5 text-amber-500" />} {label}
-                </li>
-              ))}
-            </ul>
-          </Card>
-
-          <Card>
-            <h3 className="mb-3 text-sm font-semibold text-secondary">SEO Score</h3>
-            <div className={`mb-3 flex items-center justify-between rounded-md border px-3 py-2 ${bandColor}`}>
-              <span className="text-sm font-semibold">{seo.score}/100</span>
-              <span className="text-xs uppercase">{seo.band === "green" ? "Baik" : seo.band === "yellow" ? "Cukup" : "Perlu Perbaikan"}</span>
-            </div>
-            <Field label="Focus Keyword (opsional)">
-              <input value={focusKeyword} onChange={(e) => setFocusKeyword(e.target.value)} className={inputCls} placeholder="mis. seo blog" />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Reading Time (menit)" hint="Otomatis dihitung, dapat diubah manual">
+              <input type="number" min={1} value={readTime} onChange={(e) => setReadTime(Number(e.target.value))} className={inputCls} />
             </Field>
-            <ul className="mt-3 space-y-1 text-xs">
-              {seo.checks.map((c) => (
-                <li key={c.key} className="flex items-start justify-between gap-2">
-                  <span className={`flex items-center gap-1.5 ${c.ok ? "text-green-700" : "text-muted-foreground"}`}>
-                    {c.ok ? <Check className="h-3.5 w-3.5" /> : <AlertCircle className="h-3.5 w-3.5 text-amber-500" />}
-                    {c.label}
-                  </span>
-                  <span className="text-[10px] text-muted-foreground">{c.message}</span>
-                </li>
-              ))}
-            </ul>
-          </Card>
-
-          <Card>
-            <h3 className="mb-3 text-sm font-semibold text-secondary">Publikasi</h3>
-            <div className="space-y-3">
-              <Field label="Publish Date" hint="Kosongkan untuk memakai waktu Publish saat ini">
-                <input type="datetime-local" value={publishedAt} onChange={(e) => setPublishedAt(e.target.value)} className={inputCls} />
-              </Field>
-              <Field label="Jadwal Publish" hint="Set waktu di masa depan, lalu klik Schedule">
-                <input type="datetime-local" value={scheduledAt} onChange={(e) => setScheduledAt(e.target.value)} className={inputCls} />
-              </Field>
-              <Field label="Read Time (menit)" hint="Otomatis dihitung dari konten, dapat diubah manual">
-                <input type="number" min={1} value={readTime} onChange={(e) => setReadTime(Number(e.target.value))} className={inputCls} />
-              </Field>
+            <div className="rounded-lg border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+              <div>{stats.words} kata · {stats.chars} karakter</div>
+              <div>~{stats.minutes} menit baca</div>
             </div>
-          </Card>
+          </div>
+        </div>
+      )}
 
+      {tab === "media" && (
+        <div className="mx-auto max-w-4xl space-y-4">
           <Card>
-            <h3 className="mb-3 text-sm font-semibold text-secondary">Klasifikasi</h3>
-            <div className="space-y-3">
-              <Field label="Kategori">
-                <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className={inputCls}>
-                  <option value="">— Pilih —</option>
-                  {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+            <h3 className="mb-3 text-sm font-semibold text-secondary">Featured Image</h3>
+            <MediaPicker label="Gambar utama" value={featuredImage} onChange={setFeaturedImage} />
+            {featuredImage && (
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                <Field label="ALT Text" hint="Deskripsi gambar untuk SEO & aksesibilitas">
+                  <input value={imageAlt} onChange={(e) => setImageAlt(e.target.value)} className={inputCls} placeholder="Deskripsi singkat gambar" />
+                </Field>
+                <Field label="Caption" hint="Ditampilkan di bawah gambar (opsional)">
+                  <input value={imageCaption} onChange={(e) => setImageCaption(e.target.value)} className={inputCls} placeholder="Caption gambar" />
+                </Field>
+              </div>
+            )}
+          </Card>
+          <Card>
+            <h3 className="mb-1 text-sm font-semibold text-secondary">Gallery</h3>
+            <p className="text-xs text-muted-foreground">Fitur gallery akan tersedia pada rilis berikutnya. Sisipkan gambar tambahan langsung di editor konten via toolbar Tiptap.</p>
+          </Card>
+        </div>
+      )}
+
+      {tab === "seo" && (
+        <div className="mx-auto grid max-w-5xl gap-4 lg:grid-cols-[1fr_320px]">
+          <div className="space-y-4">
+            <Card>
+              <h3 className="mb-3 text-sm font-semibold text-secondary">Meta Tags</h3>
+              <div className="space-y-3">
+                <Field label="SEO Title" hint={`${metaTitle.length}/60 · ideal 50–60`}>
+                  <input value={metaTitle} onChange={(e) => setMetaTitle(e.target.value)} className={inputCls} placeholder="Judul di hasil pencarian Google" />
+                </Field>
+                <Field label="Meta Description" hint={`${metaDesc.length}/160 · ideal 50–160`}>
+                  <textarea value={metaDesc} onChange={(e) => setMetaDesc(e.target.value)} rows={3} className={inputCls} />
+                </Field>
+                <Field label="Canonical URL" hint="Kosongkan untuk pakai URL default">
+                  <input value={canonical} onChange={(e) => setCanonical(e.target.value)} className={inputCls} placeholder="https://..." />
+                </Field>
+              </div>
+            </Card>
+            <Card>
+              <h3 className="mb-3 text-sm font-semibold text-secondary">Open Graph & Twitter</h3>
+              <div className="space-y-3">
+                <Field label="OG Title" hint="Fallback ke SEO Title bila kosong">
+                  <input value={ogTitle} onChange={(e) => setOgTitle(e.target.value)} className={inputCls} placeholder={metaTitle || title} />
+                </Field>
+                <Field label="OG Description" hint="Fallback ke Meta Description bila kosong">
+                  <textarea value={ogDesc} onChange={(e) => setOgDesc(e.target.value)} rows={2} className={inputCls} placeholder={metaDesc} />
+                </Field>
+                <p className="text-xs text-muted-foreground">Twitter Card otomatis <code>summary_large_image</code>. OG Image otomatis mengambil Featured Image.</p>
+              </div>
+            </Card>
+            <Card>
+              <h3 className="mb-3 text-sm font-semibold text-secondary">Indexing</h3>
+              <Field label="Robots">
+                <select value={robotsIndex} onChange={(e) => setRobotsIndex(e.target.value as "index" | "noindex")} className={inputCls}>
+                  <option value="index">index, follow (default)</option>
+                  <option value="noindex">noindex, nofollow</option>
                 </select>
               </Field>
-              <Field label="Tags" hint="Pisahkan dengan koma">
-                <input value={tags} onChange={(e) => setTags(e.target.value)} className={inputCls} placeholder="seo, menulis" />
+              <p className="mt-2 text-xs text-muted-foreground">Schema <code>Article</code> JSON-LD dihasilkan otomatis pada halaman detail.</p>
+            </Card>
+          </div>
+          <div className="space-y-4">
+            <Card>
+              <h3 className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-secondary"><FileText className="h-4 w-4" /> Checklist Publish</h3>
+              <ul className="space-y-1.5 text-xs">
+                {[
+                  ["Judul", checklist.title],
+                  ["Slug", checklist.slug],
+                  ["Kategori", checklist.category],
+                  ["Konten ≥ 30 kata", checklist.content],
+                  ["Meta Title", checklist.metaTitle],
+                  ["Meta Description (50–160)", checklist.metaDesc],
+                ].map(([label, ok]) => (
+                  <li key={label as string} className={`flex items-center gap-2 ${ok ? "text-green-700" : "text-muted-foreground"}`}>
+                    {ok ? <Check className="h-3.5 w-3.5" /> : <AlertCircle className="h-3.5 w-3.5 text-amber-500" />} {label}
+                  </li>
+                ))}
+              </ul>
+            </Card>
+            <Card>
+              <h3 className="mb-3 text-sm font-semibold text-secondary">SEO Score</h3>
+              <div className={`mb-3 flex items-center justify-between rounded-md border px-3 py-2 ${bandColor}`}>
+                <span className="text-sm font-semibold">{seo.score}/100</span>
+                <span className="text-xs uppercase">{seo.band === "green" ? "Baik" : seo.band === "yellow" ? "Cukup" : "Perbaiki"}</span>
+              </div>
+              <Field label="Focus Keyword (opsional)">
+                <input value={focusKeyword} onChange={(e) => setFocusKeyword(e.target.value)} className={inputCls} placeholder="mis. seo blog" />
               </Field>
-              <MediaPicker label="Featured Image" value={featuredImage} onChange={setFeaturedImage} />
+              <ul className="mt-3 space-y-1 text-xs">
+                {seo.checks.map((c) => (
+                  <li key={c.key} className="flex items-start justify-between gap-2">
+                    <span className={`flex items-center gap-1.5 ${c.ok ? "text-green-700" : "text-muted-foreground"}`}>
+                      {c.ok ? <Check className="h-3.5 w-3.5" /> : <AlertCircle className="h-3.5 w-3.5 text-amber-500" />}
+                      {c.label}
+                    </span>
+                    <span className="text-right text-[10px] text-muted-foreground">{c.message}</span>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          </div>
+        </div>
+      )}
+
+      {tab === "pengaturan" && (
+        <div className="mx-auto max-w-3xl space-y-4">
+          <Card>
+            <h3 className="mb-3 text-sm font-semibold text-secondary">Author</h3>
+            <div className="text-sm text-secondary">{authorName ?? "—"}</div>
+            <p className="mt-1 text-xs text-muted-foreground">Author diambil dari akun pembuat artikel. Untuk multi-author, gunakan fitur transfer author (akan datang).</p>
+          </Card>
+          <Card>
+            <h3 className="mb-3 text-sm font-semibold text-secondary">Publikasi</h3>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Field label="Status Saat Ini">
+                <div className={`inline-flex items-center rounded-md border px-3 py-2 text-sm font-medium ${STATUS_STYLES[status]}`}>{status.toUpperCase()}</div>
+              </Field>
+              <Field label="Visibility">
+                <select value={robotsIndex} onChange={(e) => setRobotsIndex(e.target.value as "index" | "noindex")} className={inputCls}>
+                  <option value="index">Public (index)</option>
+                  <option value="noindex">Public (noindex)</option>
+                </select>
+              </Field>
+              <Field label="Publish Date" hint="Kosongkan untuk pakai waktu Publish saat ini">
+                <input type="datetime-local" value={publishedAt} onChange={(e) => setPublishedAt(e.target.value)} className={inputCls} />
+              </Field>
+              <Field label="Scheduled Publish" hint="Set waktu di masa depan, lalu klik Schedule">
+                <input type="datetime-local" value={scheduledAt} onChange={(e) => setScheduledAt(e.target.value)} className={inputCls} />
+              </Field>
             </div>
           </Card>
-
           <Card>
-            <h3 className="mb-3 text-sm font-semibold text-secondary">SEO Meta</h3>
-            <div className="space-y-3">
-              <Field label="Meta Title" hint={`${metaTitle.length}/60`}>
-                <input value={metaTitle} onChange={(e) => setMetaTitle(e.target.value)} className={inputCls} />
-              </Field>
-              <Field label="Meta Description" hint={`${metaDesc.length}/160 (ideal 50–160)`}>
-                <textarea value={metaDesc} onChange={(e) => setMetaDesc(e.target.value)} rows={3} className={inputCls} />
-              </Field>
-              <Field label="Canonical URL"><input value={canonical} onChange={(e) => setCanonical(e.target.value)} className={inputCls} placeholder="Kosongkan untuk pakai URL default" /></Field>
-            </div>
+            <h3 className="mb-3 text-sm font-semibold text-secondary">Template</h3>
+            <div className="text-sm text-secondary">Default Article Template</div>
+            <p className="mt-1 text-xs text-muted-foreground">Semua artikel menggunakan template dinamis <code>/blog/$slug</code>. Halaman detail terbentuk otomatis saat artikel Published.</p>
           </Card>
         </div>
-      </div>
+      )}
 
-      {showRevisions && currentId.current && (
-        <RevisionsDrawer
-          postId={currentId.current}
-          onClose={() => setShowRevisions(false)}
-          onRestore={async (revId) => {
-            const rev = await getRevision(revId);
-            if (!rev) return;
-            setTitle(rev.title ?? "");
-            setSlug(rev.slug ?? "");
-            setExcerpt(rev.excerpt ?? "");
-            setContent(typeof rev.content === "string" ? rev.content : "");
-            setFeaturedImage(rev.featured_image ?? "");
-            setCategoryId(rev.category_id ?? "");
-            setMetaTitle(rev.meta_title ?? "");
-            setMetaDesc(rev.meta_description ?? "");
-            setCanonical(rev.canonical_url ?? "");
-            setTags((rev.tags ?? []).join(", "));
-            setDirty(true);
-            setShowRevisions(false);
-            setToast({ kind: "ok", msg: `Revisi #${rev.revision_number} dimuat ke editor. Klik Save Draft untuk menyimpan.` });
-          }}
-        />
+      {tab === "revisi" && currentId.current && (
+        <div className="mx-auto max-w-4xl">
+          <RevisionsPanel
+            postId={currentId.current}
+            currentSnapshot={{ title, content, excerpt, metaTitle, metaDesc }}
+            onRestore={async (revId) => {
+              const rev = await getRevision(revId);
+              if (!rev) return;
+              setTitle(rev.title ?? "");
+              setSlug(rev.slug ?? "");
+              setExcerpt(rev.excerpt ?? "");
+              setContent(typeof rev.content === "string" ? rev.content : "");
+              setFeaturedImage(rev.featured_image ?? "");
+              setCategoryId(rev.category_id ?? "");
+              setMetaTitle(rev.meta_title ?? "");
+              setMetaDesc(rev.meta_description ?? "");
+              setCanonical(rev.canonical_url ?? "");
+              setTags((rev.tags ?? []).join(", "));
+              setDirty(true);
+              setTab("konten");
+              setToast({ kind: "ok", msg: `Revisi #${rev.revision_number} dimuat. Klik Save Draft untuk menyimpan.` });
+            }}
+          />
+        </div>
+      )}
+      {tab === "revisi" && !currentId.current && (
+        <div className="mx-auto max-w-4xl">
+          <Card><p className="text-sm text-muted-foreground">Simpan artikel sebagai Draft terlebih dahulu untuk melihat riwayat revisi.</p></Card>
+        </div>
       )}
     </div>
   );
 }
 
-function RevisionsDrawer({ postId, onClose, onRestore }: { postId: string; onClose: () => void; onRestore: (id: string) => void }) {
+function RevisionsPanel({
+  postId,
+  currentSnapshot,
+  onRestore,
+}: {
+  postId: string;
+  currentSnapshot: { title: string; content: string; excerpt: string; metaTitle: string; metaDesc: string };
+  onRestore: (id: string) => void;
+}) {
   const { data: revs = [], isLoading } = useQuery({
     queryKey: ["blog-revisions", postId],
     queryFn: () => listRevisions(postId),
   });
-  return (
-    <div className="fixed inset-0 z-50 flex" role="dialog">
-      <button aria-label="Close" className="flex-1 bg-black/40" onClick={onClose} />
-      <aside className="w-full max-w-md bg-background p-5 shadow-xl overflow-y-auto">
-        <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-base font-semibold text-secondary">Riwayat Revisi</h3>
-          <button onClick={onClose} className="rounded-md p-1 hover:bg-accent"><Trash2 className="h-4 w-4 rotate-45" /></button>
+  const [compareId, setCompareId] = useState<string | null>(null);
+  const compareQ = useQuery({
+    queryKey: ["blog-revision", compareId],
+    enabled: !!compareId,
+    queryFn: () => getRevision(compareId!),
+  });
+
+  const diffField = (label: string, current: string, past: string) => {
+    const same = current === past;
+    return (
+      <div className="rounded-md border border-border p-3">
+        <div className="mb-2 flex items-center justify-between">
+          <span className="text-xs font-semibold uppercase text-muted-foreground">{label}</span>
+          <span className={`text-[11px] ${same ? "text-muted-foreground" : "text-amber-600"}`}>{same ? "sama" : "berbeda"}</span>
         </div>
-        {isLoading && <div className="text-sm text-muted-foreground">Memuat…</div>}
-        {!isLoading && revs.length === 0 && <div className="text-sm text-muted-foreground">Belum ada revisi tersimpan.</div>}
-        <ul className="space-y-2">
-          {revs.map((r) => (
-            <li key={r.id} className="rounded-md border border-border p-3 text-sm">
-              <div className="flex items-center justify-between gap-2">
-                <div className="min-w-0">
-                  <div className="font-medium text-secondary">#{r.revision_number} — {r.title || "(tanpa judul)"}</div>
-                  <div className="mt-0.5 text-[11px] text-muted-foreground">
-                    {new Date(r.created_at).toLocaleString("id-ID")} · status: {r.status ?? "—"} · SEO: {r.seo_score ?? "—"}
+        <div className="grid gap-2 sm:grid-cols-2">
+          <div>
+            <div className="mb-1 text-[10px] uppercase text-muted-foreground">Revisi</div>
+            <div className="max-h-40 overflow-y-auto whitespace-pre-wrap text-xs text-secondary">{past || "—"}</div>
+          </div>
+          <div>
+            <div className="mb-1 text-[10px] uppercase text-muted-foreground">Saat ini</div>
+            <div className="max-h-40 overflow-y-auto whitespace-pre-wrap text-xs text-secondary">{current || "—"}</div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
+      <Card className="!p-0">
+        <div className="border-b border-border p-4">
+          <h3 className="text-sm font-semibold text-secondary">Riwayat Revisi</h3>
+          <p className="mt-0.5 text-[11px] text-muted-foreground">Maksimal 50 revisi terbaru</p>
+        </div>
+        <div className="max-h-[560px] overflow-y-auto p-2">
+          {isLoading && <div className="p-4 text-sm text-muted-foreground">Memuat…</div>}
+          {!isLoading && revs.length === 0 && <div className="p-4 text-sm text-muted-foreground">Belum ada revisi.</div>}
+          <ul className="space-y-1">
+            {revs.map((r) => (
+              <li key={r.id}>
+                <button
+                  onClick={() => setCompareId(r.id)}
+                  className={`w-full rounded-md border p-3 text-left text-sm transition-colors ${
+                    compareId === r.id ? "border-primary bg-primary/5" : "border-border hover:bg-accent"
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-medium text-secondary">#{r.revision_number}</span>
+                    <span className="text-[10px] uppercase text-muted-foreground">{r.status ?? "—"}</span>
                   </div>
-                </div>
-                <button onClick={() => onRestore(r.id)} className="rounded-md border border-border px-2 py-1 text-xs hover:bg-accent">Restore</button>
+                  <div className="mt-0.5 truncate text-xs text-muted-foreground">{r.title || "(tanpa judul)"}</div>
+                  <div className="mt-1 text-[11px] text-muted-foreground">
+                    {new Date(r.created_at).toLocaleString("id-ID")}
+                    {typeof r.seo_score === "number" && <> · SEO {r.seo_score}</>}
+                  </div>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </Card>
+
+      <Card>
+        {!compareId && <div className="text-sm text-muted-foreground">Pilih revisi di kiri untuk membandingkan dengan konten saat ini.</div>}
+        {compareId && compareQ.isLoading && <div className="text-sm text-muted-foreground">Memuat revisi…</div>}
+        {compareId && compareQ.data && (
+          <div className="space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h4 className="text-sm font-semibold text-secondary">Revisi #{compareQ.data.revision_number}</h4>
+                <p className="text-[11px] text-muted-foreground">{new Date(compareQ.data.created_at).toLocaleString("id-ID")} · status: {compareQ.data.status ?? "—"}</p>
               </div>
-            </li>
-          ))}
-        </ul>
-        <p className="mt-3 text-[11px] text-muted-foreground">Menyimpan maksimal 50 revisi terbaru per artikel. Restore akan memuat konten revisi ke editor; simpan sebagai Draft untuk mengaktifkannya.</p>
-      </aside>
+              <button onClick={() => onRestore(compareId)} className={btnPrimary}><RotateCcw className="h-4 w-4" /> Restore Revisi Ini</button>
+            </div>
+            <div className="space-y-2">
+              {diffField("Judul", currentSnapshot.title, compareQ.data.title ?? "")}
+              {diffField("Excerpt", currentSnapshot.excerpt, compareQ.data.excerpt ?? "")}
+              {diffField("Meta Title", currentSnapshot.metaTitle, compareQ.data.meta_title ?? "")}
+              {diffField("Meta Description", currentSnapshot.metaDesc, compareQ.data.meta_description ?? "")}
+              {diffField("Konten", currentSnapshot.content, typeof compareQ.data.content === "string" ? compareQ.data.content : "")}
+            </div>
+          </div>
+        )}
+      </Card>
     </div>
   );
 }
