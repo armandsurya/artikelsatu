@@ -3,6 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { PageHeader, Card, Field, inputCls, btnPrimary, btnGhost } from "./ui";
 import { TiptapEditor } from "./TiptapEditor";
+import { MediaPicker } from "./homepage/primitives";
+import { trackMediaUsage, clearMediaUsage } from "@/lib/media/usage";
 import { logActivity, slugify } from "@/lib/admin/log";
 import { Link } from "@tanstack/react-router";
 import { ArrowLeft, Save, Loader2 } from "lucide-react";
@@ -61,11 +63,14 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
       if (mode === "new") {
         const { data, error } = await supabase.from("blog_posts").insert(payload).select("id").single();
         if (error) throw error;
+        if (featuredImage) await trackMediaUsage(featuredImage, "blog_post", data.id, "featured_image");
         await logActivity("create_post", "blog_posts", data.id, { title });
         onSaved?.(data.id);
       } else if (id) {
         const { error } = await supabase.from("blog_posts").update(payload).eq("id", id);
         if (error) throw error;
+        if (featuredImage) await trackMediaUsage(featuredImage, "blog_post", id, "featured_image");
+        else await clearMediaUsage("blog_post", id, "featured_image");
         await logActivity("update_post", "blog_posts", id, { title });
       }
     } catch (e: unknown) {
@@ -131,9 +136,7 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
               <Field label="Tags" hint="Pisahkan dengan koma">
                 <input value={tags} onChange={(e) => setTags(e.target.value)} className={inputCls} placeholder="seo, menulis" />
               </Field>
-              <Field label="Featured Image URL">
-                <input value={featuredImage} onChange={(e) => setFeaturedImage(e.target.value)} className={inputCls} placeholder="https://..." />
-              </Field>
+              <MediaPicker label="Featured Image" value={featuredImage} onChange={setFeaturedImage} />
             </div>
           </Card>
           <Card>

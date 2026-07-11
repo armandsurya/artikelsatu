@@ -4,7 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { PUBLISHED_QUERY_KEY } from "@/lib/publishedContent";
 import { toast } from "sonner";
 import { PageHeader, Card } from "@/components/admin/ui";
-import { TextField, Repeater, SelectField } from "@/components/admin/homepage/primitives";
+import { TextField, Repeater, SelectField, MediaPicker } from "@/components/admin/homepage/primitives";
 import { EditorToolbar } from "@/components/admin/homepage/EditorToolbar";
 import { UnsavedDialog } from "@/components/admin/homepage/UnsavedDialog";
 import { jsonEqual } from "@/lib/admin/sectionMeta";
@@ -12,6 +12,7 @@ import { settings } from "@/data/settings";
 import { mainNav } from "@/data/navigation";
 import { logActivity } from "@/lib/admin/log";
 import { loadSiteSettings, patchSiteSettings } from "@/lib/admin/siteSettings";
+import { trackMediaUsage, clearMediaUsage } from "@/lib/media/usage";
 
 type HeaderData = {
   logo: string;
@@ -93,6 +94,8 @@ function HeaderEditor() {
         return;
       }
       setLive(local);
+      if (local.logo) await trackMediaUsage(local.logo, "site_settings", "header", "logo");
+      else await clearMediaUsage("site_settings", "header", "logo");
       queryClient.invalidateQueries({ queryKey: PUBLISHED_QUERY_KEY });
       await logActivity("publish_header", "site_settings", "header");
       toast.success("Header berhasil di-publish");
@@ -132,7 +135,9 @@ function HeaderEditor() {
       <Card>
         <h3 className="mb-4 text-sm font-semibold text-secondary">Logo & CTA</h3>
         <div className="grid gap-4 md:grid-cols-2">
-          <TextField label="Logo (teks)" value={local.logo} onChange={(v) => set("logo", v)} max={40} required />
+          <div className="md:col-span-2">
+            <MediaPicker label="Logo (image)" value={local.logo} onChange={(v) => set("logo", v)} />
+          </div>
           <TextField label="CTA Label" value={local.ctaLabel} onChange={(v) => set("ctaLabel", v)} max={40} />
           <TextField label="CTA URL" value={local.ctaUrl} onChange={(v) => set("ctaUrl", v)} placeholder="https://wa.me/…" />
         </div>

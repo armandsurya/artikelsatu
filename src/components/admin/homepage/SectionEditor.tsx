@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { PUBLISHED_QUERY_KEY } from "@/lib/publishedContent";
+import { trackMediaUsage, clearMediaUsage } from "@/lib/media/usage";
 import { ArrowLeft, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -349,6 +350,23 @@ export function SectionEditor<T>({
       setRowSnap({ title, sortOrder, visible });
       setVersionReloadKey((k) => k + 1);
       queryClient.invalidateQueries({ queryKey: PUBLISHED_QUERY_KEY });
+      // Sync media usage for known image fields in this section
+      try {
+        await clearMediaUsage("homepage_section", sectionKey);
+        const c = content as unknown as Record<string, unknown>;
+        const track = async (url: unknown, field: string) => {
+          if (typeof url === "string" && url) await trackMediaUsage(url, "homepage_section", sectionKey, field);
+        };
+        if (sectionKey === "hero") await track(c.image, "image");
+        if (sectionKey === "cta") await track(c.backgroundImage, "background");
+        if (Array.isArray((c as { items?: unknown[] }).items)) {
+          const items = (c as { items: Array<Record<string, unknown>> }).items;
+          for (let i = 0; i < items.length; i++) {
+            await track(items[i].thumbnail, `items.${i}.thumbnail`);
+            await track(items[i].image, `items.${i}.image`);
+          }
+        }
+      } catch (usageErr) { console.warn("[publish] usage sync failed (non-fatal)", usageErr); }
       await logActivity("publish_section", "homepage_sections", sectionKey);
       toast.success(`Berhasil di-publish (Version ${nextVersion})`);
     } catch (e) {

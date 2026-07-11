@@ -261,14 +261,18 @@ export function IconPicker({ value, onChange }: { value: string; onChange: (v: s
   );
 }
 
-/* ---------- Media Picker ---------- */
+/* ---------- Media Picker (WordPress-style, DAM-aware) ---------- */
 
-type MediaItem = { id: string; url: string; name: string; mime_type: string | null };
+type MediaItem = {
+  id: string; url: string; name: string; mime_type: string | null;
+  size_bytes: number | null; width: number | null; height: number | null;
+  alt: string | null; created_at: string;
+};
 
 export function MediaPicker({ value, onChange, label = "Gambar" }: { value: string; onChange: (url: string) => void; label?: string }) {
   const [open, setOpen] = useState(false);
   return (
-    <Field label={label} hint="Pilih dari Media Library atau upload baru.">
+    <Field label={label} hint="Pilih dari Media Library. Semua image website dikelola di satu tempat.">
       <div className="flex items-center gap-3">
         {value ? (
           <div className="relative h-20 w-20 overflow-hidden rounded-lg border border-border bg-muted">
@@ -303,29 +307,33 @@ function MediaLibraryModal({ onClose, onPick }: { onClose: () => void; onPick: (
 
   async function load() {
     setLoading(true);
-    const { data } = await supabase.from("media").select("id,url,name,mime_type").order("created_at", { ascending: false }).limit(200);
+    const { data } = await supabase.from("media")
+      .select("id,url,name,mime_type,size_bytes,width,height,alt,created_at")
+      .order("created_at", { ascending: false })
+      .limit(500);
     setItems((data as MediaItem[]) ?? []);
     setLoading(false);
   }
   useEffect(() => { load(); }, []);
 
-  async function onUpload(file: File) {
+  async function onUpload(files: FileList | null) {
+    if (!files?.length) return;
     setUploading(true);
-    try {
-      const ext = file.name.split(".").pop();
-      const path = `${crypto.randomUUID()}.${ext}`;
-      const { error } = await supabase.storage.from("media").upload(path, file, { upsert: false });
-      if (error) throw error;
-      const { data: pub } = supabase.storage.from("media").getPublicUrl(path);
-      const user = (await supabase.auth.getUser()).data.user;
-      await supabase.from("media").insert({
-        name: file.name, path, url: pub.publicUrl, mime_type: file.type, size_bytes: file.size, uploaded_by: user?.id,
-      });
-      await load();
-    } finally { setUploading(false); }
+    // Lazy-import to keep primitives light on module load
+    const { uploadMediaFile, validateFile } = await import("@/lib/media/upload");
+    for (const f of Array.from(files)) {
+      const invalid = validateFile(f);
+      if (invalid) { console.error(`[picker upload] ${f.name}:`, invalid.message); alert(`${f.name}: ${invalid.message}`); continue; }
+      const res = await uploadMediaFile(f);
+      if (!res.ok) { console.error(`[picker upload] ${f.name}:`, res); alert(`${f.name} gagal (${res.step}): ${res.message}`); }
+    }
+    setUploading(false);
+    await load();
   }
 
-  const filtered = items.filter((it) => it.name.toLowerCase().includes(q.toLowerCase()));
+  const filtered = items.filter((it) =>
+    it.name.toLowerCase().includes(q.toLowerCase()) ||
+    (it.alt ?? "").toLowerCase().includes(q.toLowerCase()));
 
   return (
     <Modal title="Media Library" onClose={onClose} wide>
@@ -334,7 +342,7 @@ function MediaLibraryModal({ onClose, onPick }: { onClose: () => void; onPick: (
           <Search className="h-4 w-4 text-muted-foreground" />
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Cari media…" className="flex-1 bg-transparent text-sm outline-none" />
         </div>
-        <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => e.target.files?.[0] && onUpload(e.target.files[0])} />
+        <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/svg+xml,image/gif,image/avif" multiple hidden onChange={(e) => onUpload(e.target.files)} />
         <button
           type="button"
           onClick={() => fileRef.current?.click()}
@@ -347,7 +355,7 @@ function MediaLibraryModal({ onClose, onPick }: { onClose: () => void; onPick: (
       {loading ? (
         <p className="py-10 text-center text-sm text-muted-foreground">Memuat…</p>
       ) : filtered.length === 0 ? (
-        <p className="py-10 text-center text-sm text-muted-foreground">Belum ada media.</p>
+        <p className="py-10 text-center text-sm text-muted-foreground">Belum ada media. Klik Upload Baru untuk menambahkan.</p>
       ) : (
         <div className="grid max-h-[60vh] grid-cols-3 gap-3 overflow-y-auto pr-1 sm:grid-cols-4 md:grid-cols-6">
           {filtered.map((m) => (
@@ -356,15 +364,20 @@ function MediaLibraryModal({ onClose, onPick }: { onClose: () => void; onPick: (
               type="button"
               onClick={() => onPick(m.url)}
               className="group overflow-hidden rounded-lg border border-border bg-background text-left hover:border-primary"
+              title={`${m.name}${m.width && m.height ? ` · ${m.width}×${m.height}` : ""}`}
             >
               <div className="aspect-square w-full bg-muted">
                 {m.mime_type?.startsWith("image/") ? (
-                  <img src={m.url} alt={m.name} className="h-full w-full object-cover" loading="lazy" />
+                  <img src={m.url} alt={m.alt ?? m.name} className="h-full w-full object-cover" loading="lazy" />
                 ) : (
                   <div className="flex h-full items-center justify-center text-muted-foreground"><ImageIcon className="h-6 w-6" /></div>
                 )}
               </div>
-              <div className="truncate px-2 py-1.5 text-xs text-muted-foreground">{m.name}</div>
+              <div className="truncate px-2 py-1 text-xs text-secondary">{m.name}</div>
+              <div className="flex items-center justify-between px-2 pb-1.5 text-[10px] text-muted-foreground">
+                <span>{m.width && m.height ? `${m.width}×${m.height}` : "-"}</span>
+                <span>{m.size_bytes ? `${(m.size_bytes / 1024).toFixed(0)} KB` : ""}</span>
+              </div>
             </button>
           ))}
         </div>
