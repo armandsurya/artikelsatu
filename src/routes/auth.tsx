@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Lock } from "lucide-react";
 
 export const Route = createFileRoute("/auth")({
+  ssr: false,
   head: () => ({ meta: [{ title: "Login Admin — ArtikelPro" }, { name: "robots", content: "noindex" }] }),
   component: AuthPage,
 });
