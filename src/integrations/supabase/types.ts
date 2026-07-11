@@ -246,36 +246,92 @@ export type Database = {
       }
       media: {
         Row: {
+          alt: string | null
+          caption: string | null
           created_at: string
+          description: string | null
+          height: number | null
           id: string
           mime_type: string | null
           name: string
           path: string
           size_bytes: number | null
+          title: string | null
+          updated_at: string
           uploaded_by: string | null
           url: string
+          width: number | null
         }
         Insert: {
+          alt?: string | null
+          caption?: string | null
           created_at?: string
+          description?: string | null
+          height?: number | null
           id?: string
           mime_type?: string | null
           name: string
           path: string
           size_bytes?: number | null
+          title?: string | null
+          updated_at?: string
           uploaded_by?: string | null
           url: string
+          width?: number | null
         }
         Update: {
+          alt?: string | null
+          caption?: string | null
           created_at?: string
+          description?: string | null
+          height?: number | null
           id?: string
           mime_type?: string | null
           name?: string
           path?: string
           size_bytes?: number | null
+          title?: string | null
+          updated_at?: string
           uploaded_by?: string | null
           url?: string
+          width?: number | null
         }
         Relationships: []
+      }
+      media_usage: {
+        Row: {
+          context: string
+          context_id: string
+          created_at: string
+          field: string
+          id: string
+          media_id: string
+        }
+        Insert: {
+          context: string
+          context_id: string
+          created_at?: string
+          field: string
+          id?: string
+          media_id: string
+        }
+        Update: {
+          context?: string
+          context_id?: string
+          created_at?: string
+          field?: string
+          id?: string
+          media_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "media_usage_media_id_fkey"
+            columns: ["media_id"]
+            isOneToOne: false
+            referencedRelation: "media"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       menu_items: {
         Row: {
