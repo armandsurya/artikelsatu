@@ -136,9 +136,7 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
               <Field label="Tags" hint="Pisahkan dengan koma">
                 <input value={tags} onChange={(e) => setTags(e.target.value)} className={inputCls} placeholder="seo, menulis" />
               </Field>
-              <Field label="Featured Image URL">
-                <input value={featuredImage} onChange={(e) => setFeaturedImage(e.target.value)} className={inputCls} placeholder="https://..." />
-              </Field>
+              <MediaPicker label="Featured Image" value={featuredImage} onChange={setFeaturedImage} />
             </div>
           </Card>
           <Card>
