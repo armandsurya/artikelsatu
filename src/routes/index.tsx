@@ -81,7 +81,7 @@ function HomePage() {
     const out = {} as Record<SectionKey, MappedSection>;
     for (const key of SECTION_KEYS) {
       const row = byKey.get(key);
-      out[key] = mapPublishedSection(key, row?.data ?? null, row?.title ?? null, blogPosts);
+      out[key] = mapPublishedSection(key, row?.data ?? null, row?.title ?? null, blogPosts, row?.last_published_at ?? null);
     }
     return out;
   }, [sectionsQ.data, blogPosts]);
