@@ -1,12 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { ExternalLink } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { PageHeader, Card } from "@/components/admin/ui";
 import { Field, TextField, Repeater, SelectField, SaveStatus } from "@/components/admin/homepage/primitives";
 import { settings } from "@/data/settings";
 import { mainNav } from "@/data/navigation";
 import { logActivity } from "@/lib/admin/log";
+import { loadSiteSettings, patchSiteSettings } from "@/lib/admin/siteSettings";
 
 type HeaderData = {
   logo: string;
@@ -38,12 +38,12 @@ function HeaderEditor() {
 
   useEffect(() => {
     (async () => {
-      const { data: row } = await supabase.from("site_settings").select("*").eq("key", "header").maybeSingle();
-      if (!row) {
-        await supabase.from("site_settings").insert({ key: "header", value: DEFAULT_HEADER as never });
+      const all = await loadSiteSettings<{ header?: HeaderData }>();
+      const v = all.header;
+      if (!v) {
+        await patchSiteSettings({ header: DEFAULT_HEADER });
         setData(DEFAULT_HEADER);
       } else {
-        const v = row.value as unknown as HeaderData;
         setData({ ...DEFAULT_HEADER, ...v, menu: v?.menu?.length ? v.menu : DEFAULT_HEADER.menu });
       }
     })();
@@ -55,8 +55,7 @@ function HeaderEditor() {
     if (debounce.current) window.clearTimeout(debounce.current);
     setState("saving");
     debounce.current = window.setTimeout(async () => {
-      const { error } = await supabase.from("site_settings")
-        .update({ value: data as never }).eq("key", "header");
+      const { error } = await patchSiteSettings({ header: data });
       if (error) setState("error");
       else {
         setState("saved");

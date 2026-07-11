@@ -1,12 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { ExternalLink } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { PageHeader, Card } from "@/components/admin/ui";
 import { TextField, TextareaField, Repeater, SaveStatus, inputCls } from "@/components/admin/homepage/primitives";
 import { settings } from "@/data/settings";
 import { footer } from "@/data/footer";
 import { logActivity } from "@/lib/admin/log";
+import { loadSiteSettings, patchSiteSettings } from "@/lib/admin/siteSettings";
 
 type FooterData = {
   description: string;
@@ -38,12 +38,12 @@ function FooterEditor() {
 
   useEffect(() => {
     (async () => {
-      const { data: row } = await supabase.from("site_settings").select("*").eq("key", "footer").maybeSingle();
-      if (!row) {
-        await supabase.from("site_settings").insert({ key: "footer", value: DEFAULT_FOOTER as never });
+      const all = await loadSiteSettings<{ footer?: Partial<FooterData> }>();
+      const v = all.footer;
+      if (!v) {
+        await patchSiteSettings({ footer: DEFAULT_FOOTER });
         setData(DEFAULT_FOOTER);
       } else {
-        const v = row.value as unknown as Partial<FooterData>;
         setData({
           ...DEFAULT_FOOTER, ...v,
           contact: { ...DEFAULT_FOOTER.contact, ...(v?.contact ?? {}) },
@@ -60,8 +60,7 @@ function FooterEditor() {
     if (debounce.current) window.clearTimeout(debounce.current);
     setState("saving");
     debounce.current = window.setTimeout(async () => {
-      const { error } = await supabase.from("site_settings")
-        .update({ value: data as never }).eq("key", "footer");
+      const { error } = await patchSiteSettings({ footer: data });
       if (error) setState("error");
       else {
         setState("saved");
