@@ -3,7 +3,11 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Search } from "lucide-react";
 import { SiteLayout } from "@/components/layouts/SiteLayout";
 import { BlogCard } from "@/components/cards/BlogCard";
-import { blogPosts, blogCategories } from "@/data/blog";
+import { DebugSource } from "@/components/DebugSource";
+import { usePublishedBlogPosts, usePublishedBlogCategories } from "@/lib/publishedContent";
+import { mapBlogPosts } from "@/lib/mapPublished";
+import { blogPosts as fallbackPosts, blogCategories as fallbackCategories } from "@/data/blog";
+import type { BlogPost } from "@/types";
 
 const PAGE_SIZE = 6;
 const TITLE = "Blog — Insight SEO, Content Marketing & Copywriting";
@@ -29,84 +33,98 @@ function BlogPage() {
   const [category, setCategory] = useState("Semua");
   const [page, setPage] = useState(1);
 
+  const postsQ = usePublishedBlogPosts();
+  const catsQ = usePublishedBlogCategories();
+
+  const dbPosts = useMemo(
+    () => mapBlogPosts(postsQ.data ?? [], catsQ.data ?? []),
+    [postsQ.data, catsQ.data],
+  );
+
+  // Only use static fallback when the query is settled but returned nothing.
+  const usingDb = (postsQ.data?.length ?? 0) > 0;
+  const posts: BlogPost[] = usingDb ? dbPosts : fallbackPosts;
+  const categories = usingDb
+    ? ["Semua", ...(catsQ.data ?? []).map((c) => c.name)]
+    : fallbackCategories;
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return blogPosts
+    return posts
       .filter((p) => p.status === "published")
       .filter((p) => category === "Semua" || p.category === category)
-      .filter((p) => !q || p.title.toLowerCase().includes(q) || p.excerpt.toLowerCase().includes(q));
-  }, [query, category]);
+      .filter((p) => !q || p.title.toLowerCase().includes(q) || (p.excerpt ?? "").toLowerCase().includes(q));
+  }, [posts, query, category]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const currentPage = Math.min(page, totalPages);
-  const items = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const current = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
     <SiteLayout>
-      <section className="border-b border-border bg-accent/40">
-        <div className="container-narrow py-16 text-center">
-          <div className="mx-auto inline-flex rounded-full bg-background px-3 py-1 text-xs font-medium text-accent-foreground">Blog</div>
-          <h1 className="mt-4 text-4xl font-bold text-secondary sm:text-5xl">Insight & Panduan Konten</h1>
-          <p className="mx-auto mt-4 max-w-2xl text-base text-muted-foreground">{DESC}</p>
+      <section className="relative border-b border-border bg-background">
+        <DebugSource label="blog" source={usingDb ? "database" : "fallback"} />
+        <div className="container-narrow py-14">
+          <h1 className="text-3xl font-bold tracking-tight text-secondary sm:text-4xl">Blog ArtikelPro</h1>
+          <p className="mt-3 max-w-2xl text-base text-muted-foreground">{DESC}</p>
 
-          <div className="mx-auto mt-8 max-w-xl">
-            <label className="relative block">
-              <span className="sr-only">Cari artikel</span>
+          <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="relative w-full sm:max-w-md">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <input
                 type="search"
                 value={query}
                 onChange={(e) => { setQuery(e.target.value); setPage(1); }}
-                placeholder="Cari artikel..."
-                className="w-full rounded-[12px] border border-border bg-background py-3 pl-10 pr-4 text-sm text-secondary placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                placeholder="Cari artikel…"
+                className="h-11 w-full rounded-[12px] border border-border bg-background pl-10 pr-3 text-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none"
               />
-            </label>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {categories.map((c) => (
+                <button
+                  key={c}
+                  onClick={() => { setCategory(c); setPage(1); }}
+                  className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+                    category === c
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-border text-muted-foreground hover:text-secondary"
+                  }`}
+                >
+                  {c}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
       <section className="bg-background">
-        <div className="container-narrow py-12">
-          <div className="flex flex-wrap justify-center gap-2">
-            {blogCategories.map((c) => (
-              <button
-                key={c}
-                onClick={() => { setCategory(c); setPage(1); }}
-                className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
-                  category === c
-                    ? "bg-primary text-primary-foreground"
-                    : "border border-border bg-background text-muted-foreground hover:bg-accent hover:text-secondary"
-                }`}
-              >
-                {c}
-              </button>
-            ))}
-          </div>
-
-          {items.length === 0 ? (
-            <p className="mt-16 text-center text-sm text-muted-foreground">Tidak ada artikel yang cocok dengan pencarian Anda.</p>
+        <div className="container-narrow py-14">
+          {current.length === 0 ? (
+            <div className="rounded-[16px] border border-dashed border-border p-12 text-center text-sm text-muted-foreground">
+              Tidak ada artikel yang cocok.
+            </div>
           ) : (
-            <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {items.map((post) => <BlogCard key={post.id} post={post} />)}
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {current.map((p) => <BlogCard key={p.id} post={p} />)}
             </div>
           )}
 
           {totalPages > 1 && (
-            <nav className="mt-12 flex items-center justify-center gap-2" aria-label="Pagination">
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+            <div className="mt-10 flex items-center justify-center gap-2">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
                 <button
-                  key={p}
-                  onClick={() => setPage(p)}
-                  className={`h-9 min-w-9 rounded-md px-3 text-sm font-medium ${
-                    p === currentPage
-                      ? "bg-primary text-primary-foreground"
-                      : "border border-border bg-background text-secondary hover:bg-accent"
+                  key={n}
+                  onClick={() => setPage(n)}
+                  className={`h-9 min-w-[36px] rounded-lg border px-3 text-sm ${
+                    page === n
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-border text-secondary hover:bg-accent"
                   }`}
                 >
-                  {p}
+                  {n}
                 </button>
               ))}
-            </nav>
+            </div>
           )}
         </div>
       </section>
