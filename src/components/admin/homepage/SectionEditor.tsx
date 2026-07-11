@@ -71,6 +71,8 @@ export function SectionEditor<T>({
         .from("homepage_sections").select("*").eq("section_key", sectionKey).maybeSingle();
 
       const defaultRaw = joinMeta(DEFAULT_META, DEFAULTS[sectionKey]);
+      const isEmpty = (v: unknown) =>
+        !v || typeof v !== "object" || Array.isArray(v) || Object.keys(v as object).length === 0;
 
       if (!existing) {
         await supabase.from("homepage_sections").insert({
@@ -96,13 +98,25 @@ export function SectionEditor<T>({
         });
       } else {
         const row = existing as unknown as Row;
-        const draft = row.draft_data ?? row.data ?? defaultRaw;
-        const published = row.data ?? row.draft_data ?? defaultRaw;
-        applyRow({
-          ...row,
-          draft_data: draft,
-          data: published,
-        });
+        const draftEmpty = isEmpty(row.draft_data);
+        const pubEmpty = isEmpty(row.data);
+        const draft = draftEmpty ? (pubEmpty ? defaultRaw : row.data) : row.draft_data;
+        const published = pubEmpty ? (draftEmpty ? defaultRaw : row.draft_data) : row.data;
+
+        // Backfill the DB with frontend defaults so subsequent loads are stable.
+        if (draftEmpty || pubEmpty) {
+          await supabase
+            .from("homepage_sections")
+            .update({
+              data: published as never,
+              draft_data: draft as never,
+              title: row.title ?? meta.title,
+              sort_order: row.sort_order ?? meta.sortOrder,
+            })
+            .eq("section_key", sectionKey);
+        }
+
+        applyRow({ ...row, draft_data: draft, data: published });
         if (row.last_saved_by) {
           const { data: prof } = await supabase.from("profiles").select("full_name").eq("id", row.last_saved_by).maybeSingle();
           setSavedByName((prof as { full_name?: string } | null)?.full_name ?? null);
@@ -111,6 +125,7 @@ export function SectionEditor<T>({
       setLoaded(true);
       bootstrap.current = true;
     })();
+
 
     function applyRow(row: Row) {
       const draftRaw = row.draft_data as Record<string, unknown>;
