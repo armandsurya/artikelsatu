@@ -135,16 +135,26 @@ export function SectionEditor<T>({
     function applyRow(row: Row) {
       const draftRaw = row.draft_data as Record<string, unknown>;
       const pubRaw = row.data as Record<string, unknown>;
-      setServerDraft(draftRaw);
-      setServerPublished(pubRaw);
       const { meta: mm, content: cc } = splitMeta<T>(draftRaw);
-      // Backfill badge/subtitle from per-section defaults so admin sees actual current values.
+      // Backfill badge/subtitle from per-section defaults so admin sees actual
+      // current frontend values instead of empty fields. Normalize serverDraft
+      // with the same merged meta so isDirty doesn't fire on first load.
       const d = SECTION_META_DEFAULTS[sectionKey];
       const mergedMeta: SectionMeta = {
         ...mm,
         badge: (mm.badge && mm.badge.trim()) || d.badge,
         subtitle: (mm.subtitle && mm.subtitle.trim()) || d.subtitle,
       };
+      const normalizedDraft = joinMeta(mergedMeta, cc);
+      const { meta: pubMeta, content: pubContent } = splitMeta<T>(pubRaw);
+      const mergedPubMeta: SectionMeta = {
+        ...pubMeta,
+        badge: (pubMeta.badge && pubMeta.badge.trim()) || d.badge,
+        subtitle: (pubMeta.subtitle && pubMeta.subtitle.trim()) || d.subtitle,
+      };
+      const normalizedPub = joinMeta(mergedPubMeta, pubContent);
+      setServerDraft(normalizedDraft);
+      setServerPublished(normalizedPub);
       setSectionMeta(mergedMeta);
       setContent(cc);
       setTitle(row.title ?? meta.title);
