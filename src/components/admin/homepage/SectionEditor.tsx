@@ -7,11 +7,6 @@ import { Card } from "@/components/admin/ui";
 import { Field, TextField, NumberField, Switch, SaveStatus } from "./primitives";
 import { DEFAULTS, SECTION_META, type SectionKey } from "@/data/homepageDefaults";
 
-type SectionRow = {
-  id: string; type: string; title: string | null;
-  data: unknown; is_visible: boolean; sort_order: number;
-};
-
 export function SectionEditor<T>({
   sectionKey,
   render,
@@ -22,7 +17,7 @@ export function SectionEditor<T>({
   previewHash?: string;
 }) {
   const meta = SECTION_META[sectionKey];
-  const [row, setRow] = useState<SectionRow | null>(null);
+  const [loaded, setLoaded] = useState(false);
   const [data, setData] = useState<T | null>(null);
   const [title, setTitle] = useState("");
   const [sortOrder, setSortOrder] = useState<number>(meta.sortOrder);
@@ -36,44 +31,40 @@ export function SectionEditor<T>({
   useEffect(() => {
     (async () => {
       const { data: existing } = await supabase
-        .from("homepage_sections").select("*").eq("id", sectionKey).maybeSingle();
+        .from("homepage_sections").select("*").eq("section_key", sectionKey).maybeSingle();
       const defaults = DEFAULTS[sectionKey] as T;
       if (!existing) {
-        const payload = {
-          id: sectionKey, type: sectionKey, title: meta.title,
+        await supabase.from("homepage_sections").insert({
+          section_key: sectionKey, title: meta.title,
           data: defaults as never, is_visible: true, sort_order: meta.sortOrder,
-        };
-        await supabase.from("homepage_sections").insert(payload as never);
-        setRow(payload as SectionRow);
+        });
         setData(defaults);
         setTitle(meta.title);
         setSortOrder(meta.sortOrder);
         setVisible(true);
       } else {
         const hasData = existing.data && typeof existing.data === "object" && Object.keys(existing.data as object).length > 0;
-        const value = (hasData ? existing.data : defaults) as T;
-        setRow(existing as SectionRow);
-        setData(value);
+        setData((hasData ? existing.data : defaults) as T);
         setTitle(existing.title ?? meta.title);
         setSortOrder(existing.sort_order ?? meta.sortOrder);
         setVisible(existing.is_visible ?? true);
       }
+      setLoaded(true);
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sectionKey]);
 
   /* Auto-save on changes */
   useEffect(() => {
-    if (data === null) return;
+    if (!loaded || data === null) return;
     if (skipNext.current) { skipNext.current = false; return; }
     if (debounceRef.current) window.clearTimeout(debounceRef.current);
     setState("saving");
     debounceRef.current = window.setTimeout(async () => {
-      const payload = {
-        id: sectionKey, type: sectionKey, title,
-        data: data as never, is_visible: visible, sort_order: sortOrder,
-      };
-      const { error } = await supabase.from("homepage_sections").upsert(payload as never, { onConflict: "id" });
+      const { error } = await supabase
+        .from("homepage_sections")
+        .update({ title, data: data as never, is_visible: visible, sort_order: sortOrder })
+        .eq("section_key", sectionKey);
       if (error) {
         setState("error");
       } else {
@@ -83,9 +74,9 @@ export function SectionEditor<T>({
       }
     }, 900);
     return () => { if (debounceRef.current) window.clearTimeout(debounceRef.current); };
-  }, [data, title, visible, sortOrder, sectionKey]);
+  }, [data, title, visible, sortOrder, sectionKey, loaded]);
 
-  if (!row || data === null) {
+  if (!loaded || data === null) {
     return <div className="text-sm text-muted-foreground">Memuat data section…</div>;
   }
 
