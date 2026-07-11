@@ -52,7 +52,7 @@ export const SECTION_KEYS = Object.keys(SECTION_META) as SectionKey[];
  * leaves them blank.
  */
 export const SECTION_META_DEFAULTS: Record<SectionKey, { badge: string; subtitle: string }> = {
-  hero:        { badge: "",             subtitle: "" }, // hero uses its own content.badge/description
+  hero:        { badge: hero.badge ?? "", subtitle: hero.description ?? "" },
   stats:       { badge: "",             subtitle: "" }, // stats has no header
   problems:    { badge: "Masalah",      subtitle: "Apakah salah satu situasi berikut ini terdengar familier untuk Anda?" },
   solutions:   { badge: "Solusi",       subtitle: "Perbedaan mendasar antara artikel yang ditulis tanpa strategi dengan artikel yang dioptimasi untuk SEO." },
