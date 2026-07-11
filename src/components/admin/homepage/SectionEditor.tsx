@@ -197,10 +197,17 @@ export function SectionEditor<T>({
     }
     setSaving(true);
     try {
-      const user = (await supabase.auth.getUser()).data.user;
+      const { data: userData, error: userErr } = await supabase.auth.getUser();
+      if (userErr || !userData.user) {
+        console.error("[saveDraft] no auth session", userErr);
+        toast.error("Sesi login berakhir", { description: "Silakan login ulang sebelum menyimpan." });
+        return false;
+      }
+      const user = userData.user;
       const payload = joinMeta(sectionMeta, content);
       const nowIso = new Date().toISOString();
-      const { error } = await supabase
+      console.info("[saveDraft] payload", { sectionKey, userId: user.id, title, payloadSize: JSON.stringify(payload).length });
+      const { data: updated, error } = await supabase
         .from("homepage_sections")
         .update({
           title,
@@ -209,11 +216,21 @@ export function SectionEditor<T>({
           draft_data: payload as never,
           status: serverPublished && jsonEqual(serverPublished, payload) ? "published" : (serverPublished ? "modified" : "draft"),
           last_saved_at: nowIso,
-          last_saved_by: user?.id ?? null,
+          last_saved_by: user.id,
         })
-        .eq("section_key", sectionKey);
+        .eq("section_key", sectionKey)
+        .select();
       if (error) {
-        toast.error("Perubahan gagal disimpan", { description: "Silakan coba lagi." });
+        console.error("[saveDraft] update error", error);
+        const desc = [error.message, error.code && `(code ${error.code})`, error.hint].filter(Boolean).join(" ");
+        toast.error("Perubahan gagal disimpan", { description: desc || "Silakan coba lagi." });
+        return false;
+      }
+      if (!updated || updated.length === 0) {
+        console.error("[saveDraft] 0 rows updated — RLS likely blocked write", { sectionKey, userId: user.id });
+        toast.error("Perubahan tidak tersimpan", {
+          description: "Tidak ada baris yang ter-update. Akun Anda kemungkinan bukan super_admin atau session sudah kadaluarsa. Silakan login ulang.",
+        });
         return false;
       }
       setServerDraft(payload);
@@ -222,6 +239,10 @@ export function SectionEditor<T>({
       await logActivity("save_draft_section", "homepage_sections", sectionKey);
       toast.success("Perubahan berhasil disimpan sebagai draft");
       return true;
+    } catch (e) {
+      console.error("[saveDraft] unexpected", e);
+      toast.error("Perubahan gagal disimpan", { description: e instanceof Error ? e.message : String(e) });
+      return false;
     } finally {
       setSaving(false);
     }
@@ -243,9 +264,16 @@ export function SectionEditor<T>({
     try {
       const payload = joinMeta(sectionMeta, content);
       const nowIso = new Date().toISOString();
-      const user = (await supabase.auth.getUser()).data.user;
+      const { data: userData, error: userErr } = await supabase.auth.getUser();
+      if (userErr || !userData.user) {
+        console.error("[publish] no auth session", userErr);
+        toast.error("Sesi login berakhir", { description: "Silakan login ulang sebelum publish." });
+        return;
+      }
+      const user = userData.user;
+      console.info("[publish] payload", { sectionKey, userId: user.id, payloadSize: JSON.stringify(payload).length });
 
-      const { error } = await supabase
+      const { data: updated, error } = await supabase
         .from("homepage_sections")
         .update({
           title,
@@ -256,11 +284,21 @@ export function SectionEditor<T>({
           status: "published",
           last_published_at: nowIso,
           last_saved_at: nowIso,
-          last_saved_by: user?.id ?? null,
+          last_saved_by: user.id,
         })
-        .eq("section_key", sectionKey);
+        .eq("section_key", sectionKey)
+        .select();
       if (error) {
-        toast.error("Gagal mem-publish", { description: "Silakan coba lagi." });
+        console.error("[publish] update error", error);
+        const desc = [error.message, error.code && `(code ${error.code})`, error.hint].filter(Boolean).join(" ");
+        toast.error("Gagal mem-publish", { description: desc || "Silakan coba lagi." });
+        return;
+      }
+      if (!updated || updated.length === 0) {
+        console.error("[publish] 0 rows updated — RLS likely blocked", { sectionKey, userId: user.id });
+        toast.error("Publish gagal", {
+          description: "Tidak ada baris yang ter-update. Akun Anda kemungkinan bukan super_admin atau session sudah kadaluarsa.",
+        });
         return;
       }
 
@@ -273,14 +311,15 @@ export function SectionEditor<T>({
         .limit(1)
         .maybeSingle();
       const nextVersion = ((last as { version?: number } | null)?.version ?? 0) + 1;
-      await supabase.from("homepage_section_versions").insert({
+      const { error: versionErr } = await supabase.from("homepage_section_versions").insert({
         section_key: sectionKey,
         version: nextVersion,
         title,
         data: payload as never,
-        created_by: user?.id ?? null,
+        created_by: user.id,
         note: `Publish v${nextVersion}`,
       });
+      if (versionErr) console.warn("[publish] version insert failed (non-fatal)", versionErr);
 
       setServerPublished(payload);
       setServerDraft(payload);
@@ -289,6 +328,9 @@ export function SectionEditor<T>({
       setVersionReloadKey((k) => k + 1);
       await logActivity("publish_section", "homepage_sections", sectionKey);
       toast.success(`Berhasil di-publish (Version ${nextVersion})`);
+    } catch (e) {
+      console.error("[publish] unexpected", e);
+      toast.error("Gagal mem-publish", { description: e instanceof Error ? e.message : String(e) });
     } finally {
       setPublishing(false);
     }

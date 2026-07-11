@@ -69,7 +69,7 @@ function FooterEditor() {
     try {
       const nowIso = new Date().toISOString();
       const { error } = await patchSiteSettings({ footer_draft: local, footer_saved_at: nowIso });
-      if (error) { toast.error("Gagal menyimpan draft"); return false; }
+      if (error) { console.error("[footer saveDraft]", error); toast.error("Gagal menyimpan draft", { description: error.message }); return false; }
       setServerDraft(local);
       setSavedAt(nowIso);
       await logActivity("save_draft_footer", "site_settings", "footer");
@@ -84,7 +84,7 @@ function FooterEditor() {
     setPublishing(true);
     try {
       const { error } = await patchSiteSettings({ footer: local });
-      if (error) { toast.error("Gagal mem-publish footer"); return; }
+      if (error) { console.error("[footer publish]", error); toast.error("Gagal mem-publish footer", { description: error.message }); return; }
       setLive(local);
       await logActivity("publish_footer", "site_settings", "footer");
       toast.success("Footer berhasil di-publish");
