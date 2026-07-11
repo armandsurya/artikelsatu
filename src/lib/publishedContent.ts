@@ -72,6 +72,7 @@ export async function fetchPublishedBlogPosts(): Promise<PublishedBlogPostRow[]>
     .from("blog_posts")
     .select("id,title,slug,excerpt,featured_image,category_id,tags,author_id,status,read_time,published_at,meta_title,meta_description")
     .eq("status", "published")
+    .is("deleted_at", null)
     .order("published_at", { ascending: false, nullsFirst: false });
   if (error) throw error;
   return (data ?? []) as PublishedBlogPostRow[];
@@ -128,6 +129,7 @@ export async function fetchPublishedBlogPostBySlug(slug: string): Promise<Publis
     .select("id,title,slug,excerpt,content,featured_image,category_id,tags,author_id,status,read_time,published_at,updated_at,meta_title,meta_description,canonical_url")
     .eq("slug", slug)
     .eq("status", "published")
+    .is("deleted_at", null)
     .maybeSingle();
   if (error) throw error;
   return (data as PublishedBlogPostRow | null) ?? null;
