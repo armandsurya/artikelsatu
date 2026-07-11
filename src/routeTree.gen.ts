@@ -14,6 +14,7 @@ import { Route as BlogRouteImport } from './routes/blog'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedAdminSeoRouteImport } from './routes/_authenticated/admin.seo'
@@ -32,6 +33,7 @@ import { Route as AuthenticatedAdminBlogKategoriRouteImport } from './routes/_au
 import { Route as AuthenticatedAdminBlogIdRouteImport } from './routes/_authenticated/admin.blog.$id'
 import { Route as AuthenticatedAdminWebsiteHomepageIndexRouteImport } from './routes/_authenticated/admin.website.homepage.index'
 import { Route as AuthenticatedAdminWebsiteHomepageSectionRouteImport } from './routes/_authenticated/admin.website.homepage.$section'
+import { Route as AuthenticatedAdminBlogPreviewIdRouteImport } from './routes/_authenticated/admin.blog.preview.$id'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
@@ -56,6 +58,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const BlogSlugRoute = BlogSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => BlogRoute,
 } as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin',
@@ -159,13 +166,20 @@ const AuthenticatedAdminWebsiteHomepageSectionRoute =
     path: '/website/homepage/$section',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminBlogPreviewIdRoute =
+  AuthenticatedAdminBlogPreviewIdRouteImport.update({
+    id: '/blog/preview/$id',
+    path: '/blog/preview/$id',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/blog': typeof BlogRoute
+  '/blog': typeof BlogRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
+  '/blog/$slug': typeof BlogSlugRoute
   '/admin/keamanan': typeof AuthenticatedAdminKeamananRoute
   '/admin/log': typeof AuthenticatedAdminLogRoute
   '/admin/media': typeof AuthenticatedAdminMediaRoute
@@ -181,14 +195,16 @@ export interface FileRoutesByFullPath {
   '/admin/website/footer': typeof AuthenticatedAdminWebsiteFooterRoute
   '/admin/website/header': typeof AuthenticatedAdminWebsiteHeaderRoute
   '/admin/blog/': typeof AuthenticatedAdminBlogIndexRoute
+  '/admin/blog/preview/$id': typeof AuthenticatedAdminBlogPreviewIdRoute
   '/admin/website/homepage/$section': typeof AuthenticatedAdminWebsiteHomepageSectionRoute
   '/admin/website/homepage/': typeof AuthenticatedAdminWebsiteHomepageIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/blog': typeof BlogRoute
+  '/blog': typeof BlogRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/admin/keamanan': typeof AuthenticatedAdminKeamananRoute
   '/admin/log': typeof AuthenticatedAdminLogRoute
   '/admin/media': typeof AuthenticatedAdminMediaRoute
@@ -204,6 +220,7 @@ export interface FileRoutesByTo {
   '/admin/website/footer': typeof AuthenticatedAdminWebsiteFooterRoute
   '/admin/website/header': typeof AuthenticatedAdminWebsiteHeaderRoute
   '/admin/blog': typeof AuthenticatedAdminBlogIndexRoute
+  '/admin/blog/preview/$id': typeof AuthenticatedAdminBlogPreviewIdRoute
   '/admin/website/homepage/$section': typeof AuthenticatedAdminWebsiteHomepageSectionRoute
   '/admin/website/homepage': typeof AuthenticatedAdminWebsiteHomepageIndexRoute
 }
@@ -212,9 +229,10 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
-  '/blog': typeof BlogRoute
+  '/blog': typeof BlogRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
+  '/blog/$slug': typeof BlogSlugRoute
   '/_authenticated/admin/keamanan': typeof AuthenticatedAdminKeamananRoute
   '/_authenticated/admin/log': typeof AuthenticatedAdminLogRoute
   '/_authenticated/admin/media': typeof AuthenticatedAdminMediaRoute
@@ -230,6 +248,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/website/footer': typeof AuthenticatedAdminWebsiteFooterRoute
   '/_authenticated/admin/website/header': typeof AuthenticatedAdminWebsiteHeaderRoute
   '/_authenticated/admin/blog/': typeof AuthenticatedAdminBlogIndexRoute
+  '/_authenticated/admin/blog/preview/$id': typeof AuthenticatedAdminBlogPreviewIdRoute
   '/_authenticated/admin/website/homepage/$section': typeof AuthenticatedAdminWebsiteHomepageSectionRoute
   '/_authenticated/admin/website/homepage/': typeof AuthenticatedAdminWebsiteHomepageIndexRoute
 }
@@ -241,6 +260,7 @@ export interface FileRouteTypes {
     | '/blog'
     | '/sitemap.xml'
     | '/admin'
+    | '/blog/$slug'
     | '/admin/keamanan'
     | '/admin/log'
     | '/admin/media'
@@ -256,6 +276,7 @@ export interface FileRouteTypes {
     | '/admin/website/footer'
     | '/admin/website/header'
     | '/admin/blog/'
+    | '/admin/blog/preview/$id'
     | '/admin/website/homepage/$section'
     | '/admin/website/homepage/'
   fileRoutesByTo: FileRoutesByTo
@@ -264,6 +285,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/blog'
     | '/sitemap.xml'
+    | '/blog/$slug'
     | '/admin/keamanan'
     | '/admin/log'
     | '/admin/media'
@@ -279,6 +301,7 @@ export interface FileRouteTypes {
     | '/admin/website/footer'
     | '/admin/website/header'
     | '/admin/blog'
+    | '/admin/blog/preview/$id'
     | '/admin/website/homepage/$section'
     | '/admin/website/homepage'
   id:
@@ -289,6 +312,7 @@ export interface FileRouteTypes {
     | '/blog'
     | '/sitemap.xml'
     | '/_authenticated/admin'
+    | '/blog/$slug'
     | '/_authenticated/admin/keamanan'
     | '/_authenticated/admin/log'
     | '/_authenticated/admin/media'
@@ -304,6 +328,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/website/footer'
     | '/_authenticated/admin/website/header'
     | '/_authenticated/admin/blog/'
+    | '/_authenticated/admin/blog/preview/$id'
     | '/_authenticated/admin/website/homepage/$section'
     | '/_authenticated/admin/website/homepage/'
   fileRoutesById: FileRoutesById
@@ -312,7 +337,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
-  BlogRoute: typeof BlogRoute
+  BlogRoute: typeof BlogRouteWithChildren
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
 }
 
@@ -352,6 +377,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/blog/$slug': {
+      id: '/blog/$slug'
+      path: '/$slug'
+      fullPath: '/blog/$slug'
+      preLoaderRoute: typeof BlogSlugRouteImport
+      parentRoute: typeof BlogRoute
     }
     '/_authenticated/admin': {
       id: '/_authenticated/admin'
@@ -479,6 +511,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminWebsiteHomepageSectionRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/blog/preview/$id': {
+      id: '/_authenticated/admin/blog/preview/$id'
+      path: '/blog/preview/$id'
+      fullPath: '/admin/blog/preview/$id'
+      preLoaderRoute: typeof AuthenticatedAdminBlogPreviewIdRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
   }
 }
 
@@ -498,6 +537,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminWebsiteFooterRoute: typeof AuthenticatedAdminWebsiteFooterRoute
   AuthenticatedAdminWebsiteHeaderRoute: typeof AuthenticatedAdminWebsiteHeaderRoute
   AuthenticatedAdminBlogIndexRoute: typeof AuthenticatedAdminBlogIndexRoute
+  AuthenticatedAdminBlogPreviewIdRoute: typeof AuthenticatedAdminBlogPreviewIdRoute
   AuthenticatedAdminWebsiteHomepageSectionRoute: typeof AuthenticatedAdminWebsiteHomepageSectionRoute
   AuthenticatedAdminWebsiteHomepageIndexRoute: typeof AuthenticatedAdminWebsiteHomepageIndexRoute
 }
@@ -518,6 +558,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminWebsiteFooterRoute: AuthenticatedAdminWebsiteFooterRoute,
   AuthenticatedAdminWebsiteHeaderRoute: AuthenticatedAdminWebsiteHeaderRoute,
   AuthenticatedAdminBlogIndexRoute: AuthenticatedAdminBlogIndexRoute,
+  AuthenticatedAdminBlogPreviewIdRoute: AuthenticatedAdminBlogPreviewIdRoute,
   AuthenticatedAdminWebsiteHomepageSectionRoute:
     AuthenticatedAdminWebsiteHomepageSectionRoute,
   AuthenticatedAdminWebsiteHomepageIndexRoute:
@@ -538,11 +579,21 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
+interface BlogRouteChildren {
+  BlogSlugRoute: typeof BlogSlugRoute
+}
+
+const BlogRouteChildren: BlogRouteChildren = {
+  BlogSlugRoute: BlogSlugRoute,
+}
+
+const BlogRouteWithChildren = BlogRoute._addFileChildren(BlogRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
-  BlogRoute: BlogRoute,
+  BlogRoute: BlogRouteWithChildren,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
 }
 export const routeTree = rootRouteImport
