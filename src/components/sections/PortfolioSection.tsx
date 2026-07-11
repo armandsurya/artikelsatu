@@ -3,14 +3,14 @@ import type { Portfolio } from "@/types";
 import { SectionHeader } from "@/components/SectionHeader";
 import { waLink } from "@/lib/whatsapp";
 
-export function PortfolioSection({ title, data }: { title?: string; data: Portfolio[] }) {
+export function PortfolioSection({ eyebrow, subtitle, title, data }: { eyebrow?: string; subtitle?: string; title?: string; data: Portfolio[] }) {
   return (
     <section id="portfolio" className="bg-accent/40 border-y border-border">
       <div className="container-narrow py-20">
         <SectionHeader
-          eyebrow="Portofolio"
+          eyebrow={eyebrow ?? "Portofolio"}
           title={title ?? "Contoh Hasil Artikel"}
-          description="Beberapa contoh artikel yang telah kami produksi untuk berbagai niche."
+          description={subtitle ?? "Beberapa contoh artikel yang telah kami produksi untuk berbagai niche."}
         />
         <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {data.map((p) => (
