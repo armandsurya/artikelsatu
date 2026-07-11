@@ -1,8 +1,11 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
-import { ExternalLink } from "lucide-react";
+import { createFileRoute, useBlocker } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import { PageHeader, Card } from "@/components/admin/ui";
-import { Field, TextField, Repeater, SelectField, SaveStatus } from "@/components/admin/homepage/primitives";
+import { TextField, Repeater, SelectField } from "@/components/admin/homepage/primitives";
+import { EditorToolbar } from "@/components/admin/homepage/EditorToolbar";
+import { UnsavedDialog } from "@/components/admin/homepage/UnsavedDialog";
+import { jsonEqual } from "@/lib/admin/sectionMeta";
 import { settings } from "@/data/settings";
 import { mainNav } from "@/data/navigation";
 import { logActivity } from "@/lib/admin/log";
@@ -30,73 +33,103 @@ export const Route = createFileRoute("/_authenticated/admin/website/header")({
 });
 
 function HeaderEditor() {
-  const [data, setData] = useState<HeaderData | null>(null);
-  const [state, setState] = useState<"idle" | "saving" | "saved" | "error">("idle");
-  const [savedAt, setSavedAt] = useState<string>();
-  const debounce = useRef<number | null>(null);
-  const skip = useRef(true);
+  const [live, setLive] = useState<HeaderData | null>(null);
+  const [serverDraft, setServerDraft] = useState<HeaderData | null>(null);
+  const [local, setLocal] = useState<HeaderData | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+  const [savedAt, setSavedAt] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
-      const all = await loadSiteSettings<{ header?: HeaderData }>();
-      const v = all.header;
-      if (!v) {
-        await patchSiteSettings({ header: DEFAULT_HEADER });
-        setData(DEFAULT_HEADER);
-      } else {
-        setData({ ...DEFAULT_HEADER, ...v, menu: v?.menu?.length ? v.menu : DEFAULT_HEADER.menu });
-      }
+      const all = await loadSiteSettings<{ header?: HeaderData; header_draft?: HeaderData; header_saved_at?: string }>();
+      const liveVal = { ...DEFAULT_HEADER, ...(all.header ?? {}), menu: all.header?.menu?.length ? all.header.menu : DEFAULT_HEADER.menu };
+      const draftVal = all.header_draft ? { ...DEFAULT_HEADER, ...all.header_draft } : liveVal;
+      if (!all.header) await patchSiteSettings({ header: liveVal, header_draft: draftVal });
+      setLive(liveVal);
+      setServerDraft(draftVal);
+      setLocal(draftVal);
+      setSavedAt(all.header_saved_at ?? null);
     })();
   }, []);
 
-  useEffect(() => {
-    if (!data) return;
-    if (skip.current) { skip.current = false; return; }
-    if (debounce.current) window.clearTimeout(debounce.current);
-    setState("saving");
-    debounce.current = window.setTimeout(async () => {
-      const { error } = await patchSiteSettings({ header: data });
-      if (error) setState("error");
-      else {
-        setState("saved");
-        setSavedAt(new Date().toLocaleTimeString("id-ID"));
-        await logActivity("edit_header", "site_settings", "header");
-      }
-    }, 900);
-  }, [data]);
+  const isDirty = useMemo(() => !!local && !!serverDraft && !jsonEqual(local, serverDraft), [local, serverDraft]);
+  const status = !live || !serverDraft ? "draft" : jsonEqual(live, serverDraft) ? "published" : "modified";
 
-  if (!data) return <div className="text-sm text-muted-foreground">Memuat…</div>;
-  const set = <K extends keyof HeaderData>(k: K, v: HeaderData[K]) => setData({ ...data, [k]: v });
+  const blocker = useBlocker({ shouldBlockFn: () => isDirty, withResolver: true });
+
+  async function saveDraft(): Promise<boolean> {
+    if (!local) return false;
+    if (!local.logo?.trim()) { toast.error("Logo wajib diisi"); return false; }
+    setSaving(true);
+    try {
+      const nowIso = new Date().toISOString();
+      const { error } = await patchSiteSettings({ header_draft: local, header_saved_at: nowIso });
+      if (error) { toast.error("Gagal menyimpan draft"); return false; }
+      setServerDraft(local);
+      setSavedAt(nowIso);
+      await logActivity("save_draft_header", "site_settings", "header");
+      toast.success("Draft header disimpan");
+      return true;
+    } finally { setSaving(false); }
+  }
+
+  async function publish() {
+    if (!local) return;
+    if (isDirty) { const ok = await saveDraft(); if (!ok) return; }
+    setPublishing(true);
+    try {
+      const { error } = await patchSiteSettings({ header: local });
+      if (error) { toast.error("Gagal mem-publish header"); return; }
+      setLive(local);
+      await logActivity("publish_header", "site_settings", "header");
+      toast.success("Header berhasil di-publish");
+    } finally { setPublishing(false); }
+  }
+
+  function resetLocal() {
+    if (!serverDraft) return;
+    setLocal(serverDraft);
+    toast("Perubahan dikembalikan");
+  }
+
+  function openPreview() {
+    window.open(`/?preview=header&t=${Date.now()}`, "_blank", "noopener,noreferrer");
+  }
+
+  if (!local) return <div className="text-sm text-muted-foreground">Memuat…</div>;
+  const set = <K extends keyof HeaderData>(k: K, v: HeaderData[K]) => setLocal({ ...local, [k]: v });
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Header"
-        description="Kelola logo, menu navigasi, dan tombol CTA header. Data awal diambil dari frontend."
-        actions={
-          <div className="flex items-center gap-3">
-            <SaveStatus state={state} savedAt={savedAt} />
-            <a href="/" target="_blank" rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-1.5 text-sm text-secondary hover:bg-accent">
-              <ExternalLink className="h-4 w-4" /> Lihat frontend
-            </a>
-          </div>
-        }
+      <PageHeader title="Header" description="Kelola logo, menu navigasi, dan tombol CTA header." />
+
+      <EditorToolbar
+        status={status as "draft" | "published" | "modified"}
+        isDirty={isDirty}
+        saving={saving}
+        publishing={publishing}
+        canPublish={true}
+        onSaveDraft={saveDraft}
+        onPreview={openPreview}
+        onPublish={publish}
+        onReset={resetLocal}
+        lastSavedAt={savedAt}
       />
 
       <Card>
         <h3 className="mb-4 text-sm font-semibold text-secondary">Logo & CTA</h3>
         <div className="grid gap-4 md:grid-cols-2">
-          <TextField label="Logo (teks)" value={data.logo} onChange={(v) => set("logo", v)} max={40} />
-          <TextField label="CTA Label" value={data.ctaLabel} onChange={(v) => set("ctaLabel", v)} max={40} />
-          <TextField label="CTA URL" value={data.ctaUrl} onChange={(v) => set("ctaUrl", v)} placeholder="https://wa.me/…" />
+          <TextField label="Logo (teks)" value={local.logo} onChange={(v) => set("logo", v)} max={40} required />
+          <TextField label="CTA Label" value={local.ctaLabel} onChange={(v) => set("ctaLabel", v)} max={40} />
+          <TextField label="CTA URL" value={local.ctaUrl} onChange={(v) => set("ctaUrl", v)} placeholder="https://wa.me/…" />
         </div>
       </Card>
 
       <Card>
         <h3 className="mb-4 text-sm font-semibold text-secondary">Menu Navigasi</h3>
         <Repeater
-          items={data.menu}
+          items={local.menu}
           onChange={(menu) => set("menu", menu)}
           addLabel="Tambah Menu"
           itemTitle={(it, i) => it.label || `Menu #${i + 1}`}
@@ -111,6 +144,14 @@ function HeaderEditor() {
           )}
         />
       </Card>
+
+      <UnsavedDialog
+        open={blocker.status === "blocked"}
+        saving={saving}
+        onSave={async () => { const ok = await saveDraft(); if (ok && blocker.status === "blocked") blocker.proceed?.(); }}
+        onDiscard={() => blocker.status === "blocked" && blocker.proceed?.()}
+        onCancel={() => blocker.status === "blocked" && blocker.reset?.()}
+      />
     </div>
   );
 }
