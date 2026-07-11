@@ -1,8 +1,11 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
-import { ExternalLink } from "lucide-react";
+import { createFileRoute, useBlocker } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import { PageHeader, Card } from "@/components/admin/ui";
-import { TextField, TextareaField, Repeater, SaveStatus, inputCls } from "@/components/admin/homepage/primitives";
+import { TextField, TextareaField, Repeater, inputCls } from "@/components/admin/homepage/primitives";
+import { EditorToolbar } from "@/components/admin/homepage/EditorToolbar";
+import { UnsavedDialog } from "@/components/admin/homepage/UnsavedDialog";
+import { jsonEqual } from "@/lib/admin/sectionMeta";
 import { settings } from "@/data/settings";
 import { footer } from "@/data/footer";
 import { logActivity } from "@/lib/admin/log";
@@ -30,89 +33,111 @@ export const Route = createFileRoute("/_authenticated/admin/website/footer")({
 });
 
 function FooterEditor() {
-  const [data, setData] = useState<FooterData | null>(null);
-  const [state, setState] = useState<"idle" | "saving" | "saved" | "error">("idle");
-  const [savedAt, setSavedAt] = useState<string>();
-  const debounce = useRef<number | null>(null);
-  const skip = useRef(true);
+  const [live, setLive] = useState<FooterData | null>(null);
+  const [serverDraft, setServerDraft] = useState<FooterData | null>(null);
+  const [local, setLocal] = useState<FooterData | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+  const [savedAt, setSavedAt] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
-      const all = await loadSiteSettings<{ footer?: Partial<FooterData> }>();
-      const v = all.footer;
-      if (!v) {
-        await patchSiteSettings({ footer: DEFAULT_FOOTER });
-        setData(DEFAULT_FOOTER);
-      } else {
-        setData({
-          ...DEFAULT_FOOTER, ...v,
-          contact: { ...DEFAULT_FOOTER.contact, ...(v?.contact ?? {}) },
-          social: v?.social?.length ? v.social : DEFAULT_FOOTER.social,
-          columns: v?.columns?.length ? v.columns : DEFAULT_FOOTER.columns,
-        });
-      }
+      const all = await loadSiteSettings<{ footer?: FooterData; footer_draft?: FooterData; footer_saved_at?: string }>();
+      const merge = (v?: Partial<FooterData>): FooterData => ({
+        ...DEFAULT_FOOTER, ...(v ?? {}),
+        contact: { ...DEFAULT_FOOTER.contact, ...(v?.contact ?? {}) },
+        social: v?.social?.length ? v.social : DEFAULT_FOOTER.social,
+        columns: v?.columns?.length ? v.columns : DEFAULT_FOOTER.columns,
+      });
+      const liveVal = merge(all.footer);
+      const draftVal = all.footer_draft ? merge(all.footer_draft) : liveVal;
+      if (!all.footer) await patchSiteSettings({ footer: liveVal, footer_draft: draftVal });
+      setLive(liveVal);
+      setServerDraft(draftVal);
+      setLocal(draftVal);
+      setSavedAt(all.footer_saved_at ?? null);
     })();
   }, []);
 
-  useEffect(() => {
-    if (!data) return;
-    if (skip.current) { skip.current = false; return; }
-    if (debounce.current) window.clearTimeout(debounce.current);
-    setState("saving");
-    debounce.current = window.setTimeout(async () => {
-      const { error } = await patchSiteSettings({ footer: data });
-      if (error) setState("error");
-      else {
-        setState("saved");
-        setSavedAt(new Date().toLocaleTimeString("id-ID"));
-        await logActivity("edit_footer", "site_settings", "footer");
-      }
-    }, 900);
-  }, [data]);
+  const isDirty = useMemo(() => !!local && !!serverDraft && !jsonEqual(local, serverDraft), [local, serverDraft]);
+  const status = !live || !serverDraft ? "draft" : jsonEqual(live, serverDraft) ? "published" : "modified";
+  const blocker = useBlocker({ shouldBlockFn: () => isDirty, withResolver: true });
 
-  if (!data) return <div className="text-sm text-muted-foreground">Memuat…</div>;
-  const set = <K extends keyof FooterData>(k: K, v: FooterData[K]) => setData({ ...data, [k]: v });
+  async function saveDraft(): Promise<boolean> {
+    if (!local) return false;
+    setSaving(true);
+    try {
+      const nowIso = new Date().toISOString();
+      const { error } = await patchSiteSettings({ footer_draft: local, footer_saved_at: nowIso });
+      if (error) { toast.error("Gagal menyimpan draft"); return false; }
+      setServerDraft(local);
+      setSavedAt(nowIso);
+      await logActivity("save_draft_footer", "site_settings", "footer");
+      toast.success("Draft footer disimpan");
+      return true;
+    } finally { setSaving(false); }
+  }
+
+  async function publish() {
+    if (!local) return;
+    if (isDirty) { const ok = await saveDraft(); if (!ok) return; }
+    setPublishing(true);
+    try {
+      const { error } = await patchSiteSettings({ footer: local });
+      if (error) { toast.error("Gagal mem-publish footer"); return; }
+      setLive(local);
+      await logActivity("publish_footer", "site_settings", "footer");
+      toast.success("Footer berhasil di-publish");
+    } finally { setPublishing(false); }
+  }
+
+  function resetLocal() { if (serverDraft) { setLocal(serverDraft); toast("Perubahan dikembalikan"); } }
+  function openPreview() { window.open(`/?preview=footer&t=${Date.now()}`, "_blank", "noopener,noreferrer"); }
+
+  if (!local) return <div className="text-sm text-muted-foreground">Memuat…</div>;
+  const set = <K extends keyof FooterData>(k: K, v: FooterData[K]) => setLocal({ ...local, [k]: v });
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Footer"
-        description="Kelola deskripsi, kontak, sosial media, dan kolom link footer."
-        actions={
-          <div className="flex items-center gap-3">
-            <SaveStatus state={state} savedAt={savedAt} />
-            <a href="/" target="_blank" rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-1.5 text-sm text-secondary hover:bg-accent">
-              <ExternalLink className="h-4 w-4" /> Lihat frontend
-            </a>
-          </div>
-        }
+      <PageHeader title="Footer" description="Kelola deskripsi, kontak, sosial media, dan kolom link footer." />
+
+      <EditorToolbar
+        status={status as "draft" | "published" | "modified"}
+        isDirty={isDirty}
+        saving={saving}
+        publishing={publishing}
+        canPublish={true}
+        onSaveDraft={saveDraft}
+        onPreview={openPreview}
+        onPublish={publish}
+        onReset={resetLocal}
+        lastSavedAt={savedAt}
       />
 
       <Card>
         <h3 className="mb-4 text-sm font-semibold text-secondary">Umum</h3>
         <div className="grid gap-4">
-          <TextareaField label="Deskripsi Perusahaan" value={data.description} onChange={(v) => set("description", v)} rows={3} max={280} />
-          <TextField label="Copyright" value={data.copyright} onChange={(v) => set("copyright", v)} max={160} />
+          <TextareaField label="Deskripsi Perusahaan" value={local.description} onChange={(v) => set("description", v)} rows={3} max={280} />
+          <TextField label="Copyright" value={local.copyright} onChange={(v) => set("copyright", v)} max={160} />
         </div>
       </Card>
 
       <Card>
         <h3 className="mb-4 text-sm font-semibold text-secondary">Kontak</h3>
         <div className="grid gap-4 md:grid-cols-3">
-          <TextField label="WhatsApp (angka saja)" value={data.contact.whatsapp}
-            onChange={(v) => set("contact", { ...data.contact, whatsapp: v })} placeholder="628123456789" />
-          <TextField label="Email" value={data.contact.email}
-            onChange={(v) => set("contact", { ...data.contact, email: v })} />
-          <TextField label="Alamat" value={data.contact.address}
-            onChange={(v) => set("contact", { ...data.contact, address: v })} />
+          <TextField label="WhatsApp (angka saja)" value={local.contact.whatsapp}
+            onChange={(v) => set("contact", { ...local.contact, whatsapp: v })} placeholder="628123456789" />
+          <TextField label="Email" value={local.contact.email}
+            onChange={(v) => set("contact", { ...local.contact, email: v })} />
+          <TextField label="Alamat" value={local.contact.address}
+            onChange={(v) => set("contact", { ...local.contact, address: v })} />
         </div>
       </Card>
 
       <Card>
         <h3 className="mb-4 text-sm font-semibold text-secondary">Sosial Media</h3>
         <Repeater
-          items={data.social}
+          items={local.social}
           onChange={(social) => set("social", social)}
           addLabel="Tambah Sosial Media"
           itemTitle={(it, i) => it.label || `Sosial #${i + 1}`}
@@ -129,7 +154,7 @@ function FooterEditor() {
       <Card>
         <h3 className="mb-4 text-sm font-semibold text-secondary">Kolom Link</h3>
         <Repeater
-          items={data.columns}
+          items={local.columns}
           onChange={(columns) => set("columns", columns)}
           addLabel="Tambah Kolom"
           itemTitle={(it, i) => it.title || `Kolom #${i + 1}`}
@@ -158,6 +183,14 @@ function FooterEditor() {
           )}
         />
       </Card>
+
+      <UnsavedDialog
+        open={blocker.status === "blocked"}
+        saving={saving}
+        onSave={async () => { const ok = await saveDraft(); if (ok && blocker.status === "blocked") blocker.proceed?.(); }}
+        onDiscard={() => blocker.status === "blocked" && blocker.proceed?.()}
+        onCancel={() => blocker.status === "blocked" && blocker.reset?.()}
+      />
     </div>
   );
 }
