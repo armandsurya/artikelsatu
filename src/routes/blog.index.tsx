@@ -13,7 +13,7 @@ const PAGE_SIZE = 6;
 const TITLE = "Blog — Insight SEO, Content Marketing & Copywriting";
 const DESC = "Kumpulan artikel dan panduan seputar SEO, penulisan konten, dan strategi digital untuk membantu bisnis Anda bertumbuh.";
 
-export const Route = createFileRoute("/blog")({
+export const Route = createFileRoute("/blog/")({
   head: () => ({
     meta: [
       { title: TITLE },
