@@ -65,7 +65,11 @@ function HeaderEditor() {
     try {
       const nowIso = new Date().toISOString();
       const { error } = await patchSiteSettings({ header_draft: local, header_saved_at: nowIso });
-      if (error) { toast.error("Gagal menyimpan draft"); return false; }
+      if (error) {
+        console.error("[header saveDraft]", error);
+        toast.error("Gagal menyimpan draft", { description: error.message });
+        return false;
+      }
       setServerDraft(local);
       setSavedAt(nowIso);
       await logActivity("save_draft_header", "site_settings", "header");
@@ -80,7 +84,11 @@ function HeaderEditor() {
     setPublishing(true);
     try {
       const { error } = await patchSiteSettings({ header: local });
-      if (error) { toast.error("Gagal mem-publish header"); return; }
+      if (error) {
+        console.error("[header publish]", error);
+        toast.error("Gagal mem-publish header", { description: error.message });
+        return;
+      }
       setLive(local);
       await logActivity("publish_header", "site_settings", "header");
       toast.success("Header berhasil di-publish");
