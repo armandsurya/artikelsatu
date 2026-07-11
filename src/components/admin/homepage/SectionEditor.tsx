@@ -138,7 +138,14 @@ export function SectionEditor<T>({
       setServerDraft(draftRaw);
       setServerPublished(pubRaw);
       const { meta: mm, content: cc } = splitMeta<T>(draftRaw);
-      setSectionMeta(mm);
+      // Backfill badge/subtitle from per-section defaults so admin sees actual current values.
+      const d = SECTION_META_DEFAULTS[sectionKey];
+      const mergedMeta: SectionMeta = {
+        ...mm,
+        badge: (mm.badge && mm.badge.trim()) || d.badge,
+        subtitle: (mm.subtitle && mm.subtitle.trim()) || d.subtitle,
+      };
+      setSectionMeta(mergedMeta);
       setContent(cc);
       setTitle(row.title ?? meta.title);
       setSortOrder(row.sort_order ?? meta.sortOrder);
