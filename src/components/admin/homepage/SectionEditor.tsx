@@ -329,6 +329,7 @@ export function SectionEditor<T>({
       setSavedAt(nowIso);
       setRowSnap({ title, sortOrder, visible });
       setVersionReloadKey((k) => k + 1);
+      queryClient.invalidateQueries({ queryKey: PUBLISHED_QUERY_KEY });
       await logActivity("publish_section", "homepage_sections", sectionKey);
       toast.success(`Berhasil di-publish (Version ${nextVersion})`);
     } catch (e) {
