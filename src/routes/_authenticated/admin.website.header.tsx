@@ -94,6 +94,8 @@ function HeaderEditor() {
         return;
       }
       setLive(local);
+      if (local.logo) await trackMediaUsage(local.logo, "site_settings", "header", "logo");
+      else await clearMediaUsage("site_settings", "header", "logo");
       queryClient.invalidateQueries({ queryKey: PUBLISHED_QUERY_KEY });
       await logActivity("publish_header", "site_settings", "header");
       toast.success("Header berhasil di-publish");
