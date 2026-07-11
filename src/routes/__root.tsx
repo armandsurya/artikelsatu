@@ -122,6 +122,19 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />
+      <SonnerToaster />
     </QueryClientProvider>
   );
+}
+
+function SonnerToaster() {
+  // Lazy to avoid SSR issues; sonner is client-first.
+  const [Comp, setComp] = useState<React.ComponentType | null>(null);
+  useEffect(() => {
+    import("sonner").then((m) => {
+      const T = m.Toaster;
+      setComp(() => () => <T richColors position="top-right" closeButton />);
+    });
+  }, []);
+  return Comp ? <Comp /> : null;
 }
