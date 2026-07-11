@@ -84,7 +84,7 @@ function FooterEditor() {
     setPublishing(true);
     try {
       const { error } = await patchSiteSettings({ footer: local });
-      if (error) { toast.error("Gagal mem-publish footer"); return; }
+      if (error) { console.error("[footer publish]", error); toast.error("Gagal mem-publish footer", { description: error.message }); return; }
       setLive(local);
       await logActivity("publish_footer", "site_settings", "footer");
       toast.success("Footer berhasil di-publish");
