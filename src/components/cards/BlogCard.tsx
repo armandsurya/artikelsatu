@@ -1,4 +1,5 @@
 import { Clock, User } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import type { BlogPost } from "@/types";
 
 export function BlogCard({ post }: { post: BlogPost }) {
@@ -7,7 +8,12 @@ export function BlogCard({ post }: { post: BlogPost }) {
   });
   return (
     <article className="group flex flex-col overflow-hidden rounded-[16px] border border-border bg-card transition-colors hover:border-primary/40">
-      <a href={`/blog/${post.slug}`} className="block aspect-[16/9] overflow-hidden bg-accent">
+      <Link
+        to="/blog/$slug"
+        params={{ slug: post.slug }}
+        className="block aspect-[16/9] overflow-hidden bg-accent"
+        aria-label={post.title}
+      >
         <img
           src={post.featuredImage}
           alt={post.title}
@@ -15,13 +21,15 @@ export function BlogCard({ post }: { post: BlogPost }) {
           decoding="async"
           className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
         />
-      </a>
+      </Link>
       <div className="flex flex-1 flex-col p-5">
         <span className="inline-flex w-fit rounded-full bg-accent px-2.5 py-1 text-xs font-medium text-accent-foreground">
           {post.category}
         </span>
         <h3 className="mt-3 text-base font-semibold leading-snug text-secondary">
-          <a href={`/blog/${post.slug}`} className="hover:text-primary">{post.title}</a>
+          <Link to="/blog/$slug" params={{ slug: post.slug }} className="hover:text-primary">
+            {post.title}
+          </Link>
         </h3>
         <p className="mt-2 line-clamp-2 flex-1 text-sm leading-relaxed text-muted-foreground">
           {post.excerpt}
