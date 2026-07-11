@@ -30,8 +30,11 @@ export type PublishedBlogPostRow = {
   status: string;
   read_time: number | null;
   published_at: string | null;
+  updated_at?: string | null;
   meta_title: string | null;
   meta_description: string | null;
+  canonical_url?: string | null;
+  content?: unknown;
 };
 
 export type PublishedCategoryRow = {
@@ -118,3 +121,23 @@ export function usePublishedBlogCategories(): UseQueryResult<PublishedCategoryRo
     staleTime: 30_000,
   });
 }
+
+export async function fetchPublishedBlogPostBySlug(slug: string): Promise<PublishedBlogPostRow | null> {
+  const { data, error } = await supabase
+    .from("blog_posts")
+    .select("id,title,slug,excerpt,content,featured_image,category_id,tags,author_id,status,read_time,published_at,updated_at,meta_title,meta_description,canonical_url")
+    .eq("slug", slug)
+    .eq("status", "published")
+    .maybeSingle();
+  if (error) throw error;
+  return (data as PublishedBlogPostRow | null) ?? null;
+}
+
+export function usePublishedBlogPostBySlug(slug: string): UseQueryResult<PublishedBlogPostRow | null> {
+  return useQuery({
+    queryKey: [...PUBLISHED_QUERY_KEY, "blog_post", slug],
+    queryFn: () => fetchPublishedBlogPostBySlug(slug),
+    staleTime: 30_000,
+  });
+}
+
