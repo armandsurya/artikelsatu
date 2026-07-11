@@ -35,6 +35,7 @@ export const Route = createFileRoute("/_authenticated/admin/website/header")({
 });
 
 function HeaderEditor() {
+  const queryClient = useQueryClient();
   const [live, setLive] = useState<HeaderData | null>(null);
   const [serverDraft, setServerDraft] = useState<HeaderData | null>(null);
   const [local, setLocal] = useState<HeaderData | null>(null);

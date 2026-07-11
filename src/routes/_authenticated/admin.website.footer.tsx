@@ -35,6 +35,7 @@ export const Route = createFileRoute("/_authenticated/admin/website/footer")({
 });
 
 function FooterEditor() {
+  const queryClient = useQueryClient();
   const [live, setLive] = useState<FooterData | null>(null);
   const [serverDraft, setServerDraft] = useState<FooterData | null>(null);
   const [local, setLocal] = useState<FooterData | null>(null);
