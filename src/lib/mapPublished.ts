@@ -233,7 +233,8 @@ export function mapPublishedSection(
   switch (key) {
     case "hero": {
       const { source, content, meta } = pickContent<HeroFormData>("hero", dbData);
-      return { type: "hero", ...base(source, meta), data: mapHero(content) };
+      const b = base(source, meta);
+      return { type: "hero", ...b, data: mapHero(content, b.meta) };
     }
     case "stats": {
       const { source, content, meta } = pickContent<{ items: StatItem[] }>("stats", dbData);
