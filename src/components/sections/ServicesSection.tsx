@@ -2,14 +2,14 @@ import type { Service } from "@/types";
 import { Icon } from "@/components/Icon";
 import { SectionHeader } from "@/components/SectionHeader";
 
-export function ServicesSection({ title, data }: { title?: string; data: Service[] }) {
+export function ServicesSection({ eyebrow, subtitle, title, data }: { eyebrow?: string; subtitle?: string; title?: string; data: Service[] }) {
   return (
     <section id="services" className="bg-background">
       <div className="container-narrow py-20">
         <SectionHeader
-          eyebrow="Layanan"
+          eyebrow={eyebrow ?? "Layanan"}
           title={title ?? "Layanan Kami"}
-          description="Berbagai jenis konten untuk mendukung strategi digital bisnis Anda."
+          description={subtitle ?? "Berbagai jenis konten untuk mendukung strategi digital bisnis Anda."}
         />
         <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {data.map((s) => (

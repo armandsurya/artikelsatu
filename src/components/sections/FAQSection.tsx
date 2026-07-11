@@ -2,14 +2,14 @@ import type { FAQItem } from "@/types";
 import { SectionHeader } from "@/components/SectionHeader";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
-export function FAQSection({ title, data }: { title?: string; data: FAQItem[] }) {
+export function FAQSection({ eyebrow, subtitle, title, data }: { eyebrow?: string; subtitle?: string; title?: string; data: FAQItem[] }) {
   return (
     <section id="faq" className="bg-background">
       <div className="container-narrow py-20">
         <SectionHeader
-          eyebrow="FAQ"
+          eyebrow={eyebrow ?? "FAQ"}
           title={title ?? "Pertanyaan yang Sering Diajukan"}
-          description="Jawaban atas pertanyaan yang paling sering ditanyakan calon klien."
+          description={subtitle ?? "Jawaban atas pertanyaan yang paling sering ditanyakan calon klien."}
         />
 
         <div className="mx-auto mt-12 max-w-3xl rounded-[16px] border border-border bg-card">

@@ -3,14 +3,14 @@ import type { PricingPackage } from "@/types";
 import { SectionHeader } from "@/components/SectionHeader";
 import { waLink } from "@/lib/whatsapp";
 
-export function PricingSection({ title, data }: { title?: string; data: PricingPackage[] }) {
+export function PricingSection({ eyebrow, subtitle, title, data }: { eyebrow?: string; subtitle?: string; title?: string; data: PricingPackage[] }) {
   return (
     <section id="pricing" className="bg-background">
       <div className="container-narrow py-20">
         <SectionHeader
-          eyebrow="Harga"
+          eyebrow={eyebrow ?? "Harga"}
           title={title ?? "Paket Harga"}
-          description="Pilih paket yang sesuai dengan skala kebutuhan konten Anda. Harga transparan tanpa biaya tersembunyi."
+          description={subtitle ?? "Pilih paket yang sesuai dengan skala kebutuhan konten Anda. Harga transparan tanpa biaya tersembunyi."}
         />
         <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {data.map((p) => (

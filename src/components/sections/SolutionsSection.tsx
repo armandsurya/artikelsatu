@@ -2,14 +2,14 @@ import { X, Check } from "lucide-react";
 import type { ComparisonItem } from "@/types";
 import { SectionHeader } from "@/components/SectionHeader";
 
-export function SolutionsSection({ title, data }: { title?: string; data: ComparisonItem[] }) {
+export function SolutionsSection({ eyebrow, subtitle, title, data }: { eyebrow?: string; subtitle?: string; title?: string; data: ComparisonItem[] }) {
   return (
     <section id="solutions" className="bg-accent/40 border-y border-border">
       <div className="container-narrow py-20">
         <SectionHeader
-          eyebrow="Solusi"
+          eyebrow={eyebrow ?? "Solusi"}
           title={title ?? "Artikel Biasa vs Artikel SEO"}
-          description="Perbedaan mendasar antara artikel yang ditulis tanpa strategi dengan artikel yang dioptimasi untuk SEO."
+          description={subtitle ?? "Perbedaan mendasar antara artikel yang ditulis tanpa strategi dengan artikel yang dioptimasi untuk SEO."}
         />
 
         <div className="mx-auto mt-12 max-w-4xl overflow-hidden rounded-[16px] border border-border bg-card">

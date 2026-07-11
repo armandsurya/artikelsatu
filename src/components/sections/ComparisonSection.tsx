@@ -11,14 +11,14 @@ function Cell({ value }: { value: string | boolean }) {
   return <span className="text-sm text-secondary">{value}</span>;
 }
 
-export function ComparisonSection({ title, data }: { title?: string; data: CompetitorComparison[] }) {
+export function ComparisonSection({ eyebrow, subtitle, title, data }: { eyebrow?: string; subtitle?: string; title?: string; data: CompetitorComparison[] }) {
   return (
     <section id="comparison" className="bg-accent/40 border-y border-border">
       <div className="container-narrow py-20">
         <SectionHeader
-          eyebrow="Perbandingan"
+          eyebrow={eyebrow ?? "Perbandingan"}
           title={title ?? "Bandingkan dengan Alternatif Lain"}
-          description="Lihat perbandingan antara freelancer, AI, agency, dan layanan kami."
+          description={subtitle ?? "Lihat perbandingan antara freelancer, AI, agency, dan layanan kami."}
         />
 
         <div className="mx-auto mt-12 max-w-5xl overflow-x-auto rounded-[16px] border border-border bg-card">
