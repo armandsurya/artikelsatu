@@ -142,31 +142,79 @@ export type Database = {
           },
         ]
       }
+      homepage_section_versions: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          data: Json
+          id: string
+          note: string | null
+          section_key: string
+          title: string | null
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          data: Json
+          id?: string
+          note?: string | null
+          section_key: string
+          title?: string | null
+          version: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          data?: Json
+          id?: string
+          note?: string | null
+          section_key?: string
+          title?: string | null
+          version?: number
+        }
+        Relationships: []
+      }
       homepage_sections: {
         Row: {
           data: Json
+          draft_data: Json | null
           id: string
           is_visible: boolean
+          last_published_at: string | null
+          last_saved_at: string | null
+          last_saved_by: string | null
           section_key: string
           sort_order: number
+          status: string
           title: string | null
           updated_at: string
         }
         Insert: {
           data?: Json
+          draft_data?: Json | null
           id?: string
           is_visible?: boolean
+          last_published_at?: string | null
+          last_saved_at?: string | null
+          last_saved_by?: string | null
           section_key: string
           sort_order?: number
+          status?: string
           title?: string | null
           updated_at?: string
         }
         Update: {
           data?: Json
+          draft_data?: Json | null
           id?: string
           is_visible?: boolean
+          last_published_at?: string | null
+          last_saved_at?: string | null
+          last_saved_by?: string | null
           section_key?: string
           sort_order?: number
+          status?: string
           title?: string | null
           updated_at?: string
         }
