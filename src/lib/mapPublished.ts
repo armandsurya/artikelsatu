@@ -219,60 +219,66 @@ export function mapPublishedSection(
   dbData: Record<string, unknown> | null,
   title: string | null,
   blogPosts: BlogPost[],
+  lastPublishedAt?: string | null,
 ): MappedSection {
+  const base = (source: SectionSource, m: SectionMeta) => ({
+    source,
+    meta: resolveMeta(key, m),
+    lastPublishedAt: lastPublishedAt ?? null,
+  });
   switch (key) {
     case "hero": {
-      const { source, content } = pickContent<HeroFormData>("hero", dbData);
-      return { type: "hero", source, data: mapHero(content) };
+      const { source, content, meta } = pickContent<HeroFormData>("hero", dbData);
+      return { type: "hero", ...base(source, meta), data: mapHero(content) };
     }
     case "stats": {
-      const { source, content } = pickContent<{ items: StatItem[] }>("stats", dbData);
-      return { type: "stats", source, data: mapStats(content) };
+      const { source, content, meta } = pickContent<{ items: StatItem[] }>("stats", dbData);
+      return { type: "stats", ...base(source, meta), data: mapStats(content) };
     }
     case "problems": {
-      const { source, content } = pickContent<{ items: ProblemItem[] }>("problems", dbData);
-      return { type: "problems", source, title: title ?? undefined, data: mapProblems(content) };
+      const { source, content, meta } = pickContent<{ items: ProblemItem[] }>("problems", dbData);
+      return { type: "problems", ...base(source, meta), title: title ?? undefined, data: mapProblems(content) };
     }
     case "solutions": {
-      const { source, content } = pickContent<{ items: SolutionRow[] }>("solutions", dbData);
-      return { type: "solutions", source, title: title ?? undefined, data: mapSolutions(content) };
+      const { source, content, meta } = pickContent<{ items: SolutionRow[] }>("solutions", dbData);
+      return { type: "solutions", ...base(source, meta), title: title ?? undefined, data: mapSolutions(content) };
     }
     case "workflow": {
-      const { source, content } = pickContent<{ items: WorkflowItem[] }>("workflow", dbData);
-      return { type: "workflow", source, title: title ?? undefined, data: mapWorkflow(content) };
+      const { source, content, meta } = pickContent<{ items: WorkflowItem[] }>("workflow", dbData);
+      return { type: "workflow", ...base(source, meta), title: title ?? undefined, data: mapWorkflow(content) };
     }
     case "advantages": {
-      const { source, content } = pickContent<{ items: AdvantageItem[] }>("advantages", dbData);
-      return { type: "advantages", source, title: title ?? undefined, data: mapAdvantages(content) };
+      const { source, content, meta } = pickContent<{ items: AdvantageItem[] }>("advantages", dbData);
+      return { type: "advantages", ...base(source, meta), title: title ?? undefined, data: mapAdvantages(content) };
     }
     case "services": {
-      const { source, content } = pickContent<{ items: ServiceItem[] }>("services", dbData);
-      return { type: "services", source, title: title ?? undefined, data: mapServices(content) };
+      const { source, content, meta } = pickContent<{ items: ServiceItem[] }>("services", dbData);
+      return { type: "services", ...base(source, meta), title: title ?? undefined, data: mapServices(content) };
     }
     case "portfolio": {
-      const { source, content } = pickContent<{ items: PortfolioItem[] }>("portfolio", dbData);
-      return { type: "portfolio", source, title: title ?? undefined, data: mapPortfolio(content) };
+      const { source, content, meta } = pickContent<{ items: PortfolioItem[] }>("portfolio", dbData);
+      return { type: "portfolio", ...base(source, meta), title: title ?? undefined, data: mapPortfolio(content) };
     }
     case "pricing": {
-      const { source, content } = pickContent<{ items: PricingItem[] }>("pricing", dbData);
-      return { type: "pricing", source, title: title ?? undefined, data: mapPricing(content) };
+      const { source, content, meta } = pickContent<{ items: PricingItem[] }>("pricing", dbData);
+      return { type: "pricing", ...base(source, meta), title: title ?? undefined, data: mapPricing(content) };
     }
     case "comparison": {
-      const { source, content } = pickContent<{ rows: ComparisonRow[] }>("comparison", dbData);
-      return { type: "comparison", source, title: title ?? undefined, data: mapComparison(content) };
+      const { source, content, meta } = pickContent<{ rows: ComparisonRow[] }>("comparison", dbData);
+      return { type: "comparison", ...base(source, meta), title: title ?? undefined, data: mapComparison(content) };
     }
     case "faq": {
-      const { source, content } = pickContent<{ items: FAQItem[] }>("faq", dbData);
-      return { type: "faq", source, title: title ?? undefined, data: mapFaq(content) };
+      const { source, content, meta } = pickContent<{ items: FAQItem[] }>("faq", dbData);
+      return { type: "faq", ...base(source, meta), title: title ?? undefined, data: mapFaq(content) };
     }
     case "blogPreview": {
-      const { source, content } = pickContent<BlogPreviewData>("blogPreview", dbData);
+      const { source, content, meta } = pickContent<BlogPreviewData>("blogPreview", dbData);
       const count = Math.max(1, Number(content.count) || 3);
       const cat = content.category || "auto";
       const filtered = cat === "auto" || !cat ? blogPosts : blogPosts.filter((p) => p.category === cat);
       return {
         type: "blogPreview",
-        source,
+        ...base(source, meta),
         title: title ?? content.sectionTitle ?? "Artikel Terbaru",
         count,
         category: cat,
@@ -280,8 +286,8 @@ export function mapPublishedSection(
       };
     }
     case "cta": {
-      const { source, content } = pickContent<CTAData>("cta", dbData);
-      return { type: "cta", source, data: mapCta(content) };
+      const { source, content, meta } = pickContent<CTAData>("cta", dbData);
+      return { type: "cta", ...base(source, meta), data: mapCta(content) };
     }
   }
 }
