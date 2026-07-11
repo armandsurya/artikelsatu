@@ -135,11 +135,7 @@ export function SectionEditor<T>({
   );
   const isDirty = useMemo(() => {
     if (!currentRaw || !serverDraft) return false;
-    // Also consider title/sortOrder/visible changes.
-    return !jsonEqual(currentRaw, serverDraft)
-      || (serverDraft as { _title?: string })._title !== undefined
-      || false
-      || false;
+    return !jsonEqual(currentRaw, serverDraft);
   }, [currentRaw, serverDraft]);
 
   // Track title/order/visible dirty separately (server row values snapshot).
