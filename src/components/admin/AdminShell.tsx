@@ -38,7 +38,9 @@ export function AdminShell({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setEmail(data.user?.email ?? ""));
+    import("@/lib/admin/blogSeed").then((m) => m.ensureBlogSeeded()).catch(() => {});
   }, []);
+
 
   async function signOut() {
     await supabase.from("activity_log").insert({
