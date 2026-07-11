@@ -12,8 +12,23 @@ import { FAQSection } from "./sections/FAQSection";
 import { BlogPreviewSection } from "./sections/BlogPreviewSection";
 import { CTASection } from "./sections/CTASection";
 import { DebugSource } from "./DebugSource";
-import type { SectionArrangement, MappedSection } from "@/lib/mapPublished";
+import type { SectionArrangement, MappedSection, ResolvedMeta } from "@/lib/mapPublished";
 import type { SectionKey } from "@/data/homepageDefaults";
+import type { CSSProperties } from "react";
+
+/** Build inline style overrides from meta (bgColor, bgImage, padding). */
+function styleFromMeta(m: ResolvedMeta): CSSProperties | undefined {
+  const s: CSSProperties = {};
+  if (m.bgColor) s.backgroundColor = m.bgColor;
+  if (m.bgImage) {
+    s.backgroundImage = `url(${m.bgImage})`;
+    s.backgroundSize = "cover";
+    s.backgroundPosition = "center";
+  }
+  if (m.paddingTop !== 96) s.paddingTop = `${m.paddingTop}px`;
+  if (m.paddingBottom !== 96) s.paddingBottom = `${m.paddingBottom}px`;
+  return Object.keys(s).length ? s : undefined;
+}
 
 export function SectionRenderer({
   arrangement,
@@ -28,9 +43,14 @@ export function SectionRenderer({
       {visible.map((s) => {
         const p = payload[s.key];
         if (!p) return null;
+        const style = styleFromMeta(p.meta);
         return (
-          <div key={s.key} className="relative">
-            <DebugSource label={s.key} source={p.source} />
+          <div key={s.key} className="relative" style={style}>
+            <DebugSource
+              label={s.key}
+              source={p.source}
+              lastPublishedAt={p.lastPublishedAt ?? null}
+            />
             {renderOne(p)}
           </div>
         );
@@ -41,18 +61,18 @@ export function SectionRenderer({
 
 function renderOne(p: MappedSection) {
   switch (p.type) {
-    case "hero": return <HeroSection data={p.data} />;
-    case "stats": return <StatsSection data={p.data} />;
-    case "problems": return <ProblemsSection title={p.title} data={p.data} />;
-    case "solutions": return <SolutionsSection title={p.title} data={p.data} />;
-    case "workflow": return <WorkflowSection title={p.title} data={p.data} />;
-    case "advantages": return <AdvantagesSection title={p.title} data={p.data} />;
-    case "services": return <ServicesSection title={p.title} data={p.data} />;
-    case "portfolio": return <PortfolioSection title={p.title} data={p.data} />;
-    case "pricing": return <PricingSection title={p.title} data={p.data} />;
-    case "comparison": return <ComparisonSection title={p.title} data={p.data} />;
-    case "faq": return <FAQSection title={p.title} data={p.data} />;
-    case "blogPreview": return <BlogPreviewSection title={p.title} data={p.data} />;
-    case "cta": return <CTASection data={p.data} />;
+    case "hero":       return <HeroSection data={p.data} />;
+    case "stats":      return <StatsSection data={p.data} />;
+    case "problems":   return <ProblemsSection eyebrow={p.meta.eyebrow} subtitle={p.meta.subtitle} title={p.title} data={p.data} />;
+    case "solutions":  return <SolutionsSection eyebrow={p.meta.eyebrow} subtitle={p.meta.subtitle} title={p.title} data={p.data} />;
+    case "workflow":   return <WorkflowSection eyebrow={p.meta.eyebrow} subtitle={p.meta.subtitle} title={p.title} data={p.data} />;
+    case "advantages": return <AdvantagesSection eyebrow={p.meta.eyebrow} subtitle={p.meta.subtitle} title={p.title} data={p.data} />;
+    case "services":   return <ServicesSection eyebrow={p.meta.eyebrow} subtitle={p.meta.subtitle} title={p.title} data={p.data} />;
+    case "portfolio":  return <PortfolioSection eyebrow={p.meta.eyebrow} subtitle={p.meta.subtitle} title={p.title} data={p.data} />;
+    case "pricing":    return <PricingSection eyebrow={p.meta.eyebrow} subtitle={p.meta.subtitle} title={p.title} data={p.data} />;
+    case "comparison": return <ComparisonSection eyebrow={p.meta.eyebrow} subtitle={p.meta.subtitle} title={p.title} data={p.data} />;
+    case "faq":        return <FAQSection eyebrow={p.meta.eyebrow} subtitle={p.meta.subtitle} title={p.title} data={p.data} />;
+    case "blogPreview":return <BlogPreviewSection eyebrow={p.meta.eyebrow} subtitle={p.meta.subtitle} title={p.title} data={p.data} />;
+    case "cta":        return <CTASection data={p.data} />;
   }
 }
