@@ -44,6 +44,29 @@ export const SECTION_META: Record<SectionKey, { title: string; description: stri
 
 export const SECTION_KEYS = Object.keys(SECTION_META) as SectionKey[];
 
+/**
+ * Per-section default meta (badge/subtitle) matching what the frontend
+ * currently renders via hardcoded literals inside each Section component.
+ * These are used to (1) seed the CMS editor so admin sees the CURRENT
+ * frontend text, and (2) act as fallback on the frontend when the admin
+ * leaves them blank.
+ */
+export const SECTION_META_DEFAULTS: Record<SectionKey, { badge: string; subtitle: string }> = {
+  hero:        { badge: "",             subtitle: "" }, // hero uses its own content.badge/description
+  stats:       { badge: "",             subtitle: "" }, // stats has no header
+  problems:    { badge: "Masalah",      subtitle: "Apakah salah satu situasi berikut ini terdengar familier untuk Anda?" },
+  solutions:   { badge: "Solusi",       subtitle: "Perbedaan mendasar antara artikel yang ditulis tanpa strategi dengan artikel yang dioptimasi untuk SEO." },
+  workflow:    { badge: "Cara Kerja",   subtitle: "Proses yang transparan dari brief hingga artikel siap publish." },
+  advantages:  { badge: "Keunggulan",   subtitle: "Kami tidak hanya menulis. Kami memastikan setiap artikel bekerja untuk bisnis Anda." },
+  services:    { badge: "Layanan",      subtitle: "Berbagai jenis konten untuk mendukung strategi digital bisnis Anda." },
+  portfolio:   { badge: "Portofolio",   subtitle: "Beberapa contoh artikel yang telah kami produksi untuk berbagai niche." },
+  pricing:     { badge: "Harga",        subtitle: "Pilih paket yang sesuai dengan skala kebutuhan konten Anda. Harga transparan tanpa biaya tersembunyi." },
+  comparison:  { badge: "Perbandingan", subtitle: "Lihat perbandingan antara freelancer, AI, agency, dan layanan kami." },
+  faq:         { badge: "FAQ",          subtitle: "Jawaban atas pertanyaan yang paling sering ditanyakan calon klien." },
+  blogPreview: { badge: "Blog",         subtitle: "Insight seputar SEO, content marketing, dan copywriting." },
+  cta:         { badge: "",             subtitle: "" }, // CTA has its own layout
+};
+
 /* ------------ per-section defaults matching the forms.tsx shapes ------------ */
 
 export const heroDefault: HeroFormData = {
