@@ -78,14 +78,18 @@ function pickContent<T>(key: SectionKey, dbData: Record<string, unknown> | null)
 
 /* ---------------- Section mappers ---------------- */
 
-function mapHero(v: HeroFormData): HeroData {
+function mapHero(v: HeroFormData, meta?: ResolvedMeta): HeroData {
   const secondary = v.secondaryButtonTarget === "custom" && v.secondaryButtonCustomUrl
     ? v.secondaryButtonCustomUrl
     : v.secondaryButtonTarget;
+  // For Hero, meta.badge/subtitle from the CMS "Section Badge / Section Subtitle"
+  // override the legacy content.badge/description so admin has a single place to edit.
+  const badge = (meta?.eyebrow || v.badge || "").trim() || undefined;
+  const description = (meta?.subtitle || v.description || "").trim();
   return {
-    badge: v.badge || undefined,
+    badge,
     title: v.title,
-    description: v.description,
+    description,
     primaryButtonText: v.primaryButtonText,
     primaryButtonLink: v.primaryButtonLink,
     secondaryButtonText: v.secondaryButtonText,
