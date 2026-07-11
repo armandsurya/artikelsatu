@@ -432,20 +432,22 @@ export function SectionEditor<T>({
         </div>
       )}
 
-      <Card>
-        <h3 className="mb-4 text-sm font-semibold text-secondary">Pengaturan Section</h3>
-        <SectionMetaForm
-          title={title}
-          sortOrder={sortOrder}
-          visible={visible}
-          meta={sectionMeta}
-          onTitle={setTitle}
-          onSortOrder={setSortOrder}
-          onVisible={setVisible}
-          onMeta={setSectionMeta}
-          showSubtitle={showSubtitle}
-        />
-      </Card>
+      {sectionKey !== "hero" && (
+        <Card>
+          <h3 className="mb-4 text-sm font-semibold text-secondary">Pengaturan Section</h3>
+          <SectionMetaForm
+            title={title}
+            sortOrder={sortOrder}
+            visible={visible}
+            meta={sectionMeta}
+            onTitle={setTitle}
+            onSortOrder={setSortOrder}
+            onVisible={setVisible}
+            onMeta={setSectionMeta}
+            showSubtitle={showSubtitle}
+          />
+        </Card>
+      )}
 
       <Card>
         <h3 className="mb-4 text-sm font-semibold text-secondary">Konten Section</h3>
