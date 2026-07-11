@@ -63,11 +63,14 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
       if (mode === "new") {
         const { data, error } = await supabase.from("blog_posts").insert(payload).select("id").single();
         if (error) throw error;
+        if (featuredImage) await trackMediaUsage(featuredImage, "blog_post", data.id, "featured_image");
         await logActivity("create_post", "blog_posts", data.id, { title });
         onSaved?.(data.id);
       } else if (id) {
         const { error } = await supabase.from("blog_posts").update(payload).eq("id", id);
         if (error) throw error;
+        if (featuredImage) await trackMediaUsage(featuredImage, "blog_post", id, "featured_image");
+        else await clearMediaUsage("blog_post", id, "featured_image");
         await logActivity("update_post", "blog_posts", id, { title });
       }
     } catch (e: unknown) {
