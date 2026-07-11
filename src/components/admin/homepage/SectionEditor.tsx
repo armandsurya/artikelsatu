@@ -11,7 +11,7 @@ import { SectionMetaForm } from "./SectionMetaForm";
 import { EditorToolbar, type SectionStatus } from "./EditorToolbar";
 import { UnsavedDialog } from "./UnsavedDialog";
 import { VersionPanel, type VersionRow } from "./VersionPanel";
-import { DEFAULTS, SECTION_META, type SectionKey } from "@/data/homepageDefaults";
+import { DEFAULTS, SECTION_META, SECTION_META_DEFAULTS, type SectionKey } from "@/data/homepageDefaults";
 import {
   splitMeta, joinMeta, jsonEqual, DEFAULT_META, type SectionMeta,
 } from "@/lib/admin/sectionMeta";
