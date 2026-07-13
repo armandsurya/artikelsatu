@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactElement } 
 import { InsertImageDialog } from "./InsertImageDialog";
 import { contentStats, sanitizeHtml } from "@/lib/editor/sanitize";
 import { SupabaseUploadAdapterPlugin } from "@/lib/editor/uploadAdapter";
-import { ImageIcon, Loader2, Maximize2, Minimize2 } from "lucide-react";
+import { ImageIcon, Loader2, Maximize2, Minimize2, Columns2, X } from "lucide-react";
 
 type Props = {
   value: string;
@@ -34,6 +34,15 @@ export function CKEditorField({ value, onChange, onStats, minHeight = 480, place
   }, []);
 
   const [fullscreen, setFullscreen] = useState(false);
+  const [splitView, setSplitView] = useState(false);
+
+  // Esc closes fullscreen
+  useEffect(() => {
+    if (!fullscreen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setFullscreen(false); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [fullscreen]);
 
   const insertImage = useCallback((payload: { url: string; alt?: string; caption?: string }) => {
     const editor = editorRef.current as {
@@ -162,12 +171,24 @@ export function CKEditorField({ value, onChange, onStats, minHeight = 480, place
   }) => ReactElement;
 
   const wrapperCls = fullscreen
-    ? "cke-wrapper fixed inset-0 z-[60] overflow-auto bg-background p-4"
+    ? "cke-wrapper cke-fullscreen fixed inset-0 z-[60] overflow-auto bg-background p-4"
     : "cke-wrapper relative";
 
   return (
-    <div className={wrapperCls} style={{ ["--cke-min-height" as string]: fullscreen ? "calc(100vh - 8rem)" : `${minHeight}px` }}>
-      <div className="mb-2 flex justify-end">
+    <div
+      className={wrapperCls}
+      data-split={splitView ? "1" : "0"}
+      style={{ ["--cke-min-height" as string]: fullscreen ? "calc(100vh - 8rem)" : `${minHeight}px` }}
+    >
+      <div className="mb-2 flex flex-wrap items-center justify-end gap-2">
+        <button
+          type="button"
+          onClick={() => setSplitView((v) => !v)}
+          className="hidden md:inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-1 text-xs text-muted-foreground hover:bg-accent"
+          title={splitView ? "Sembunyikan Preview" : "Split View (Preview)"}
+        >
+          {splitView ? <><X className="h-3.5 w-3.5" /> Tutup Preview</> : <><Columns2 className="h-3.5 w-3.5" /> Split Preview</>}
+        </button>
         <button
           type="button"
           onClick={() => setFullscreen((v) => !v)}
@@ -177,34 +198,47 @@ export function CKEditorField({ value, onChange, onStats, minHeight = 480, place
           {fullscreen ? <><Minimize2 className="h-3.5 w-3.5" /> Keluar Fullscreen</> : <><Maximize2 className="h-3.5 w-3.5" /> Fullscreen</>}
         </button>
       </div>
-      <CKEditorComp
-        editor={cke.ClassicEditor}
-        data={value || ""}
-        config={config as unknown}
-        onReady={(editor) => {
-          editorRef.current = editor;
-          try {
-            const e = editor as {
-              plugins: { get: (n: string) => { on: (evt: string, cb: (_: unknown, data: unknown) => void) => void } };
-              getData: () => string;
-              editing: { view: { change: (cb: (writer: { addClass: (c: string, root: unknown) => void }) => void) => void; document: { getRoot: (name?: string) => unknown } } };
-            };
-            e.editing.view.change((writer) => {
-              const root = e.editing.view.document.getRoot();
-              if (root) writer.addClass("article-body", root);
-            });
-            const wc = e.plugins.get("WordCount");
-            wc.on("update", () => onStats?.(contentStats(e.getData())));
-            onStats?.(contentStats(e.getData()));
-          } catch (err) {
-            console.warn("[CKEditor] onReady hookup failed", err);
-          }
-        }}
-        onChange={(_evt, editor) => {
-          const e = editor as { getData: () => string };
-          onChange(e.getData());
-        }}
-      />
+      <div className={splitView ? "grid grid-cols-1 md:grid-cols-2 gap-4" : ""}>
+        <div className="cke-editor-pane min-w-0">
+          <CKEditorComp
+            editor={cke.ClassicEditor}
+            data={value || ""}
+            config={config as unknown}
+            onReady={(editor) => {
+              editorRef.current = editor;
+              try {
+                const e = editor as {
+                  plugins: { get: (n: string) => { on: (evt: string, cb: (_: unknown, data: unknown) => void) => void } };
+                  getData: () => string;
+                  editing: { view: { change: (cb: (writer: { addClass: (c: string, root: unknown) => void }) => void) => void; document: { getRoot: (name?: string) => unknown } } };
+                };
+                e.editing.view.change((writer) => {
+                  const root = e.editing.view.document.getRoot();
+                  if (root) writer.addClass("article-body", root);
+                });
+                const wc = e.plugins.get("WordCount");
+                wc.on("update", () => onStats?.(contentStats(e.getData())));
+                onStats?.(contentStats(e.getData()));
+              } catch (err) {
+                console.warn("[CKEditor] onReady hookup failed", err);
+              }
+            }}
+            onChange={(_evt, editor) => {
+              const e = editor as { getData: () => string };
+              onChange(e.getData());
+            }}
+          />
+        </div>
+        {splitView && (
+          <div className="cke-preview-pane min-w-0 hidden md:block rounded-md border border-border bg-background overflow-auto" style={{ maxHeight: fullscreen ? "calc(100vh - 10rem)" : `${minHeight}px` }}>
+            <div className="border-b border-border bg-muted/40 px-3 py-1.5 text-[11px] uppercase tracking-wide text-muted-foreground sticky top-0">Preview</div>
+            <article
+              className="article-body p-5"
+              dangerouslySetInnerHTML={{ __html: sanitizeHtml(value || '<p class="text-muted-foreground">Belum ada konten…</p>') }}
+            />
+          </div>
+        )}
+      </div>
       {libraryOpen && (
         <InsertImageDialog
           onClose={() => setLibraryOpen(false)}

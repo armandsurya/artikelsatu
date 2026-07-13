@@ -186,7 +186,19 @@
 .cke-wrapper .ck.ck-toolbar {
   border-color: var(--border);
   background: var(--background);
+  position: sticky;
+  top: 0;
+  z-index: 5;
 }
+.cke-fullscreen .ck.ck-toolbar { top: 0; }
 .cke-wrapper .ck.ck-editor__main > .ck-editor__editable {
   border-color: var(--border);
 }
+/* Mobile refinements: allow toolbar to wrap and shrink padding */
+@media (max-width: 640px) {
+  .cke-wrapper .ck-editor__editable_inline { padding: 0.875rem 1rem !important; }
+  .cke-wrapper .ck.ck-toolbar { flex-wrap: wrap; }
+  .cke-wrapper .ck.ck-toolbar > .ck-toolbar__items { flex-wrap: wrap; }
+}
+/* Split view: keep editor + preview equal height */
+.cke-wrapper[data-split="1"] .ck-editor__editable { min-height: var(--cke-min-height, 480px); }
