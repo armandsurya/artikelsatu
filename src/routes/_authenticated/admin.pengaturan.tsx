@@ -2,10 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 import { PageHeader, Card, Field, inputCls, btnPrimary } from "@/components/admin/ui";
 import { logActivity } from "@/lib/admin/log";
-import { PUBLISHED_QUERY_KEY } from "@/lib/publishedContent";
+import { loadSiteSettings, patchSiteSettings, invalidateSiteSettings } from "@/lib/admin/siteSettings";
 import { Loader2, Save, CheckCircle2, AlertCircle } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/pengaturan")({
@@ -54,11 +53,7 @@ function Pengaturan() {
 
   const { data, isLoading } = useQuery({
     queryKey: ["site-settings-full"],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("site_settings").select("data").eq("id", 1).maybeSingle();
-      if (error) throw error;
-      return (data?.data ?? {}) as Record<string, unknown>;
-    },
+    queryFn: () => loadSiteSettings<Record<string, unknown>>(),
     staleTime: 0,
   });
 
@@ -77,39 +72,28 @@ function Pengaturan() {
     if (err) { toast.error("Validasi gagal", { description: err }); return; }
 
     setStatus("saving");
-    try {
-      // Merge: baca ulang blob penuh, replace hanya field editable → simpan.
-      const { data: row, error: readErr } = await supabase.from("site_settings").select("data").eq("id", 1).maybeSingle();
-      if (readErr) throw readErr;
-      const current = (row?.data as Record<string, unknown>) ?? {};
-      const merged: Record<string, unknown> = { ...current };
-      for (const k of EDITABLE_KEYS) merged[k] = (s as Record<string, unknown>)[k];
+    const patch: Record<string, unknown> = {};
+    for (const k of EDITABLE_KEYS) patch[k] = (s as Record<string, unknown>)[k];
 
-      const { error } = await supabase.from("site_settings").update({ data: merged as never }).eq("id", 1);
-      if (error) throw error;
-
-      await logActivity("update_settings", "site_settings");
-      snapshotRef.current = JSON.stringify(s);
-      setStatus("success");
-      toast.success("Pengaturan tersimpan", { description: "Perubahan sudah aktif di seluruh website." });
-
-      // Invalidate BOTH admin cache DAN frontend published cache.
-      qc.invalidateQueries({ queryKey: ["site-settings-full"] });
-      qc.invalidateQueries({ queryKey: ["site-settings"] });
-      qc.invalidateQueries({ queryKey: [...PUBLISHED_QUERY_KEY, "site_settings"] });
-      qc.invalidateQueries({ queryKey: ["seo-settings"] });
-
-      setTimeout(() => setStatus((cur) => (cur === "success" ? "idle" : cur)), 2500);
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e);
+    const { error } = await patchSiteSettings(patch);
+    if (error) {
       setStatus("error");
+      const msg = error.message;
       const hint = /permission|policy|rls/i.test(msg)
         ? "Akun Anda tidak memiliki akses (super_admin) atau session kadaluarsa. Silakan login ulang."
         : /network|fetch/i.test(msg)
         ? "Koneksi ke database gagal. Periksa jaringan lalu coba lagi."
         : msg;
       toast.error("Gagal menyimpan pengaturan", { description: hint });
+      return;
     }
+
+    await logActivity("update_settings", "site_settings");
+    snapshotRef.current = JSON.stringify(s);
+    setStatus("success");
+    toast.success("Pengaturan tersimpan", { description: "Perubahan sudah aktif di seluruh website." });
+    invalidateSiteSettings(qc);
+    setTimeout(() => setStatus((cur) => (cur === "success" ? "idle" : cur)), 2500);
   }
 
   const bind = <K extends keyof PengaturanUmum>(k: K) => ({

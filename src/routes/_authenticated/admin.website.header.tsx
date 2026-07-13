@@ -1,7 +1,6 @@
 import { createFileRoute, useBlocker } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { PUBLISHED_QUERY_KEY } from "@/lib/publishedContent";
 import { toast } from "sonner";
 import { PageHeader, Card } from "@/components/admin/ui";
 import { TextField, Repeater, SelectField, MediaPicker } from "@/components/admin/homepage/primitives";
@@ -11,7 +10,7 @@ import { jsonEqual } from "@/lib/admin/sectionMeta";
 import { settings } from "@/data/settings";
 import { mainNav } from "@/data/navigation";
 import { logActivity } from "@/lib/admin/log";
-import { loadSiteSettings, patchSiteSettings } from "@/lib/admin/siteSettings";
+import { loadSiteSettings, patchSiteSettings, invalidateSiteSettings } from "@/lib/admin/siteSettings";
 import { trackMediaUsage, clearMediaUsage } from "@/lib/media/usage";
 
 type HeaderData = {
@@ -96,7 +95,7 @@ function HeaderEditor() {
       setLive(local);
       if (local.logo) await trackMediaUsage(local.logo, "site_settings", "header", "logo");
       else await clearMediaUsage("site_settings", "header", "logo");
-      queryClient.invalidateQueries({ queryKey: PUBLISHED_QUERY_KEY });
+      invalidateSiteSettings(queryClient);
       await logActivity("publish_header", "site_settings", "header");
       toast.success("Header berhasil di-publish");
     } finally { setPublishing(false); }
