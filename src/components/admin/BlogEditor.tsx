@@ -3,7 +3,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useBlocker, useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, Field, inputCls, btnPrimary, btnGhost, btnDanger } from "./ui";
-import { TiptapEditor } from "./TiptapEditor";
+import { CKEditorField } from "./CKEditorField";
+import { contentStats } from "@/lib/editor/sanitize";
 import { MediaPicker } from "./homepage/primitives";
 import { trackMediaUsage, clearMediaUsage } from "@/lib/media/usage";
 import { logActivity, slugify } from "@/lib/admin/log";
@@ -21,9 +22,8 @@ type Status = Database["public"]["Enums"]["post_status"];
 type TabKey = "konten" | "media" | "seo" | "pengaturan" | "revisi";
 
 function calcReadTime(html: string) {
-  const text = html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
-  const words = text ? text.split(" ").filter(Boolean).length : 0;
-  return { words, chars: text.length, minutes: Math.max(1, Math.round(words / 220)) };
+  const s = contentStats(html);
+  return { words: s.words, chars: s.chars, minutes: Math.max(1, s.minutes || 1) };
 }
 
 async function ensureUniqueSlug(base: string, ignoreId?: string) {
@@ -546,16 +546,24 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
             <textarea value={excerpt} onChange={(e) => setExcerpt(e.target.value)} rows={2} className={inputCls} />
           </Field>
           <Field label="Konten">
-            <TiptapEditor value={content} onChange={setContent} />
+            <CKEditorField value={content} onChange={setContent} minHeight={520} />
           </Field>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Reading Time (menit)" hint="Otomatis dihitung, dapat diubah manual">
+          <div className="grid gap-4 sm:grid-cols-4">
+            <div className="rounded-lg border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+              <div className="text-secondary font-medium">{stats.words}</div>
+              <div>kata</div>
+            </div>
+            <div className="rounded-lg border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+              <div className="text-secondary font-medium">{stats.chars}</div>
+              <div>karakter</div>
+            </div>
+            <div className="rounded-lg border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+              <div className="text-secondary font-medium">~{stats.minutes} menit</div>
+              <div>reading time (200 wpm)</div>
+            </div>
+            <Field label="Override menit" hint="Kosongkan agar otomatis">
               <input type="number" min={1} value={readTime} onChange={(e) => setReadTime(Number(e.target.value))} className={inputCls} />
             </Field>
-            <div className="rounded-lg border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
-              <div>{stats.words} kata · {stats.chars} karakter</div>
-              <div>~{stats.minutes} menit baca</div>
-            </div>
           </div>
         </div>
       )}
