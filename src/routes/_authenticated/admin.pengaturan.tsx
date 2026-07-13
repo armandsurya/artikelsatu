@@ -3,8 +3,11 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { PageHeader, Card, Field, inputCls, btnPrimary } from "@/components/admin/ui";
+import { FaviconField } from "@/components/admin/FaviconField";
 import { logActivity } from "@/lib/admin/log";
 import { loadSiteSettings, patchSiteSettings, invalidateSiteSettings } from "@/lib/admin/siteSettings";
+import { trackMediaUsage, clearMediaUsage } from "@/lib/media/usage";
+import { PUBLISHED_QUERY_KEY } from "@/lib/publishedContent";
 import { Loader2, Save, CheckCircle2, AlertCircle } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/pengaturan")({
@@ -24,7 +27,8 @@ type PengaturanUmum = {
 };
 
 // Semua field SEO/Analytics dipindah ke menu SEO — tidak lagi diedit dari sini.
-const EDITABLE_KEYS = ["siteName", "logo", "favicon", "whatsapp", "email", "address", "social"] as const;
+// Favicon di-persist ke `seo.favicon` (single source of truth yang dibaca __root.tsx).
+const EDITABLE_KEYS = ["siteName", "logo", "whatsapp", "email", "address", "social"] as const;
 
 function pickEditable(blob: Record<string, unknown>): PengaturanUmum {
   const out: PengaturanUmum = {};
