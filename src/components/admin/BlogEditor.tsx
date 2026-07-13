@@ -828,3 +828,142 @@ function RevisionsPanel({
     </div>
   );
 }
+
+/* ---------- Featured Image Metadata Editor (Media Library = single source of truth) ---------- */
+
+function FeaturedMediaMetadataEditor({ url, articleTitle }: { url: string; articleTitle: string }) {
+  const qc = useQueryClient();
+  const { data: media, isLoading, refetch } = useQuery({
+    queryKey: ["media-by-url", url],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("media")
+        .select("id,url,name,title,alt,caption,description,mime_type,width,height,size_bytes,created_at,updated_at")
+        .eq("url", url)
+        .maybeSingle();
+      return data as {
+        id: string; url: string; name: string; title: string | null; alt: string | null;
+        caption: string | null; description: string | null; mime_type: string | null;
+        width: number | null; height: number | null; size_bytes: number | null;
+        created_at: string; updated_at: string;
+      } | null;
+    },
+  });
+
+  const [editing, setEditing] = useState(false);
+  const [title, setTitle] = useState("");
+  const [alt, setAlt] = useState("");
+  const [caption, setCaption] = useState("");
+  const [description, setDescription] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (media && !editing) {
+      setTitle(media.title ?? "");
+      setAlt(media.alt ?? "");
+      setCaption(media.caption ?? "");
+      setDescription(media.description ?? "");
+    }
+  }, [media, editing]);
+
+  if (isLoading) {
+    return <div className="mt-3 text-xs text-muted-foreground">Memuat metadata…</div>;
+  }
+  if (!media) {
+    return (
+      <div className="mt-3 rounded-md border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
+        Gambar ini tidak berasal dari Media Library sehingga metadata tidak dapat dikelola.
+        Upload ulang melalui Media Library atau ganti gambar untuk mengaktifkan pengelolaan ALT & Caption.
+      </div>
+    );
+  }
+
+  const LIMITS = { title: 120, alt: 125, caption: 300 };
+  const over =
+    title.length > LIMITS.title || alt.length > LIMITS.alt || caption.length > LIMITS.caption;
+
+  async function save() {
+    setErr(null);
+    if (over) { setErr("Melebihi batas karakter."); return; }
+    setSaving(true);
+    const { error } = await supabase
+      .from("media")
+      .update({
+        title: title.trim() || null,
+        alt: alt.trim() || null,
+        caption: caption.trim() || null,
+        description: description.trim() || null,
+      })
+      .eq("id", media!.id);
+    setSaving(false);
+    if (error) { setErr(error.message); return; }
+    await refetch();
+    // Invalidate every consumer of media metadata across the app.
+    qc.invalidateQueries({ queryKey: ["media-by-url", url] });
+    qc.invalidateQueries({ queryKey: ["media"] });
+    qc.invalidateQueries({ queryKey: ["published"] });
+    setEditing(false);
+  }
+
+  function cancel() {
+    setTitle(media!.title ?? "");
+    setAlt(media!.alt ?? "");
+    setCaption(media!.caption ?? "");
+    setDescription(media!.description ?? "");
+    setErr(null);
+    setEditing(false);
+  }
+
+  const fallbackAlt = alt.trim() || title.trim() || articleTitle.trim() || media.name;
+
+  return (
+    <div className="mt-4 space-y-3 rounded-lg border border-border bg-muted/30 p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h4 className="text-sm font-semibold text-secondary">Metadata Gambar</h4>
+          <p className="mt-0.5 text-[11px] text-muted-foreground">
+            Tersimpan pada Media Library — berlaku di seluruh website yang memakai gambar ini.
+          </p>
+        </div>
+        {!editing ? (
+          <button type="button" onClick={() => setEditing(true)} className={btnGhost}>Edit Metadata</button>
+        ) : (
+          <div className="flex gap-2">
+            <button type="button" onClick={cancel} disabled={saving} className={btnGhost}>Cancel</button>
+            <button type="button" onClick={save} disabled={saving || over} className={btnPrimary}>
+              {saving ? "Menyimpan…" : "Save Metadata"}
+            </button>
+          </div>
+        )}
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="sm:col-span-2 flex items-start gap-3 rounded-md border border-border bg-background p-3">
+          <img src={media.url} alt={fallbackAlt} className="h-20 w-20 flex-shrink-0 rounded object-cover" />
+          <div className="min-w-0 text-[11px] text-muted-foreground">
+            <div className="truncate font-medium text-secondary">{media.name}</div>
+            <div>{media.mime_type ?? "—"} · {media.width && media.height ? `${media.width}×${media.height}` : "?"} · {media.size_bytes ? `${Math.round(media.size_bytes / 1024)} KB` : "?"}</div>
+            <div className="mt-1 break-all">{media.url}</div>
+          </div>
+        </div>
+
+        <Field label={`Title (${title.length}/${LIMITS.title})`}>
+          <input disabled={!editing} value={title} onChange={(e) => setTitle(e.target.value)} maxLength={LIMITS.title + 20} className={inputCls + (editing ? "" : " opacity-70")} />
+        </Field>
+        <Field label={`ALT Text (${alt.length}/${LIMITS.alt})`} hint="Wajib untuk SEO & aksesibilitas">
+          <input disabled={!editing} value={alt} onChange={(e) => setAlt(e.target.value)} maxLength={LIMITS.alt + 20} className={inputCls + (editing ? "" : " opacity-70")} placeholder={articleTitle || "Deskripsi singkat gambar"} />
+        </Field>
+        <Field label={`Caption (${caption.length}/${LIMITS.caption})`} hint="Ditampilkan di bawah gambar pada frontend">
+          <input disabled={!editing} value={caption} onChange={(e) => setCaption(e.target.value)} maxLength={LIMITS.caption + 20} className={inputCls + (editing ? "" : " opacity-70")} />
+        </Field>
+        <Field label="Description">
+          <textarea disabled={!editing} value={description} onChange={(e) => setDescription(e.target.value)} rows={2} className={inputCls + (editing ? "" : " opacity-70")} />
+        </Field>
+      </div>
+
+      {err && <p className="text-xs text-red-600">{err}</p>}
+      {over && <p className="text-xs text-amber-600">Beberapa field melebihi batas karakter.</p>}
+    </div>
+  );
+}
