@@ -185,14 +185,40 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
     [title, metaTitle, metaDesc, content, focusKeyword],
   );
 
+  // Refs let the blocker read the latest values without depending on stale render closures.
+  const dirtyRef = useRef(false);
+  const bypassGuardRef = useRef(false);
+  const isPersistedRef = useRef(isPersisted);
+  useEffect(() => { dirtyRef.current = dirty; }, [dirty]);
+  useEffect(() => { isPersistedRef.current = isPersisted; }, [isPersisted]);
+
   useBlocker({
     shouldBlockFn: () => {
-      if (!dirty) return false;
+      if (bypassGuardRef.current) {
+        bypassGuardRef.current = false;
+        if (import.meta.env.DEV) console.debug("[BlogEditor] guard bypassed after successful save/publish");
+        return false;
+      }
+      if (!dirtyRef.current) return false;
+      const msg = !isPersistedRef.current
+        ? "Anda sedang membuat artikel baru dan terdapat perubahan yang belum disimpan. Apakah Anda yakin ingin keluar? Perubahan yang belum disimpan akan hilang."
+        : "Perubahan pada artikel ini belum disimpan. Apakah Anda yakin ingin meninggalkan halaman? Perubahan terakhir akan hilang.";
       // eslint-disable-next-line no-alert
-      return !confirm("Ada perubahan yang belum disimpan. Yakin ingin meninggalkan halaman?");
+      return !confirm(msg);
     },
-    enableBeforeUnload: dirty,
+    enableBeforeUnload: () => dirtyRef.current && !bypassGuardRef.current,
   });
+
+  if (import.meta.env.DEV) {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    useEffect(() => {
+      console.debug("[BlogEditor] state", {
+        dirty, isPersisted, status,
+        bypassGuard: bypassGuardRef.current,
+        snapshotKeys: Object.keys(snapshot).length,
+      });
+    }, [dirty, isPersisted, status, snapshot]);
+  }
 
   const checklist = useMemo(() => ({
     title: !!title.trim(),
