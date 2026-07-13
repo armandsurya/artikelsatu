@@ -67,7 +67,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
           </button>
         </div>
         <nav className="flex flex-col gap-0.5 overflow-y-auto p-3">
-          {NAV.map((item) => (
+          {visibleNav.map((item) => (
             <NavGroup key={item.label} item={item} pathname={pathname} />
           ))}
         </nav>
