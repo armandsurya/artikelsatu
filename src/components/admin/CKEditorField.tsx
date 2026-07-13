@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactElement } from "react";
-import { MediaLibraryModal } from "./homepage/primitives";
+import { InsertImageDialog } from "./InsertImageDialog";
 import { contentStats, sanitizeHtml } from "@/lib/editor/sanitize";
 import { SupabaseUploadAdapterPlugin } from "@/lib/editor/uploadAdapter";
-import { ImageIcon, Loader2 } from "lucide-react";
+import { ImageIcon, Loader2, Maximize2, Minimize2 } from "lucide-react";
 
 type Props = {
   value: string;
@@ -33,11 +33,28 @@ export function CKEditorField({ value, onChange, onStats, minHeight = 480, place
     return () => { cancelled = true; };
   }, []);
 
-  const insertImageUrl = useCallback((url: string) => {
-    const editor = editorRef.current as { model: { change: (cb: (writer: unknown) => void) => void; document: { selection: unknown }; insertContent?: unknown }; execute: (cmd: string, opts?: unknown) => void } | null;
+  const [fullscreen, setFullscreen] = useState(false);
+
+  const insertImage = useCallback((payload: { url: string; alt?: string; caption?: string }) => {
+    const editor = editorRef.current as {
+      model: {
+        change: (cb: (writer: {
+          createElement: (name: string, attrs?: Record<string, unknown>) => unknown;
+          insertText: (text: string, node: unknown) => void;
+          insert: (node: unknown, target: unknown) => void;
+          setSelection: (node: unknown, offset?: string | number) => void;
+        }) => void) => void;
+        document: { selection: { getFirstPosition: () => unknown } };
+      };
+      execute: (cmd: string, opts?: unknown) => void;
+    } | null;
     if (!editor) return;
     try {
-      editor.execute("insertImage", { source: url });
+      editor.execute("insertImage", { source: { src: payload.url, alt: payload.alt ?? "" } });
+      if (payload.caption) {
+        // Enable caption on the just-inserted image
+        try { editor.execute("toggleImageCaption", { focusCaptionOnShow: false }); } catch { /* noop */ }
+      }
     } catch (e) {
       console.error("[CKEditor] insertImage failed", e);
     }
