@@ -393,11 +393,16 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <Link to="/admin/blog" className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border text-muted-foreground hover:bg-accent"><ArrowLeft className="h-4 w-4" /></Link>
-              <span className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold ${STATUS_STYLES[status]}`}>{status.toUpperCase()}</span>
+              {(() => {
+                const effective: Status | "new" = !isPersisted ? "new" : status;
+                return <span className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold ${STATUS_STYLES[effective]}`}>{STATUS_LABEL[effective]}</span>;
+              })()}
               {status === "scheduled" && scheduledAt && (
                 <span className="inline-flex items-center gap-1 text-[11px] text-blue-700"><Clock className="h-3 w-3" />{fmt(new Date(scheduledAt).toISOString())}</span>
               )}
-              {dirty && <span className="text-[11px] font-medium text-amber-600">• Belum disimpan</span>}
+              {!isPersisted && !dirty && <span className="text-[11px] font-medium text-slate-500">• Belum disimpan</span>}
+              {dirty && <span className="text-[11px] font-medium text-amber-600">• Ada perubahan</span>}
+
               <span className={`ml-1 rounded-full border px-2 py-0.5 text-[11px] ${publishReady ? "border-green-200 bg-green-50 text-green-700" : "border-amber-200 bg-amber-50 text-amber-700"}`}>
                 Checklist {checklistDone}/{checklistTotal}
               </span>
