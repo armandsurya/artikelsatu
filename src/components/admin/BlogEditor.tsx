@@ -404,6 +404,7 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
       if (error) throw error;
       await logActivity("duplicate_post", "blog_posts", data.id, { source: currentId.current });
       qc.invalidateQueries({ queryKey: ["blog-posts"] });
+      bypassGuardRef.current = true;
       navigate({ to: "/admin/blog/$id", params: { id: data.id } });
     } catch (e: unknown) {
       setToast({ kind: "err", msg: `Gagal duplikat: ${e instanceof Error ? e.message : "error"}` });
