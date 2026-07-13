@@ -679,7 +679,7 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
               setMetaDesc(rev.meta_description ?? "");
               setCanonical(rev.canonical_url ?? "");
               setTags((rev.tags ?? []).join(", "));
-              setDirty(true);
+              // Restoring a revision changes form values, so dirty derives to true automatically
               setTab("konten");
               setToast({ kind: "ok", msg: `Revisi #${rev.revision_number} dimuat. Klik Save Draft untuk menyimpan.` });
             }}
