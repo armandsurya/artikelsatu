@@ -26,7 +26,7 @@ function Pengguna() {
   const ban = useServerFn(toggleBan);
 
   const [meId, setMeId] = useState<string>("");
-  useState(() => { supabase.auth.getUser().then(({ data }) => setMeId(data.user?.id ?? "")); return 0; });
+  useEffect(() => { supabase.auth.getUser().then(({ data }) => setMeId(data.user?.id ?? "")); }, []);
 
   const { data: users = [], isLoading, error } = useQuery({
     queryKey: ["admin-users"],
