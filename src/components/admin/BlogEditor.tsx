@@ -592,7 +592,7 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
 
       {/* Tab panels */}
       {tab === "konten" && (
-        <div className="mx-auto max-w-4xl space-y-4">
+        <div className="mx-auto w-full max-w-none space-y-4">
           <Field label="Judul Artikel">
             <input value={title} onChange={(e) => setTitle(e.target.value)} className={inputCls} placeholder="Judul artikel yang menarik & mengandung keyword" />
           </Field>
