@@ -620,9 +620,13 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
           <Field label="Excerpt" hint="Ringkasan singkat (muncul di daftar & default meta description)">
             <textarea value={excerpt} onChange={(e) => setExcerpt(e.target.value)} rows={2} className={inputCls} />
           </Field>
-          <Field label="Konten">
+          {/* NOTE: jangan bungkus CKEditorField dengan <Field> (yang merender <label>).
+              Klik di dalam <label> diteruskan ke tombol pertama (Fullscreen) sehingga
+              editor tidak bisa dipakai. Gunakan div + span sebagai label. */}
+          <div className="block">
+            <span className={labelCls}>Konten</span>
             <CKEditorField value={content} onChange={setContent} minHeight={520} />
-          </Field>
+          </div>
           <EditorLiveStats html={content} focusKeyword={focusKeyword} readTimeOverride={readTime} onOverrideChange={setReadTime} />
         </div>
       )}
