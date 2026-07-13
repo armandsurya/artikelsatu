@@ -185,14 +185,40 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
     [title, metaTitle, metaDesc, content, focusKeyword],
   );
 
+  // Refs let the blocker read the latest values without depending on stale render closures.
+  const dirtyRef = useRef(false);
+  const bypassGuardRef = useRef(false);
+  const isPersistedRef = useRef(isPersisted);
+  useEffect(() => { dirtyRef.current = dirty; }, [dirty]);
+  useEffect(() => { isPersistedRef.current = isPersisted; }, [isPersisted]);
+
   useBlocker({
     shouldBlockFn: () => {
-      if (!dirty) return false;
+      if (bypassGuardRef.current) {
+        bypassGuardRef.current = false;
+        if (import.meta.env.DEV) console.debug("[BlogEditor] guard bypassed after successful save/publish");
+        return false;
+      }
+      if (!dirtyRef.current) return false;
+      const msg = !isPersistedRef.current
+        ? "Anda sedang membuat artikel baru dan terdapat perubahan yang belum disimpan. Apakah Anda yakin ingin keluar? Perubahan yang belum disimpan akan hilang."
+        : "Perubahan pada artikel ini belum disimpan. Apakah Anda yakin ingin meninggalkan halaman? Perubahan terakhir akan hilang.";
       // eslint-disable-next-line no-alert
-      return !confirm("Ada perubahan yang belum disimpan. Yakin ingin meninggalkan halaman?");
+      return !confirm(msg);
     },
-    enableBeforeUnload: dirty,
+    enableBeforeUnload: () => dirtyRef.current && !bypassGuardRef.current,
   });
+
+  if (import.meta.env.DEV) {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    useEffect(() => {
+      console.debug("[BlogEditor] state", {
+        dirty, isPersisted, status,
+        bypassGuard: bypassGuardRef.current,
+        snapshotKeys: Object.keys(snapshot).length,
+      });
+    }, [dirty, isPersisted, status, snapshot]);
+  }
 
   const checklist = useMemo(() => ({
     title: !!title.trim(),
@@ -317,12 +343,17 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
       const res = await persist(nextStatus, { schedule });
       setStatus(nextStatus);
       setIsPersisted(true);
+      isPersistedRef.current = true;
       // Snapshot current values (incl. any slug rewritten during persist)
-      setSnapshot({
+      const newSnap: Snapshot = {
         title, slug: res?.slug ?? slug, excerpt, content, featuredImage, imageAlt, imageCaption,
         categoryId, metaTitle, metaDesc, canonical, ogTitle, ogDesc, robotsIndex,
         tags, focusKeyword, publishedAt, scheduledAt,
-      });
+      };
+      setSnapshot(newSnap);
+      dirtyRef.current = false;
+      bypassGuardRef.current = true;
+      if (import.meta.env.DEV) console.debug("[BlogEditor] persisted → snapshot reset", { action, saved: res });
       qc.invalidateQueries({ queryKey: ["published"] });
       qc.invalidateQueries({ queryKey: ["blog-posts"] });
       qc.invalidateQueries({ queryKey: ["blog-revisions"] });
@@ -336,7 +367,10 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
         : action === "restore" ? "Artikel dikembalikan dari arsip menjadi Draft"
         : "Draft berhasil disimpan";
       setToast({ kind: "ok", msg });
-      if (mode === "new" && res) navigate({ to: "/admin/blog/$id", params: { id: res.id } });
+      if (mode === "new" && res) {
+        bypassGuardRef.current = true;
+        navigate({ to: "/admin/blog/$id", params: { id: res.id } });
+      }
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "Terjadi kesalahan";
       setToast({ kind: "err", msg: `Gagal: ${msg}` });
@@ -370,6 +404,7 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
       if (error) throw error;
       await logActivity("duplicate_post", "blog_posts", data.id, { source: currentId.current });
       qc.invalidateQueries({ queryKey: ["blog-posts"] });
+      bypassGuardRef.current = true;
       navigate({ to: "/admin/blog/$id", params: { id: data.id } });
     } catch (e: unknown) {
       setToast({ kind: "err", msg: `Gagal duplikat: ${e instanceof Error ? e.message : "error"}` });
