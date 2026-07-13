@@ -146,6 +146,13 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
     setQuickPreviewOpen(true);
   }
 
+  useEffect(() => {
+    if (!quickPreviewOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setQuickPreviewOpen(false); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [quickPreviewOpen]);
+
 
   type Snapshot = {
     title: string; slug: string; excerpt: string; content: string;
