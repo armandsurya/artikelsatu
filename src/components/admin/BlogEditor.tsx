@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useBlocker, useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, Field, inputCls, btnPrimary, btnGhost, btnDanger } from "./ui";
+import { Card, Field, inputCls, labelCls, btnPrimary, btnGhost, btnDanger } from "./ui";
 import { CKEditorField } from "./CKEditorField";
 import { contentStats } from "@/lib/editor/sanitize";
 import { MediaPicker } from "./homepage/primitives";
