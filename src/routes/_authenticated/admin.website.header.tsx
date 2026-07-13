@@ -3,7 +3,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { PageHeader, Card } from "@/components/admin/ui";
-import { TextField, Repeater, SelectField, MediaPicker } from "@/components/admin/homepage/primitives";
+import { TextField, Repeater, SelectField } from "@/components/admin/homepage/primitives";
+import { LogoField } from "@/components/admin/LogoField";
 import { EditorToolbar } from "@/components/admin/homepage/EditorToolbar";
 import { UnsavedDialog } from "@/components/admin/homepage/UnsavedDialog";
 import { jsonEqual } from "@/lib/admin/sectionMeta";
@@ -63,7 +64,7 @@ function HeaderEditor() {
 
   async function saveDraft(): Promise<boolean> {
     if (!local) return false;
-    if (!local.logo?.trim()) { toast.error("Logo wajib diisi"); return false; }
+    // Logo is OPTIONAL — no required validation.
     setSaving(true);
     try {
       const nowIso = new Date().toISOString();
@@ -135,7 +136,7 @@ function HeaderEditor() {
         <h3 className="mb-4 text-sm font-semibold text-secondary">Logo & CTA</h3>
         <div className="grid gap-4 md:grid-cols-2">
           <div className="md:col-span-2">
-            <MediaPicker label="Logo (image)" value={local.logo} onChange={(v) => set("logo", v)} />
+            <LogoField value={local.logo ?? ""} onChange={(v) => set("logo", v)} />
           </div>
           <TextField label="CTA Label" value={local.ctaLabel} onChange={(v) => set("ctaLabel", v)} max={40} />
           <TextField label="CTA URL" value={local.ctaUrl} onChange={(v) => set("ctaUrl", v)} placeholder="https://wa.me/…" />
