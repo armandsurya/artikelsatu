@@ -136,8 +136,10 @@ export function CKEditorField({ value, onChange, onStats, minHeight = 480, place
       placeholder: placeholder ?? "Mulai menulis artikel di sini…",
       extraPlugins: [
         SupabaseUploadAdapterPlugin as unknown as never,
-        // Custom "Open Media Library" toolbar button
-        ((editor: { ui: { componentFactory: { add: (n: string, cb: (locale: unknown) => unknown) => void } }; t?: (s: string) => string }) => {
+        // Custom "Open Media Library" toolbar button.
+        // MUST be a regular function (not arrow) — CKEditor invokes plugins with `new`,
+        // which throws "PluginConstructor is not a constructor" for arrow functions.
+        (function OpenMediaLibraryPlugin(this: unknown, editor: { ui: { componentFactory: { add: (n: string, cb: (locale: unknown) => unknown) => void } } }) {
           editor.ui.componentFactory.add("openMediaLibrary", (locale) => {
             const view = new cke.ButtonView(locale as never);
             view.set({ label: "Media Library", tooltip: true, withText: false, icon: '<svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M3 5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5zm2 0v7l3-3 3 3 2-2 2 2V5H5zm4 3a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z" fill="currentColor"/></svg>' });
@@ -168,6 +170,7 @@ export function CKEditorField({ value, onChange, onStats, minHeight = 480, place
     config?: unknown;
     onReady?: (editor: unknown) => void;
     onChange?: (evt: unknown, editor: unknown) => void;
+    onError?: (error: Error, details: { phase: string; willEditorRestart: boolean }) => void;
   }) => ReactElement;
 
   const wrapperCls = fullscreen
@@ -226,6 +229,10 @@ export function CKEditorField({ value, onChange, onStats, minHeight = 480, place
             onChange={(_evt, editor) => {
               const e = editor as { getData: () => string };
               onChange(e.getData());
+            }}
+            onError={(error, details) => {
+              console.error("[CKEditor] init error", details.phase, error);
+              setLoadError(`${error?.message ?? error} (phase: ${details.phase})`);
             }}
           />
         </div>
