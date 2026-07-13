@@ -479,24 +479,39 @@ export type Database = {
           code: number
           created_at: string
           destination: string
+          hits: number
           id: string
+          last_hit_at: string | null
+          notes: string | null
+          preserve_query: boolean
           source: string
+          updated_at: string
         }
         Insert: {
           active?: boolean
           code?: number
           created_at?: string
           destination: string
+          hits?: number
           id?: string
+          last_hit_at?: string | null
+          notes?: string | null
+          preserve_query?: boolean
           source: string
+          updated_at?: string
         }
         Update: {
           active?: boolean
           code?: number
           created_at?: string
           destination?: string
+          hits?: number
           id?: string
+          last_hit_at?: string | null
+          notes?: string | null
+          preserve_query?: boolean
           source?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -552,6 +567,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_redirect_hit: { Args: { _source: string }; Returns: undefined }
       publish_due_scheduled_posts: { Args: never; Returns: number }
     }
     Enums: {
