@@ -14,7 +14,11 @@ import {
   ArrowLeft, Save, Loader2, Eye, Send, Copy, EyeOff, Archive, RotateCcw,
   Check, AlertCircle, FileText, History, Clock, Image as ImageIcon,
   Search as SearchIcon, Settings as SettingsIcon, User as UserIcon,
+  ExternalLink, X as CloseIcon,
 } from "lucide-react";
+
+const PREVIEW_DRAFT_KEY = "lovable:blog-preview-draft";
+const PREVIEW_WINDOW_NAME = "lovable-blog-preview";
 import type { Database } from "@/integrations/supabase/types";
 
 type Props = { mode: "new" | "edit"; id?: string; onSaved?: (id: string) => void };
