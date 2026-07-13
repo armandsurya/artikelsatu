@@ -153,12 +153,21 @@ export function CKEditorField({ value, onChange, onStats, minHeight = 480, place
         onReady={(editor) => {
           editorRef.current = editor;
           try {
-            const e = editor as { plugins: { get: (n: string) => { on: (evt: string, cb: (_: unknown, data: unknown) => void) => void; getData?: () => string } }; getData: () => string };
+            const e = editor as {
+              plugins: { get: (n: string) => { on: (evt: string, cb: (_: unknown, data: unknown) => void) => void } };
+              getData: () => string;
+              editing: { view: { change: (cb: (writer: { addClass: (c: string, root: unknown) => void }) => void); document: { getRoot: (name?: string) => unknown } } };
+            };
+            // Apply article-body class to editable so styling matches frontend
+            e.editing.view.change((writer) => {
+              const root = e.editing.view.document.getRoot();
+              if (root) writer.addClass("article-body", root);
+            });
             const wc = e.plugins.get("WordCount");
             wc.on("update", () => onStats?.(contentStats(e.getData())));
             onStats?.(contentStats(e.getData()));
           } catch (err) {
-            console.warn("[CKEditor] WordCount hookup failed", err);
+            console.warn("[CKEditor] onReady hookup failed", err);
           }
         }}
         onChange={(_evt, editor) => {

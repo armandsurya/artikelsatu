@@ -128,9 +128,9 @@ function BlogDetail() {
             />
           )}
 
-          <div className="prose prose-slate mt-10 max-w-3xl">
+          <div className="article-body mt-10 max-w-3xl">
             {contentHtml
-              ? <div dangerouslySetInnerHTML={{ __html: contentHtml }} />
+              ? <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(contentHtml) }} />
               : <p className="text-muted-foreground">Konten artikel belum tersedia.</p>}
           </div>
 

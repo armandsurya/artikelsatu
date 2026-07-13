@@ -61,8 +61,8 @@ function PreviewPage() {
               <img src={data.featured_image} alt={data.title} className="aspect-[16/9] w-full object-cover" />
             </div>
           )}
-          <div className="prose prose-slate mt-10 max-w-3xl">
-            {contentHtml ? <div dangerouslySetInnerHTML={{ __html: contentHtml }} /> : <p className="text-muted-foreground">Konten belum ada.</p>}
+          <div className="article-body mt-10 max-w-3xl">
+            {contentHtml ? <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(contentHtml) }} /> : <p className="text-muted-foreground">Konten belum ada.</p>}
           </div>
         </div>
       </article>
