@@ -12,7 +12,8 @@ import { useEffect, useState, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { settings as staticSettings } from "@/data/settings";
-import { fetchSiteSettings, PUBLISHED_QUERY_KEY } from "@/lib/publishedContent";
+import { PUBLISHED_QUERY_KEY } from "@/lib/publishedContent";
+import { fetchPublicSiteSettings } from "@/lib/site-settings.functions";
 import { getSeoConfig, buildRootMeta, buildAnalyticsScripts, buildOrganizationSchema } from "@/lib/seo/config";
 import {
   fetchActiveRedirects,
@@ -98,7 +99,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     try {
       const settings = await context.queryClient.ensureQueryData({
         queryKey: [...PUBLISHED_QUERY_KEY, "site_settings"],
-        queryFn: fetchSiteSettings,
+        queryFn: fetchPublicSiteSettings,
         staleTime: 30_000,
       });
       return { settings };
