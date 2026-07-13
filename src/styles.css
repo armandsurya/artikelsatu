@@ -89,3 +89,104 @@
   margin-inline: auto;
   padding-inline: 1.25rem;
 }
+
+/* ============================================================
+   Article body — WYSIWYG parity.
+   The same class is applied inside CKEditor's editable and on the
+   frontend blog renderer, so what the author sees is what ships.
+   ============================================================ */
+@layer components {
+  .article-body {
+    color: var(--foreground);
+    font-size: 1rem;
+    line-height: 1.75;
+    word-wrap: break-word;
+  }
+  .article-body > * + * { margin-top: 1em; }
+  .article-body h1 { font-size: 2.25rem; font-weight: 700; line-height: 1.2; margin-top: 1.6em; letter-spacing: -0.02em; }
+  .article-body h2 { font-size: 1.75rem; font-weight: 700; line-height: 1.25; margin-top: 1.6em; letter-spacing: -0.02em; }
+  .article-body h3 { font-size: 1.375rem; font-weight: 600; line-height: 1.3; margin-top: 1.4em; }
+  .article-body h4 { font-size: 1.125rem; font-weight: 600; margin-top: 1.4em; }
+  .article-body h5, .article-body h6 { font-size: 1rem; font-weight: 600; margin-top: 1.2em; }
+  .article-body p { margin: 0; }
+  .article-body a { color: var(--primary); text-decoration: underline; text-underline-offset: 2px; }
+  .article-body strong { font-weight: 700; }
+  .article-body em { font-style: italic; }
+  .article-body ul, .article-body ol { padding-left: 1.5rem; }
+  .article-body ul { list-style: disc; }
+  .article-body ol { list-style: decimal; }
+  .article-body li + li { margin-top: 0.35em; }
+  .article-body blockquote {
+    border-left: 4px solid var(--primary);
+    padding: 0.5rem 1rem;
+    color: var(--muted-foreground);
+    background: color-mix(in oklab, var(--primary) 6%, transparent);
+    border-radius: 0 8px 8px 0;
+  }
+  .article-body hr { border: 0; border-top: 1px solid var(--border); margin: 2em 0; }
+  .article-body code {
+    background: var(--muted);
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    font-size: 0.9em;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  .article-body pre {
+    background: #0f172a;
+    color: #e2e8f0;
+    padding: 1rem 1.15rem;
+    border-radius: 10px;
+    overflow-x: auto;
+    font-size: 0.9em;
+  }
+  .article-body pre code { background: transparent; color: inherit; padding: 0; }
+  .article-body img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 10px;
+    display: block;
+    margin: 1.25em auto;
+  }
+  .article-body figure { margin: 1.5em 0; }
+  .article-body figure figcaption {
+    text-align: center;
+    color: var(--muted-foreground);
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+  }
+  .article-body table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95em;
+    margin: 1.25em 0;
+  }
+  .article-body table th, .article-body table td {
+    border: 1px solid var(--border);
+    padding: 0.55rem 0.75rem;
+    text-align: left;
+    vertical-align: top;
+  }
+  .article-body table thead th { background: var(--muted); font-weight: 600; }
+  .article-body mark { background: #fef08a; padding: 0.05em 0.2em; border-radius: 3px; }
+  .article-body .todo-list, .article-body ul[class*="todo"] { list-style: none; padding-left: 0.25rem; }
+  .article-body .todo-list li { display: flex; gap: 0.5rem; align-items: flex-start; }
+}
+
+/* CKEditor editable inherits the same article-body styles */
+.cke-wrapper .ck-editor__editable {
+  min-height: var(--cke-min-height, 480px);
+}
+.cke-wrapper .ck.ck-editor__main > .ck-editor__editable {
+  background: var(--background);
+  color: var(--foreground);
+}
+.cke-wrapper .ck-editor__editable_inline {
+  padding: 1.25rem 1.5rem !important;
+}
+.cke-wrapper .ck.ck-toolbar {
+  border-color: var(--border);
+  background: var(--background);
+}
+.cke-wrapper .ck.ck-editor__main > .ck-editor__editable {
+  border-color: var(--border);
+}

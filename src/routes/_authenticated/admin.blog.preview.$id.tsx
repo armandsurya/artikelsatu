@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteLayout } from "@/components/layouts/SiteLayout";
 import { ArrowLeft, Clock, User, Eye } from "lucide-react";
+import { sanitizeHtml } from "@/lib/editor/sanitize";
 
 export const Route = createFileRoute("/_authenticated/admin/blog/preview/$id")({
   head: () => ({
@@ -61,8 +62,8 @@ function PreviewPage() {
               <img src={data.featured_image} alt={data.title} className="aspect-[16/9] w-full object-cover" />
             </div>
           )}
-          <div className="prose prose-slate mt-10 max-w-3xl">
-            {contentHtml ? <div dangerouslySetInnerHTML={{ __html: contentHtml }} /> : <p className="text-muted-foreground">Konten belum ada.</p>}
+          <div className="article-body mt-10 max-w-3xl">
+            {contentHtml ? <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(contentHtml) }} /> : <p className="text-muted-foreground">Konten belum ada.</p>}
           </div>
         </div>
       </article>

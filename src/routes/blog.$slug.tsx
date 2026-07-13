@@ -11,6 +11,7 @@ import { mapBlogPosts } from "@/lib/mapPublished";
 import { BlogCard } from "@/components/cards/BlogCard";
 import { Clock, User, ArrowLeft } from "lucide-react";
 import { MediaFigure } from "@/components/media/MediaFigure";
+import { sanitizeHtml } from "@/lib/editor/sanitize";
 
 export const Route = createFileRoute("/blog/$slug")({
   loader: async ({ params, context }) => {
@@ -128,9 +129,9 @@ function BlogDetail() {
             />
           )}
 
-          <div className="prose prose-slate mt-10 max-w-3xl">
+          <div className="article-body mt-10 max-w-3xl">
             {contentHtml
-              ? <div dangerouslySetInnerHTML={{ __html: contentHtml }} />
+              ? <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(contentHtml) }} />
               : <p className="text-muted-foreground">Konten artikel belum tersedia.</p>}
           </div>
 
