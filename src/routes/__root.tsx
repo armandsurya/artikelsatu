@@ -113,9 +113,17 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     const siteName = (s.siteName as string | undefined) || staticSettings.siteName;
     const email = (s.email as string | undefined) || staticSettings.email;
     const address = (s.address as string | undefined) || staticSettings.address;
-    const favicon = seo.favicon || "/favicon.ico";
-    const isSvgFavicon = /\.svg(\?|$)/i.test(favicon);
-    const isIcoFavicon = /\.ico(\?|$)/i.test(favicon);
+    const rawFavicon = seo.favicon || (s.favicon as string | undefined) || "/favicon.ico";
+    // Signed Supabase URLs must not be mutated (token would break). For everything
+    // else, append a lightweight cache-buster derived from the settings snapshot.
+    const isSigned = /\/storage\/v1\/object\/sign\//.test(rawFavicon);
+    const cacheKey = (s.updatedAt as string | undefined) || (s._v as string | undefined) || "";
+    const favicon = isSigned || !cacheKey
+      ? rawFavicon
+      : rawFavicon + (rawFavicon.includes("?") ? "&" : "?") + "v=" + encodeURIComponent(cacheKey);
+    const isSvgFavicon = /\.svg(\?|$)/i.test(rawFavicon);
+    const isIcoFavicon = /\.ico(\?|$)/i.test(rawFavicon);
+    const iconType = isSvgFavicon ? "image/svg+xml" : isIcoFavicon ? "image/x-icon" : "image/png";
 
     const meta = [
       { charSet: "utf-8" },
@@ -132,7 +140,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       meta,
       links: [
         { rel: "stylesheet", href: appCss },
-        { rel: "icon", href: favicon, type: isSvgFavicon ? "image/svg+xml" : isIcoFavicon ? "image/x-icon" : "image/png" },
+        { rel: "icon", href: favicon, type: iconType },
+        { rel: "shortcut icon", href: favicon, type: iconType },
+        { rel: "apple-touch-icon", href: favicon },
+        ...(isSvgFavicon ? [{ rel: "mask-icon", href: favicon, color: "#2563EB" }] : []),
         { rel: "preconnect", href: "https://fonts.googleapis.com" },
         { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
         { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" },

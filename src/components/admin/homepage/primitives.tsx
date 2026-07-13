@@ -298,7 +298,7 @@ export function MediaPicker({ value, onChange, label = "Gambar" }: { value: stri
   );
 }
 
-function MediaLibraryModal({ onClose, onPick }: { onClose: () => void; onPick: (url: string) => void }) {
+export function MediaLibraryModal({ onClose, onPick }: { onClose: () => void; onPick: (url: string) => void }) {
   const [items, setItems] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);

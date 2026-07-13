@@ -3,8 +3,11 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { PageHeader, Card, Field, inputCls, btnPrimary } from "@/components/admin/ui";
+import { FaviconField } from "@/components/admin/FaviconField";
 import { logActivity } from "@/lib/admin/log";
 import { loadSiteSettings, patchSiteSettings, invalidateSiteSettings } from "@/lib/admin/siteSettings";
+import { trackMediaUsage, clearMediaUsage } from "@/lib/media/usage";
+import { PUBLISHED_QUERY_KEY } from "@/lib/publishedContent";
 import { Loader2, Save, CheckCircle2, AlertCircle } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/pengaturan")({
@@ -24,7 +27,8 @@ type PengaturanUmum = {
 };
 
 // Semua field SEO/Analytics dipindah ke menu SEO — tidak lagi diedit dari sini.
-const EDITABLE_KEYS = ["siteName", "logo", "favicon", "whatsapp", "email", "address", "social"] as const;
+// Favicon di-persist ke `seo.favicon` (single source of truth yang dibaca __root.tsx).
+const EDITABLE_KEYS = ["siteName", "logo", "whatsapp", "email", "address", "social"] as const;
 
 function pickEditable(blob: Record<string, unknown>): PengaturanUmum {
   const out: PengaturanUmum = {};
@@ -32,6 +36,9 @@ function pickEditable(blob: Record<string, unknown>): PengaturanUmum {
     const v = blob[k];
     if (v !== undefined) (out as Record<string, unknown>)[k] = v;
   }
+  // Favicon lives under `seo.favicon` (source of truth). Fall back to legacy top-level key.
+  const seo = (blob.seo as Record<string, unknown> | undefined) ?? {};
+  out.favicon = (seo.favicon as string | undefined) ?? (blob.favicon as string | undefined) ?? "";
   return out;
 }
 
@@ -75,6 +82,13 @@ function Pengaturan() {
     const patch: Record<string, unknown> = {};
     for (const k of EDITABLE_KEYS) patch[k] = (s as Record<string, unknown>)[k];
 
+    // Merge favicon into existing seo blob so we don't clobber other SEO fields.
+    const currentSeo = ((data?.seo as Record<string, unknown> | undefined) ?? {}) as Record<string, unknown>;
+    const favicon = (s.favicon ?? "").trim();
+    patch.seo = { ...currentSeo, favicon };
+    // Clean up the legacy top-level `favicon` key so there's only one source of truth.
+    patch.favicon = null;
+
     const { error } = await patchSiteSettings(patch);
     if (error) {
       setStatus("error");
@@ -88,13 +102,19 @@ function Pengaturan() {
       return;
     }
 
+    // Sync media_usage so deleting the file from Media Library warns "sedang digunakan sebagai favicon".
+    if (favicon) await trackMediaUsage(favicon, "seo", "global", "favicon");
+    else await clearMediaUsage("seo", "global", "favicon");
+
     await logActivity("update_settings", "site_settings");
     snapshotRef.current = JSON.stringify(s);
     setStatus("success");
     toast.success("Pengaturan tersimpan", { description: "Perubahan sudah aktif di seluruh website." });
     invalidateSiteSettings(qc);
+    qc.invalidateQueries({ queryKey: [...PUBLISHED_QUERY_KEY, "site_settings"] });
     setTimeout(() => setStatus((cur) => (cur === "success" ? "idle" : cur)), 2500);
   }
+
 
   const bind = <K extends keyof PengaturanUmum>(k: K) => ({
     value: (s[k] as string) ?? "",
@@ -141,7 +161,8 @@ function Pengaturan() {
             <Field label="Logo (teks atau URL)" hint="Ditampilkan di navbar & footer.">
               <input {...bind("logo")} className={inputCls} />
             </Field>
-            <Field label="Favicon (URL)"><input {...bind("favicon")} className={inputCls} /></Field>
+            <FaviconField value={s.favicon ?? ""} onChange={(v) => setS({ ...s, favicon: v })} />
+
           </div>
         </Card>
         <Card>
