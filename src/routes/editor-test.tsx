@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { CKEditorField } from "@/components/admin/CKEditorField";
 
-export const Route = createFileRoute("/__editor-test")({
+export const Route = createFileRoute("/editor-test")({
   head: () => ({ meta: [{ title: "Editor Test" }, { name: "robots", content: "noindex" }] }),
   component: EditorTest,
 });
