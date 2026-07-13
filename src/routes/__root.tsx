@@ -5,6 +5,7 @@ import {
   useRouter,
   HeadContent,
   Scripts,
+  redirect,
 } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
 
@@ -13,6 +14,12 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { settings as staticSettings } from "@/data/settings";
 import { fetchSiteSettings, PUBLISHED_QUERY_KEY } from "@/lib/publishedContent";
 import { getSeoConfig, buildRootMeta, buildAnalyticsScripts, buildOrganizationSchema } from "@/lib/seo/config";
+import {
+  fetchActiveRedirects,
+  REDIRECTS_QUERY_KEY,
+  resolveRedirect,
+  recordRedirectHit,
+} from "@/lib/redirects/service";
 
 function NotFoundComponent() {
   return (
@@ -62,6 +69,31 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+  beforeLoad: async ({ context, location }) => {
+    const path = location.pathname;
+    // Skip admin, auth, API and internal paths
+    if (
+      path.startsWith("/admin") ||
+      path.startsWith("/auth") ||
+      path.startsWith("/api") ||
+      path.startsWith("/_")
+    ) return;
+    try {
+      const rows = await context.queryClient.ensureQueryData({
+        queryKey: [...REDIRECTS_QUERY_KEY],
+        queryFn: fetchActiveRedirects,
+        staleTime: 60_000,
+      });
+      const full = path + (location.searchStr || "");
+      const hit = resolveRedirect(full, rows);
+      if (hit) {
+        recordRedirectHit(hit.row.source);
+        throw redirect({ href: hit.destination, code: hit.row.code });
+      }
+    } catch (e) {
+      if (e && typeof e === "object" && "isRedirect" in e) throw e;
+    }
+  },
   loader: async ({ context }) => {
     try {
       const settings = await context.queryClient.ensureQueryData({
