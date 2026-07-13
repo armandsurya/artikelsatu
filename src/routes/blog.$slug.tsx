@@ -10,6 +10,7 @@ import {
 import { mapBlogPosts } from "@/lib/mapPublished";
 import { BlogCard } from "@/components/cards/BlogCard";
 import { Clock, User, ArrowLeft } from "lucide-react";
+import { MediaFigure } from "@/components/media/MediaFigure";
 
 export const Route = createFileRoute("/blog/$slug")({
   loader: async ({ params, context }) => {
@@ -119,9 +120,12 @@ function BlogDetail() {
           </div>
 
           {post.featured_image && (
-            <div className="mt-10 overflow-hidden rounded-[16px] border border-border">
-              <img src={post.featured_image} alt={post.title} className="aspect-[16/9] w-full object-cover" />
-            </div>
+            <MediaFigure
+              src={post.featured_image}
+              fallbackAlt={post.title}
+              className="mt-10"
+              imgClassName="aspect-[16/9] w-full rounded-[16px] border border-border object-cover"
+            />
           )}
 
           <div className="prose prose-slate mt-10 max-w-3xl">
