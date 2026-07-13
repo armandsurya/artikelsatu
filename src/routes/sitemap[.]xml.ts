@@ -7,7 +7,7 @@ import type { Database } from "@/integrations/supabase/types";
 const BASE_URL: string = "";
 
 function originFromRequest(request: Request): string {
-  if (BASE_URL) return BASE_URL.replace(/\/$/, "");
+  if (BASE_URL.length > 0) return BASE_URL.replace(/\/$/, "");
   const url = new URL(request.url);
   const proto = request.headers.get("x-forwarded-proto") || url.protocol.replace(":", "") || "https";
   const host = request.headers.get("x-forwarded-host") || request.headers.get("host") || url.host;
