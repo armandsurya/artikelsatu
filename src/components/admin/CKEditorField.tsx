@@ -230,6 +230,10 @@ export function CKEditorField({ value, onChange, onStats, minHeight = 480, place
               const e = editor as { getData: () => string };
               onChange(e.getData());
             }}
+            onError={(error, details) => {
+              console.error("[CKEditor] init error", details.phase, error);
+              setLoadError(`${error?.message ?? error} (phase: ${details.phase})`);
+            }}
           />
         </div>
         {splitView && (
