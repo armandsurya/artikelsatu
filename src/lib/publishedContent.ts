@@ -6,7 +6,6 @@
  * database is still empty (fresh install) or unreachable.
  */
 import { useQuery, type UseQueryResult } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import type { SectionKey } from "@/data/homepageDefaults";
 
 export type PublishedSectionRow = {
@@ -45,27 +44,22 @@ export type PublishedCategoryRow = {
 
 export type SiteSettingsBlob = Record<string, unknown>;
 
-/* ---------------- Fetchers ---------------- */
+/* ---------------- Fetchers (all isomorphic via server fns) ---------------- */
 
 export async function fetchPublishedSections(): Promise<PublishedSectionRow[]> {
-  const { data, error } = await supabase
-    .from("homepage_sections")
-    .select("section_key,title,sort_order,is_visible,data,last_published_at")
-    .order("sort_order");
-  if (error) throw error;
-  return (data ?? []) as PublishedSectionRow[];
+  // Isomorphic: server fn uses the server publishable client on the worker
+  // where the browser client cannot reach localStorage. Same DB path both
+  // sides → SSR HTML matches client hydration.
+  const { listPublishedSections } = await import("./homepage-public.functions");
+  const { payload } = await listPublishedSections();
+  try { return (JSON.parse(payload) as PublishedSectionRow[]) ?? []; } catch { return []; }
 }
 
 export async function fetchSiteSettings(): Promise<SiteSettingsBlob> {
-  const { data, error } = await supabase
-    .from("site_settings")
-    .select("data")
-    .order("id")
-    .limit(1)
-    .maybeSingle();
-  if (error) throw error;
-  return ((data?.data as SiteSettingsBlob) ?? {}) as SiteSettingsBlob;
+  const { fetchPublicSiteSettings } = await import("./site-settings.functions");
+  return fetchPublicSiteSettings();
 }
+
 
 export async function fetchPublishedBlogPosts(): Promise<PublishedBlogPostRow[]> {
   // Isomorphic (SSR-safe): server fn uses the server publishable client on the
