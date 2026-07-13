@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteLayout } from "@/components/layouts/SiteLayout";
 import { ArrowLeft, Clock, User, Eye } from "lucide-react";
+import { sanitizeHtml } from "@/lib/editor/sanitize";
 
 export const Route = createFileRoute("/_authenticated/admin/blog/preview/$id")({
   head: () => ({

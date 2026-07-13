@@ -11,6 +11,7 @@ import { mapBlogPosts } from "@/lib/mapPublished";
 import { BlogCard } from "@/components/cards/BlogCard";
 import { Clock, User, ArrowLeft } from "lucide-react";
 import { MediaFigure } from "@/components/media/MediaFigure";
+import { sanitizeHtml } from "@/lib/editor/sanitize";
 
 export const Route = createFileRoute("/blog/$slug")({
   loader: async ({ params, context }) => {
