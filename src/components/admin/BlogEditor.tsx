@@ -782,6 +782,32 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
           <Card><p className="text-sm text-muted-foreground">Simpan artikel sebagai Draft terlebih dahulu untuk melihat riwayat revisi.</p></Card>
         </div>
       )}
+      {quickPreviewOpen && (
+        <div className="fixed inset-0 z-[70] flex flex-col bg-black/70 backdrop-blur-sm" role="dialog" aria-modal="true">
+          <div className="flex items-center justify-between gap-2 border-b border-border bg-background px-4 py-2">
+            <div className="flex items-center gap-2 text-sm font-medium text-secondary">
+              <Eye className="h-4 w-4" /> Quick Preview
+              <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold uppercase text-amber-700">Live Draft</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button onClick={openPreviewTab} className={btnGhost} title="Buka di tab baru">
+                <ExternalLink className="h-4 w-4" /> Open in New Tab
+              </button>
+              <button onClick={() => setQuickPreviewOpen(false)} className={btnGhost} title="Tutup (Esc)">
+                <CloseIcon className="h-4 w-4" /> Close
+              </button>
+            </div>
+          </div>
+          <div className="flex-1 overflow-hidden bg-background">
+            <iframe
+              key={quickPreviewTick}
+              title="Quick Preview"
+              src={`/admin/blog/preview/${currentId.current ?? "draft"}?live=1&t=${quickPreviewTick}`}
+              className="h-full w-full border-0"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
