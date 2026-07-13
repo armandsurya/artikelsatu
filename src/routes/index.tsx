@@ -19,12 +19,11 @@ import { faq } from "@/data/faq";
 import { services } from "@/data/services";
 
 export const Route = createFileRoute("/")({
+  // Note: title/description/OG/Twitter untuk homepage sudah di-set di __root
+  // dari seo.homepageTitle / seo.homepageDescription (dibaca dari DB).
+  // Di sini hanya menambahkan canonical + og:url + JSON-LD spesifik halaman.
   head: () => ({
     meta: [
-      { title: settings.seo.title },
-      { name: "description", content: settings.seo.description },
-      { property: "og:title", content: settings.seo.title },
-      { property: "og:description", content: settings.seo.description },
       { property: "og:url", content: "/" },
     ],
     links: [{ rel: "canonical", href: "/" }],
