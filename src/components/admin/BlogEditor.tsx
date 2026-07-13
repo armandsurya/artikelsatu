@@ -101,6 +101,51 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
   const [lastPublishedAt, setLastPublishedAt] = useState<string | null>(null);
   const [tab, setTab] = useState<TabKey>("konten");
   const currentId = useRef<string | undefined>(id);
+  const previewWinRef = useRef<Window | null>(null);
+  const [quickPreviewOpen, setQuickPreviewOpen] = useState(false);
+  const [quickPreviewTick, setQuickPreviewTick] = useState(0);
+
+  function writePreviewDraft() {
+    const payload = {
+      id: currentId.current ?? "draft",
+      title: title || "(Tanpa Judul)",
+      slug,
+      excerpt: excerpt || null,
+      content,
+      featured_image: featuredImage || null,
+      category_id: categoryId || null,
+      tags: tags.split(",").map((t) => t.trim()).filter(Boolean),
+      read_time: readTime,
+      status,
+      published_at: publishedAt ? new Date(publishedAt).toISOString() : lastPublishedAt,
+      updated_at: new Date().toISOString(),
+      author_id: authorId,
+      meta_title: metaTitle || null,
+      meta_description: metaDesc || null,
+    };
+    try { localStorage.setItem(PREVIEW_DRAFT_KEY, JSON.stringify(payload)); } catch (e) { console.warn("preview draft write failed", e); }
+    return payload;
+  }
+
+  function openPreviewTab() {
+    const payload = writePreviewDraft();
+    const url = `/admin/blog/preview/${payload.id}?live=1&t=${Date.now()}`;
+    if (previewWinRef.current && !previewWinRef.current.closed) {
+      try {
+        previewWinRef.current.location.href = url;
+        previewWinRef.current.focus();
+        return;
+      } catch { /* fallthrough */ }
+    }
+    previewWinRef.current = window.open(url, PREVIEW_WINDOW_NAME);
+  }
+
+  function openQuickPreview() {
+    writePreviewDraft();
+    setQuickPreviewTick((t) => t + 1);
+    setQuickPreviewOpen(true);
+  }
+
 
   type Snapshot = {
     title: string; slug: string; excerpt: string; content: string;
