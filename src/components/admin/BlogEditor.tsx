@@ -565,16 +565,7 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
           <Card>
             <h3 className="mb-3 text-sm font-semibold text-secondary">Featured Image</h3>
             <MediaPicker label="Gambar utama" value={featuredImage} onChange={setFeaturedImage} />
-            {featuredImage && (
-              <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                <Field label="ALT Text" hint="Deskripsi gambar untuk SEO & aksesibilitas">
-                  <input value={imageAlt} onChange={(e) => setImageAlt(e.target.value)} className={inputCls} placeholder="Deskripsi singkat gambar" />
-                </Field>
-                <Field label="Caption" hint="Ditampilkan di bawah gambar (opsional)">
-                  <input value={imageCaption} onChange={(e) => setImageCaption(e.target.value)} className={inputCls} placeholder="Caption gambar" />
-                </Field>
-              </div>
-            )}
+            {featuredImage && <FeaturedMediaMetadataEditor url={featuredImage} articleTitle={title} />}
           </Card>
           <Card>
             <h3 className="mb-1 text-sm font-semibold text-secondary">Gallery</h3>
