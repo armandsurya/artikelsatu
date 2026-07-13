@@ -13,10 +13,10 @@ import type { Database } from "@/integrations/supabase/types";
  * `useSiteSettings` reads, so client hydration starts from the exact DB
  * snapshot the server used — eliminating Navbar/Footer hydration mismatches.
  */
-export const getPublicSiteSettings = createServerFn({ method: "GET" }).handler(async () => {
+export const getPublicSiteSettings = createServerFn({ method: "GET" }).handler(async (): Promise<{ data: string }> => {
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_PUBLISHABLE_KEY;
-  if (!url || !key) return {} as Record<string, unknown>;
+  if (!url || !key) return { data: "{}" };
   const client = createClient<Database>(url, key, {
     auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
   });
@@ -28,7 +28,12 @@ export const getPublicSiteSettings = createServerFn({ method: "GET" }).handler(a
     .maybeSingle();
   if (error) {
     console.error("[getPublicSiteSettings]", error);
-    return {} as Record<string, unknown>;
+    return { data: "{}" };
   }
-  return ((data?.data as Record<string, unknown>) ?? {}) as Record<string, unknown>;
+  return { data: JSON.stringify(data?.data ?? {}) };
 });
+
+export async function fetchPublicSiteSettings(): Promise<Record<string, unknown>> {
+  const { data } = await getPublicSiteSettings();
+  try { return JSON.parse(data) as Record<string, unknown>; } catch { return {}; }
+}
