@@ -313,6 +313,7 @@ export function mapPublishedSection(
 export type HeaderProps = {
   source: SectionSource;
   logo: string;
+  siteName: string;
   menu: { label: string; href: string; target: "_self" | "_blank" }[];
   ctaLabel: string;
   ctaUrl: string;
@@ -321,33 +322,30 @@ export type HeaderProps = {
 
 export function mapHeader(settings: SiteSettingsBlob | undefined): HeaderProps {
   const raw = (settings?.header as Partial<HeaderProps> | undefined) ?? undefined;
-  // Pengaturan Umum (top-level) menjadi sumber utama untuk identitas.
-  const globalLogo = (settings?.logo as string | undefined) || (settings?.siteName as string | undefined);
+  const siteName =
+    (settings?.siteName as string | undefined)?.trim() ||
+    staticSettings.siteName ||
+    staticSettings.logo ||
+    "Website";
   const globalWa = (settings?.whatsapp as string | undefined) || staticSettings.whatsapp;
+  // Logo is OPTIONAL. Empty/null is a valid value → Navbar falls back to siteName.
+  const logo = ((raw?.logo ?? "") as string).trim();
 
-  if (raw && (raw.logo || globalLogo)) {
+  if (raw) {
     return {
       source: "database",
-      logo: globalLogo || raw.logo || staticSettings.logo,
+      logo,
+      siteName,
       menu: (raw.menu?.length ? raw.menu : defaultMenu()) as HeaderProps["menu"],
       ctaLabel: raw.ctaLabel ?? "Konsultasi Gratis",
       ctaUrl: raw.ctaUrl ?? `https://wa.me/${globalWa}`,
       ctaVisible: raw.ctaVisible !== false,
     };
   }
-  if (globalLogo) {
-    return {
-      source: "database",
-      logo: globalLogo,
-      menu: defaultMenu(),
-      ctaLabel: "Konsultasi Gratis",
-      ctaUrl: `https://wa.me/${globalWa}`,
-      ctaVisible: true,
-    };
-  }
   return {
     source: "fallback",
-    logo: staticSettings.logo,
+    logo: "",
+    siteName,
     menu: defaultMenu(),
     ctaLabel: "Konsultasi Gratis",
     ctaUrl: `https://wa.me/${staticSettings.whatsapp}`,

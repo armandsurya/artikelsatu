@@ -38,7 +38,7 @@ export function LogoField({
       return;
     }
     setImgError(false);
-    onChange(res.url);
+    onChange(res.media.url);
     toast.success("Logo terunggah", { description: "Klik Publish untuk menerapkan." });
   }
 
