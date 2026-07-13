@@ -1,11 +1,14 @@
 import { Clock, User } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import type { BlogPost } from "@/types";
+import { useMediaByUrl, resolveAlt } from "@/lib/media/metadata";
 
 export function BlogCard({ post }: { post: BlogPost }) {
   const date = new Date(post.publishedDate).toLocaleDateString("id-ID", {
     day: "numeric", month: "long", year: "numeric",
   });
+  const { data: media } = useMediaByUrl(post.featuredImage);
+  const alt = resolveAlt(media, post.title);
   return (
     <article className="group flex flex-col overflow-hidden rounded-[16px] border border-border bg-card transition-colors hover:border-primary/40">
       <Link
@@ -16,9 +19,11 @@ export function BlogCard({ post }: { post: BlogPost }) {
       >
         <img
           src={post.featuredImage}
-          alt={post.title}
+          alt={alt}
           loading="lazy"
           decoding="async"
+          width={media?.width ?? undefined}
+          height={media?.height ?? undefined}
           className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
         />
       </Link>
