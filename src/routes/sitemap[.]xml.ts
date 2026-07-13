@@ -4,7 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 
 // TODO: replace with your project URL once a project name or custom domain is set.
-const BASE_URL = "";
+const BASE_URL: string = "";
 
 function originFromRequest(request: Request): string {
   if (BASE_URL) return BASE_URL.replace(/\/$/, "");
