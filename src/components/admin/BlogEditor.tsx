@@ -959,3 +959,71 @@ function FeaturedMediaMetadataEditor({ url, articleTitle }: { url: string; artic
     </div>
   );
 }
+
+/* ---------- EditorLiveStats — SEO-oriented panel below editor ---------- */
+
+function EditorLiveStats({
+  html, focusKeyword, readTimeOverride, onOverrideChange,
+}: {
+  html: string;
+  focusKeyword: string;
+  readTimeOverride: number;
+  onOverrideChange: (n: number) => void;
+}) {
+  const s = useMemo(() => contentStats(html), [html]);
+  const density = useMemo(() => {
+    const k = focusKeyword.trim().toLowerCase();
+    if (!k) return null;
+    const text = html.replace(/<[^>]+>/g, " ").toLowerCase();
+    const words = text.split(/\s+/).filter(Boolean);
+    if (words.length === 0) return 0;
+    const re = new RegExp(`\\b${k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "gi");
+    return ((text.match(re) ?? []).length / words.length) * 100;
+  }, [html, focusKeyword]);
+
+  return (
+    <div className="rounded-xl border border-border bg-muted/20 p-4">
+      <div className="mb-3 flex items-center justify-between">
+        <h4 className="text-sm font-semibold text-secondary">Statistik & SEO Live</h4>
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <span>Override reading time:</span>
+          <input
+            type="number" min={1}
+            value={readTimeOverride}
+            onChange={(e) => onOverrideChange(Number(e.target.value))}
+            className="w-16 rounded border border-border bg-background px-2 py-1 text-xs text-secondary"
+          />
+          <span>menit</span>
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-4 md:grid-cols-6">
+        <StatCell label="Kata" value={s.words} />
+        <StatCell label="Karakter" value={s.chars} />
+        <StatCell label="Reading Time" value={`~${s.minutes || 0} min`} hint="200 wpm" />
+        <StatCell label="Paragraf" value={s.paragraphs} />
+        <StatCell label="Gambar" value={s.images} />
+        <StatCell label="Tabel" value={s.tables} />
+        <StatCell label="H1" value={s.h1} warn={s.h1 > 1} />
+        <StatCell label="H2" value={s.h2} />
+        <StatCell label="H3" value={s.h3} />
+        <StatCell label="Link internal" value={s.internalLinks} />
+        <StatCell label="Link eksternal" value={s.externalLinks} />
+        <StatCell
+          label={`Density "${focusKeyword.trim() || "—"}"`}
+          value={density === null ? "—" : `${density.toFixed(2)}%`}
+          warn={density !== null && (density < 0.5 || density > 3)}
+          hint={density === null ? "Isi Focus Keyword di tab SEO" : "Ideal 0.5–3%"}
+        />
+      </div>
+    </div>
+  );
+}
+
+function StatCell({ label, value, hint, warn }: { label: string; value: string | number; hint?: string; warn?: boolean }) {
+  return (
+    <div className={`rounded-md border px-2.5 py-2 ${warn ? "border-amber-300 bg-amber-50" : "border-border bg-background"}`}>
+      <div className={`text-[15px] font-semibold ${warn ? "text-amber-800" : "text-secondary"}`}>{value}</div>
+      <div className="mt-0.5 truncate text-[10.5px] uppercase tracking-wide text-muted-foreground" title={hint}>{label}</div>
+    </div>
+  );
+}
