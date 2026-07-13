@@ -11,7 +11,7 @@ import { jsonEqual } from "@/lib/admin/sectionMeta";
 import { settings } from "@/data/settings";
 import { footer } from "@/data/footer";
 import { logActivity } from "@/lib/admin/log";
-import { loadSiteSettings, patchSiteSettings } from "@/lib/admin/siteSettings";
+import { loadSiteSettings, patchSiteSettings, invalidateSiteSettings } from "@/lib/admin/siteSettings";
 
 type FooterData = {
   description: string;
@@ -89,7 +89,7 @@ function FooterEditor() {
       const { error } = await patchSiteSettings({ footer: local });
       if (error) { console.error("[footer publish]", error); toast.error("Gagal mem-publish footer", { description: error.message }); return; }
       setLive(local);
-      queryClient.invalidateQueries({ queryKey: PUBLISHED_QUERY_KEY });
+      invalidateSiteSettings(queryClient);
       await logActivity("publish_footer", "site_settings", "footer");
       toast.success("Footer berhasil di-publish");
     } finally { setPublishing(false); }
