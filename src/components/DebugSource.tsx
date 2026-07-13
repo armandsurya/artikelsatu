@@ -1,8 +1,13 @@
+import { useEffect, useState } from "react";
 import type { SectionSource } from "@/lib/mapPublished";
 
 /**
  * Dev-only badge showing whether a section is being rendered from the database
  * or from a static fallback, plus the last-published timestamp. Hidden in prod.
+ *
+ * Rendered only after client mount to avoid SSR/CSR hydration mismatch — the
+ * server has no session/cache so it always renders FALLBACK, while the client
+ * hydrates with cached data (DB), which would otherwise trip a hydration error.
  */
 export function DebugSource({
   label,
@@ -13,7 +18,10 @@ export function DebugSource({
   source: SectionSource;
   lastPublishedAt?: string | null;
 }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
   if (!import.meta.env.DEV) return null;
+  if (!mounted) return null;
   const isDb = source === "database";
   const ts = lastPublishedAt ? new Date(lastPublishedAt).toLocaleString("id-ID", { dateStyle: "short", timeStyle: "short" }) : "—";
   return (
