@@ -136,7 +136,7 @@ function HeaderEditor() {
         <h3 className="mb-4 text-sm font-semibold text-secondary">Logo & CTA</h3>
         <div className="grid gap-4 md:grid-cols-2">
           <div className="md:col-span-2">
-            <MediaPicker label="Logo (image)" value={local.logo} onChange={(v) => set("logo", v)} />
+            <LogoField value={local.logo ?? ""} onChange={(v) => set("logo", v)} />
           </div>
           <TextField label="CTA Label" value={local.ctaLabel} onChange={(v) => set("ctaLabel", v)} max={40} />
           <TextField label="CTA URL" value={local.ctaUrl} onChange={(v) => set("ctaUrl", v)} placeholder="https://wa.me/…" />
