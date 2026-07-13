@@ -343,12 +343,17 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
       const res = await persist(nextStatus, { schedule });
       setStatus(nextStatus);
       setIsPersisted(true);
+      isPersistedRef.current = true;
       // Snapshot current values (incl. any slug rewritten during persist)
-      setSnapshot({
+      const newSnap: Snapshot = {
         title, slug: res?.slug ?? slug, excerpt, content, featuredImage, imageAlt, imageCaption,
         categoryId, metaTitle, metaDesc, canonical, ogTitle, ogDesc, robotsIndex,
         tags, focusKeyword, publishedAt, scheduledAt,
-      });
+      };
+      setSnapshot(newSnap);
+      dirtyRef.current = false;
+      bypassGuardRef.current = true;
+      if (import.meta.env.DEV) console.debug("[BlogEditor] persisted → snapshot reset", { action, saved: res });
       qc.invalidateQueries({ queryKey: ["published"] });
       qc.invalidateQueries({ queryKey: ["blog-posts"] });
       qc.invalidateQueries({ queryKey: ["blog-revisions"] });
@@ -362,7 +367,10 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
         : action === "restore" ? "Artikel dikembalikan dari arsip menjadi Draft"
         : "Draft berhasil disimpan";
       setToast({ kind: "ok", msg });
-      if (mode === "new" && res) navigate({ to: "/admin/blog/$id", params: { id: res.id } });
+      if (mode === "new" && res) {
+        bypassGuardRef.current = true;
+        navigate({ to: "/admin/blog/$id", params: { id: res.id } });
+      }
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "Terjadi kesalahan";
       setToast({ kind: "err", msg: `Gagal: ${msg}` });
