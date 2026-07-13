@@ -379,6 +379,24 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
     }
   }
 
+  /* Autosave — every 60s, drafts only, requires title + dirty state.
+     Never triggers publish; only silently writes as `draft` when the article
+     is already a draft. Skips when user is actively busy or in a modal flow. */
+  const busyRef = useRef(busy);
+  useEffect(() => { busyRef.current = busy; }, [busy]);
+  useEffect(() => {
+    const iv = setInterval(() => {
+      if (busyRef.current) return;
+      if (!dirtyRef.current) return;
+      if (!title.trim()) return;
+      if (status !== "draft") return; // never overwrite scheduled/published/archived
+      // Fire and forget; handle() manages its own toast/busy states.
+      handle("draft").catch((e) => console.warn("[autosave]", e));
+    }, 60_000);
+    return () => clearInterval(iv);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [title, status]);
+
   async function handleDuplicate() {
     if (!currentId.current) return;
     setBusy("duplicate");
