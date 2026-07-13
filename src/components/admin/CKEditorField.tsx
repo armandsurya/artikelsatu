@@ -161,8 +161,22 @@ export function CKEditorField({ value, onChange, onStats, minHeight = 480, place
     onChange?: (evt: unknown, editor: unknown) => void;
   }) => ReactElement;
 
+  const wrapperCls = fullscreen
+    ? "cke-wrapper fixed inset-0 z-[60] overflow-auto bg-background p-4"
+    : "cke-wrapper relative";
+
   return (
-    <div className="cke-wrapper" style={{ ["--cke-min-height" as string]: `${minHeight}px` }}>
+    <div className={wrapperCls} style={{ ["--cke-min-height" as string]: fullscreen ? "calc(100vh - 8rem)" : `${minHeight}px` }}>
+      <div className="mb-2 flex justify-end">
+        <button
+          type="button"
+          onClick={() => setFullscreen((v) => !v)}
+          className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-1 text-xs text-muted-foreground hover:bg-accent"
+          title={fullscreen ? "Keluar Fullscreen (Esc)" : "Fullscreen"}
+        >
+          {fullscreen ? <><Minimize2 className="h-3.5 w-3.5" /> Keluar Fullscreen</> : <><Maximize2 className="h-3.5 w-3.5" /> Fullscreen</>}
+        </button>
+      </div>
       <CKEditorComp
         editor={cke.ClassicEditor}
         data={value || ""}
@@ -175,7 +189,6 @@ export function CKEditorField({ value, onChange, onStats, minHeight = 480, place
               getData: () => string;
               editing: { view: { change: (cb: (writer: { addClass: (c: string, root: unknown) => void }) => void) => void; document: { getRoot: (name?: string) => unknown } } };
             };
-            // Apply article-body class to editable so styling matches frontend
             e.editing.view.change((writer) => {
               const root = e.editing.view.document.getRoot();
               if (root) writer.addClass("article-body", root);
@@ -193,9 +206,9 @@ export function CKEditorField({ value, onChange, onStats, minHeight = 480, place
         }}
       />
       {libraryOpen && (
-        <MediaLibraryModal
+        <InsertImageDialog
           onClose={() => setLibraryOpen(false)}
-          onPick={(url) => { insertImageUrl(url); setLibraryOpen(false); }}
+          onInsert={(payload) => { insertImage(payload); setLibraryOpen(false); }}
         />
       )}
     </div>
