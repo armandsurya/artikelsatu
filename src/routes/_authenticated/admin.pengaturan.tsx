@@ -161,7 +161,8 @@ function Pengaturan() {
             <Field label="Logo (teks atau URL)" hint="Ditampilkan di navbar & footer.">
               <input {...bind("logo")} className={inputCls} />
             </Field>
-            <Field label="Favicon (URL)"><input {...bind("favicon")} className={inputCls} /></Field>
+            <FaviconField value={s.favicon ?? ""} onChange={(v) => setS({ ...s, favicon: v })} />
+
           </div>
         </Card>
         <Card>
