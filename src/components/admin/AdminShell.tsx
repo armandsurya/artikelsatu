@@ -5,29 +5,30 @@ import {
   Users, Shield, Settings, Activity, LogOut, ChevronDown, X, Menu as MenuIcon, KeyRound,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { usePermissions, type PermissionKey } from "@/lib/admin/usePermissions";
 
-type Item = { label: string; to: string; icon: React.ComponentType<{ className?: string }>; children?: { label: string; to: string }[] };
+type Item = { label: string; to: string; icon: React.ComponentType<{ className?: string }>; perm?: PermissionKey; children?: { label: string; to: string }[] };
 
 const NAV: Item[] = [
   { label: "Dashboard", to: "/admin", icon: LayoutDashboard },
-  { label: "Website", to: "/admin/website/homepage", icon: Globe, children: [
+  { label: "Website", to: "/admin/website/homepage", icon: Globe, perm: "homepage", children: [
     { label: "Homepage", to: "/admin/website/homepage" },
     { label: "Header", to: "/admin/website/header" },
     { label: "Footer", to: "/admin/website/footer" },
   ]},
-  { label: "Blog", to: "/admin/blog", icon: FileText, children: [
+  { label: "Blog", to: "/admin/blog", icon: FileText, perm: "blog", children: [
     { label: "Semua Artikel", to: "/admin/blog" },
     { label: "Tambah Artikel", to: "/admin/blog/new" },
     { label: "Kategori", to: "/admin/blog/kategori" },
   ]},
-  { label: "Media", to: "/admin/media", icon: ImageIcon },
-  { label: "SEO", to: "/admin/seo", icon: Search },
-  { label: "Redirect URL", to: "/admin/redirect", icon: ArrowRightLeft },
-  { label: "Pengguna", to: "/admin/pengguna", icon: Users },
-  { label: "Role & Permission", to: "/admin/roles", icon: KeyRound },
-  { label: "Pengaturan", to: "/admin/pengaturan", icon: Settings },
-  { label: "Keamanan", to: "/admin/keamanan", icon: Shield },
-  { label: "Log Aktivitas", to: "/admin/log", icon: Activity },
+  { label: "Media", to: "/admin/media", icon: ImageIcon, perm: "media" },
+  { label: "SEO", to: "/admin/seo", icon: Search, perm: "seo" },
+  { label: "Redirect URL", to: "/admin/redirect", icon: ArrowRightLeft, perm: "redirect" },
+  { label: "Pengguna", to: "/admin/pengguna", icon: Users, perm: "users" },
+  { label: "Role & Permission", to: "/admin/roles", icon: KeyRound, perm: "roles" },
+  { label: "Pengaturan", to: "/admin/pengaturan", icon: Settings, perm: "settings" },
+  { label: "Keamanan", to: "/admin/keamanan", icon: Shield, perm: "security" },
+  { label: "Log Aktivitas", to: "/admin/log", icon: Activity, perm: "log" },
 ];
 
 export function AdminShell({ children }: { children: ReactNode }) {
