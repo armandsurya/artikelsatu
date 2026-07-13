@@ -321,14 +321,28 @@ export type HeaderProps = {
 
 export function mapHeader(settings: SiteSettingsBlob | undefined): HeaderProps {
   const raw = (settings?.header as Partial<HeaderProps> | undefined) ?? undefined;
-  if (raw && raw.logo) {
+  // Pengaturan Umum (top-level) menjadi sumber utama untuk identitas.
+  const globalLogo = (settings?.logo as string | undefined) || (settings?.siteName as string | undefined);
+  const globalWa = (settings?.whatsapp as string | undefined) || staticSettings.whatsapp;
+
+  if (raw && (raw.logo || globalLogo)) {
     return {
       source: "database",
-      logo: raw.logo,
+      logo: globalLogo || raw.logo || staticSettings.logo,
       menu: (raw.menu?.length ? raw.menu : defaultMenu()) as HeaderProps["menu"],
       ctaLabel: raw.ctaLabel ?? "Konsultasi Gratis",
-      ctaUrl: raw.ctaUrl ?? `https://wa.me/${staticSettings.whatsapp}`,
+      ctaUrl: raw.ctaUrl ?? `https://wa.me/${globalWa}`,
       ctaVisible: raw.ctaVisible !== false,
+    };
+  }
+  if (globalLogo) {
+    return {
+      source: "database",
+      logo: globalLogo,
+      menu: defaultMenu(),
+      ctaLabel: "Konsultasi Gratis",
+      ctaUrl: `https://wa.me/${globalWa}`,
+      ctaVisible: true,
     };
   }
   return {
@@ -362,35 +376,39 @@ export function mapFooter(settings: SiteSettingsBlob | undefined): FooterProps {
     social?: FooterProps["social"];
     columns?: FooterData["columns"];
   } | undefined) ?? undefined;
-  const header = settings?.header as { logo?: string } | undefined;
-  const logo = header?.logo ?? staticSettings.logo;
+
+  const globalLogo = (settings?.logo as string | undefined)
+    || (settings?.siteName as string | undefined)
+    || (settings?.header as { logo?: string } | undefined)?.logo
+    || staticSettings.logo;
+  const globalWa = (settings?.whatsapp as string | undefined) || staticSettings.whatsapp;
+  const globalEmail = (settings?.email as string | undefined) || staticSettings.email;
+  const globalAddress = (settings?.address as string | undefined) || staticSettings.address;
+  const globalSocial = (settings?.social as FooterProps["social"] | undefined);
+  const hasGlobal = !!(settings?.logo || settings?.siteName || settings?.whatsapp || settings?.email);
 
   if (raw && raw.description) {
     return {
       source: "database",
-      logo,
+      logo: globalLogo,
       description: raw.description,
       copyright: raw.copyright ?? staticSettings.copyright,
       contact: {
-        whatsapp: raw.contact?.whatsapp ?? staticSettings.whatsapp,
-        email: raw.contact?.email ?? staticSettings.email,
-        address: raw.contact?.address ?? staticSettings.address,
+        whatsapp: raw.contact?.whatsapp || globalWa,
+        email: raw.contact?.email || globalEmail,
+        address: raw.contact?.address || globalAddress,
       },
-      social: raw.social?.length ? raw.social : staticSettings.social,
+      social: (globalSocial?.length ? globalSocial : raw.social?.length ? raw.social : staticSettings.social),
       columns: raw.columns?.length ? raw.columns : staticFooter.columns,
     };
   }
   return {
-    source: "fallback",
-    logo,
+    source: hasGlobal ? "database" : "fallback",
+    logo: globalLogo,
     description: staticFooter.description,
     copyright: staticSettings.copyright,
-    contact: {
-      whatsapp: staticSettings.whatsapp,
-      email: staticSettings.email,
-      address: staticSettings.address,
-    },
-    social: staticSettings.social,
+    contact: { whatsapp: globalWa, email: globalEmail, address: globalAddress },
+    social: globalSocial?.length ? globalSocial : staticSettings.social,
     columns: staticFooter.columns,
   };
 }
