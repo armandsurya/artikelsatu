@@ -14,7 +14,11 @@ import {
   ArrowLeft, Save, Loader2, Eye, Send, Copy, EyeOff, Archive, RotateCcw,
   Check, AlertCircle, FileText, History, Clock, Image as ImageIcon,
   Search as SearchIcon, Settings as SettingsIcon, User as UserIcon,
+  ExternalLink, X as CloseIcon,
 } from "lucide-react";
+
+const PREVIEW_DRAFT_KEY = "lovable:blog-preview-draft";
+const PREVIEW_WINDOW_NAME = "lovable-blog-preview";
 import type { Database } from "@/integrations/supabase/types";
 
 type Props = { mode: "new" | "edit"; id?: string; onSaved?: (id: string) => void };
@@ -97,6 +101,58 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
   const [lastPublishedAt, setLastPublishedAt] = useState<string | null>(null);
   const [tab, setTab] = useState<TabKey>("konten");
   const currentId = useRef<string | undefined>(id);
+  const previewWinRef = useRef<Window | null>(null);
+  const [quickPreviewOpen, setQuickPreviewOpen] = useState(false);
+  const [quickPreviewTick, setQuickPreviewTick] = useState(0);
+
+  function writePreviewDraft() {
+    const payload = {
+      id: currentId.current ?? "draft",
+      title: title || "(Tanpa Judul)",
+      slug,
+      excerpt: excerpt || null,
+      content,
+      featured_image: featuredImage || null,
+      category_id: categoryId || null,
+      tags: tags.split(",").map((t) => t.trim()).filter(Boolean),
+      read_time: readTime,
+      status,
+      published_at: publishedAt ? new Date(publishedAt).toISOString() : lastPublishedAt,
+      updated_at: new Date().toISOString(),
+      author_id: authorId,
+      meta_title: metaTitle || null,
+      meta_description: metaDesc || null,
+    };
+    try { localStorage.setItem(PREVIEW_DRAFT_KEY, JSON.stringify(payload)); } catch (e) { console.warn("preview draft write failed", e); }
+    return payload;
+  }
+
+  function openPreviewTab() {
+    const payload = writePreviewDraft();
+    const url = `/admin/blog/preview/${payload.id}?live=1&t=${Date.now()}`;
+    if (previewWinRef.current && !previewWinRef.current.closed) {
+      try {
+        previewWinRef.current.location.href = url;
+        previewWinRef.current.focus();
+        return;
+      } catch { /* fallthrough */ }
+    }
+    previewWinRef.current = window.open(url, PREVIEW_WINDOW_NAME);
+  }
+
+  function openQuickPreview() {
+    writePreviewDraft();
+    setQuickPreviewTick((t) => t + 1);
+    setQuickPreviewOpen(true);
+  }
+
+  useEffect(() => {
+    if (!quickPreviewOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setQuickPreviewOpen(false); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [quickPreviewOpen]);
+
 
   type Snapshot = {
     title: string; slug: string; excerpt: string; content: string;
@@ -474,11 +530,12 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
                 {busy === "duplicate" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Copy className="h-4 w-4" />} Duplicate
               </button>
             )}
-            {currentId.current && (
-              <Link to="/admin/blog/preview/$id" params={{ id: currentId.current }} target="_blank" className={btnGhost}>
-                <Eye className="h-4 w-4" /> Preview
-              </Link>
-            )}
+            <button onClick={openPreviewTab} disabled={!title.trim()} className={btnGhost} title="Buka preview di tab baru">
+              <ExternalLink className="h-4 w-4" /> Preview
+            </button>
+            <button onClick={openQuickPreview} disabled={!title.trim()} className={btnGhost} title="Quick Preview (modal)">
+              <Eye className="h-4 w-4" /> Quick Preview
+            </button>
             {status === "archived" ? (
               <button onClick={() => handle("restore")} disabled={!!busy} className={btnGhost}>
                 {busy === "restore" ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />} Restore
@@ -542,7 +599,7 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
 
       {/* Tab panels */}
       {tab === "konten" && (
-        <div className="mx-auto max-w-4xl space-y-4">
+        <div className="mx-auto w-full max-w-none space-y-4">
           <Field label="Judul Artikel">
             <input value={title} onChange={(e) => setTitle(e.target.value)} className={inputCls} placeholder="Judul artikel yang menarik & mengandung keyword" />
           </Field>
@@ -730,6 +787,32 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
       {tab === "revisi" && !currentId.current && (
         <div className="mx-auto max-w-4xl">
           <Card><p className="text-sm text-muted-foreground">Simpan artikel sebagai Draft terlebih dahulu untuk melihat riwayat revisi.</p></Card>
+        </div>
+      )}
+      {quickPreviewOpen && (
+        <div className="fixed inset-0 z-[70] flex flex-col bg-black/70 backdrop-blur-sm" role="dialog" aria-modal="true">
+          <div className="flex items-center justify-between gap-2 border-b border-border bg-background px-4 py-2">
+            <div className="flex items-center gap-2 text-sm font-medium text-secondary">
+              <Eye className="h-4 w-4" /> Quick Preview
+              <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold uppercase text-amber-700">Live Draft</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button onClick={openPreviewTab} className={btnGhost} title="Buka di tab baru">
+                <ExternalLink className="h-4 w-4" /> Open in New Tab
+              </button>
+              <button onClick={() => setQuickPreviewOpen(false)} className={btnGhost} title="Tutup (Esc)">
+                <CloseIcon className="h-4 w-4" /> Close
+              </button>
+            </div>
+          </div>
+          <div className="flex-1 overflow-hidden bg-background">
+            <iframe
+              key={quickPreviewTick}
+              title="Quick Preview"
+              src={`/admin/blog/preview/${currentId.current ?? "draft"}?live=1&t=${quickPreviewTick}`}
+              className="h-full w-full border-0"
+            />
+          </div>
         </div>
       )}
     </div>
