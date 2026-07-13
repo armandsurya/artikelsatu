@@ -36,6 +36,8 @@ export function AdminShell({ children }: { children: ReactNode }) {
   const [email, setEmail] = useState<string>("");
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { data: perms } = usePermissions();
+  const visibleNav = NAV.filter((item) => !item.perm || perms?.[item.perm]);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setEmail(data.user?.email ?? ""));
