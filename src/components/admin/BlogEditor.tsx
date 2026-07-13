@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useBlocker, useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, Field, inputCls, btnPrimary, btnGhost, btnDanger } from "./ui";
+import { Card, Field, inputCls, labelCls, btnPrimary, btnGhost, btnDanger } from "./ui";
 import { CKEditorField } from "./CKEditorField";
 import { contentStats } from "@/lib/editor/sanitize";
 import { MediaPicker } from "./homepage/primitives";
@@ -620,9 +620,13 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
           <Field label="Excerpt" hint="Ringkasan singkat (muncul di daftar & default meta description)">
             <textarea value={excerpt} onChange={(e) => setExcerpt(e.target.value)} rows={2} className={inputCls} />
           </Field>
-          <Field label="Konten">
+          {/* NOTE: jangan bungkus CKEditorField dengan <Field> (yang merender <label>).
+              Klik di dalam <label> diteruskan ke tombol pertama (Fullscreen) sehingga
+              editor tidak bisa dipakai. Gunakan div + span sebagai label. */}
+          <div className="block">
+            <span className={labelCls}>Konten</span>
             <CKEditorField value={content} onChange={setContent} minHeight={520} />
-          </Field>
+          </div>
           <EditorLiveStats html={content} focusKeyword={focusKeyword} readTimeOverride={readTime} onOverrideChange={setReadTime} />
         </div>
       )}
