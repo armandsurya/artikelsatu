@@ -170,6 +170,7 @@ export function CKEditorField({ value, onChange, onStats, minHeight = 480, place
     config?: unknown;
     onReady?: (editor: unknown) => void;
     onChange?: (evt: unknown, editor: unknown) => void;
+    onError?: (error: Error, details: { phase: string; willEditorRestart: boolean }) => void;
   }) => ReactElement;
 
   const wrapperCls = fullscreen
