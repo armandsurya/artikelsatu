@@ -39,12 +39,22 @@ async function ensureUniqueSlug(base: string, ignoreId?: string) {
   }
 }
 
-const STATUS_STYLES: Record<Status, string> = {
+const STATUS_STYLES: Record<Status | "new", string> = {
   draft: "bg-amber-50 text-amber-700",
   published: "bg-green-50 text-green-700",
   scheduled: "bg-blue-50 text-blue-700",
   archived: "bg-slate-200 text-slate-700",
+  new: "bg-slate-100 text-slate-600",
 };
+
+const STATUS_LABEL: Record<Status | "new", string> = {
+  draft: "DRAFT",
+  published: "PUBLISHED",
+  scheduled: "SCHEDULED",
+  archived: "ARCHIVED",
+  new: "ARTIKEL BARU",
+};
+
 
 const TABS: { key: TabKey; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
   { key: "konten", label: "Konten", icon: FileText },
