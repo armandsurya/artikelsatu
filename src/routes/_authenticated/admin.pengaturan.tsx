@@ -36,6 +36,9 @@ function pickEditable(blob: Record<string, unknown>): PengaturanUmum {
     const v = blob[k];
     if (v !== undefined) (out as Record<string, unknown>)[k] = v;
   }
+  // Favicon lives under `seo.favicon` (source of truth). Fall back to legacy top-level key.
+  const seo = (blob.seo as Record<string, unknown> | undefined) ?? {};
+  out.favicon = (seo.favicon as string | undefined) ?? (blob.favicon as string | undefined) ?? "";
   return out;
 }
 
@@ -79,6 +82,13 @@ function Pengaturan() {
     const patch: Record<string, unknown> = {};
     for (const k of EDITABLE_KEYS) patch[k] = (s as Record<string, unknown>)[k];
 
+    // Merge favicon into existing seo blob so we don't clobber other SEO fields.
+    const currentSeo = ((data?.seo as Record<string, unknown> | undefined) ?? {}) as Record<string, unknown>;
+    const favicon = (s.favicon ?? "").trim();
+    patch.seo = { ...currentSeo, favicon };
+    // Clean up the legacy top-level `favicon` key so there's only one source of truth.
+    patch.favicon = null;
+
     const { error } = await patchSiteSettings(patch);
     if (error) {
       setStatus("error");
@@ -92,13 +102,19 @@ function Pengaturan() {
       return;
     }
 
+    // Sync media_usage so deleting the file from Media Library warns "sedang digunakan sebagai favicon".
+    if (favicon) await trackMediaUsage(favicon, "seo", "global", "favicon");
+    else await clearMediaUsage("seo", "global", "favicon");
+
     await logActivity("update_settings", "site_settings");
     snapshotRef.current = JSON.stringify(s);
     setStatus("success");
     toast.success("Pengaturan tersimpan", { description: "Perubahan sudah aktif di seluruh website." });
     invalidateSiteSettings(qc);
+    qc.invalidateQueries({ queryKey: [...PUBLISHED_QUERY_KEY, "site_settings"] });
     setTimeout(() => setStatus((cur) => (cur === "success" ? "idle" : cur)), 2500);
   }
+
 
   const bind = <K extends keyof PengaturanUmum>(k: K) => ({
     value: (s[k] as string) ?? "",
