@@ -548,23 +548,7 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
           <Field label="Konten">
             <CKEditorField value={content} onChange={setContent} minHeight={520} />
           </Field>
-          <div className="grid gap-4 sm:grid-cols-4">
-            <div className="rounded-lg border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
-              <div className="text-secondary font-medium">{stats.words}</div>
-              <div>kata</div>
-            </div>
-            <div className="rounded-lg border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
-              <div className="text-secondary font-medium">{stats.chars}</div>
-              <div>karakter</div>
-            </div>
-            <div className="rounded-lg border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
-              <div className="text-secondary font-medium">~{stats.minutes} menit</div>
-              <div>reading time (200 wpm)</div>
-            </div>
-            <Field label="Override menit" hint="Kosongkan agar otomatis">
-              <input type="number" min={1} value={readTime} onChange={(e) => setReadTime(Number(e.target.value))} className={inputCls} />
-            </Field>
-          </div>
+          <EditorLiveStats html={content} focusKeyword={focusKeyword} readTimeOverride={readTime} onOverrideChange={setReadTime} />
         </div>
       )}
 
