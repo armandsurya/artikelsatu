@@ -156,7 +156,7 @@ export function CKEditorField({ value, onChange, onStats, minHeight = 480, place
             const e = editor as {
               plugins: { get: (n: string) => { on: (evt: string, cb: (_: unknown, data: unknown) => void) => void } };
               getData: () => string;
-              editing: { view: { change: (cb: (writer: { addClass: (c: string, root: unknown) => void }) => void); document: { getRoot: (name?: string) => unknown } } };
+              editing: { view: { change: (cb: (writer: { addClass: (c: string, root: unknown) => void }) => void) => void; document: { getRoot: (name?: string) => unknown } } };
             };
             // Apply article-body class to editable so styling matches frontend
             e.editing.view.change((writer) => {
