@@ -523,11 +523,12 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
                 {busy === "duplicate" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Copy className="h-4 w-4" />} Duplicate
               </button>
             )}
-            {currentId.current && (
-              <Link to="/admin/blog/preview/$id" params={{ id: currentId.current }} target="_blank" className={btnGhost}>
-                <Eye className="h-4 w-4" /> Preview
-              </Link>
-            )}
+            <button onClick={openPreviewTab} disabled={!title.trim()} className={btnGhost} title="Buka preview di tab baru">
+              <ExternalLink className="h-4 w-4" /> Preview
+            </button>
+            <button onClick={openQuickPreview} disabled={!title.trim()} className={btnGhost} title="Quick Preview (modal)">
+              <Eye className="h-4 w-4" /> Quick Preview
+            </button>
             {status === "archived" ? (
               <button onClick={() => handle("restore")} disabled={!!busy} className={btnGhost}>
                 {busy === "restore" ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />} Restore
