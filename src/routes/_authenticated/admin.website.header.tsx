@@ -64,7 +64,7 @@ function HeaderEditor() {
 
   async function saveDraft(): Promise<boolean> {
     if (!local) return false;
-    if (!local.logo?.trim()) { toast.error("Logo wajib diisi"); return false; }
+    // Logo is OPTIONAL — no required validation.
     setSaving(true);
     try {
       const nowIso = new Date().toISOString();
