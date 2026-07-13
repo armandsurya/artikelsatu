@@ -316,10 +316,18 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
       }
       const res = await persist(nextStatus, { schedule });
       setStatus(nextStatus);
-      setDirty(false);
+      setIsPersisted(true);
+      // Snapshot current values (incl. any slug rewritten during persist)
+      setSnapshot({
+        title, slug: res?.slug ?? slug, excerpt, content, featuredImage, imageAlt, imageCaption,
+        categoryId, metaTitle, metaDesc, canonical, ogTitle, ogDesc, robotsIndex,
+        tags, focusKeyword, publishedAt, scheduledAt,
+      });
       qc.invalidateQueries({ queryKey: ["published"] });
       qc.invalidateQueries({ queryKey: ["blog-posts"] });
       qc.invalidateQueries({ queryKey: ["blog-revisions"] });
+      qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
+
       const msg =
         action === "publish" ? "Artikel berhasil dipublikasikan"
         : action === "schedule" ? "Jadwal publish tersimpan"
