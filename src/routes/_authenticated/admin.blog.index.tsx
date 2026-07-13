@@ -38,6 +38,9 @@ function BlogList() {
     await supabase.from("blog_posts").update({ deleted_at: new Date().toISOString() }).eq("id", id);
     await logActivity("delete_post", "blog_posts", id);
     qc.invalidateQueries({ queryKey: ["blog-posts"] });
+    qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
+    qc.invalidateQueries({ queryKey: ["published"] });
+
   }
 
   return (

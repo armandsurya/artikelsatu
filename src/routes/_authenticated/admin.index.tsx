@@ -12,11 +12,17 @@ export const Route = createFileRoute("/_authenticated/admin/")({
 function Dashboard() {
   const { data } = useQuery({
     queryKey: ["dashboard-stats"],
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
     queryFn: async () => {
-      const [posts, drafts, published, cats, media, users, recent] = await Promise.all([
-        supabase.from("blog_posts").select("*", { count: "exact", head: true }),
-        supabase.from("blog_posts").select("*", { count: "exact", head: true }).eq("status", "draft"),
-        supabase.from("blog_posts").select("*", { count: "exact", head: true }).eq("status", "published"),
+      const base = () => supabase.from("blog_posts").select("*", { count: "exact", head: true }).is("deleted_at", null);
+      const [posts, drafts, published, scheduled, archived, cats, media, users, recent] = await Promise.all([
+        base(),
+        base().eq("status", "draft"),
+        base().eq("status", "published"),
+        base().eq("status", "scheduled"),
+        supabase.from("blog_posts").select("*", { count: "exact", head: true }).not("deleted_at", "is", null),
         supabase.from("blog_categories").select("*", { count: "exact", head: true }),
         supabase.from("media").select("size_bytes"),
         supabase.from("profiles").select("*", { count: "exact", head: true }),
@@ -25,11 +31,13 @@ function Dashboard() {
       const storage = (media.data ?? []).reduce((a, m) => a + Number(m.size_bytes ?? 0), 0);
       return {
         posts: posts.count ?? 0, drafts: drafts.count ?? 0, published: published.count ?? 0,
+        scheduled: scheduled.count ?? 0, archived: archived.count ?? 0,
         cats: cats.count ?? 0, mediaCount: media.data?.length ?? 0, users: users.count ?? 0,
         storage, recent: recent.data ?? [],
       };
     },
   });
+
 
   const stats = [
     { label: "Jumlah Artikel", value: data?.posts ?? "—", icon: FileText },

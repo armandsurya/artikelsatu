@@ -39,12 +39,22 @@ async function ensureUniqueSlug(base: string, ignoreId?: string) {
   }
 }
 
-const STATUS_STYLES: Record<Status, string> = {
+const STATUS_STYLES: Record<Status | "new", string> = {
   draft: "bg-amber-50 text-amber-700",
   published: "bg-green-50 text-green-700",
   scheduled: "bg-blue-50 text-blue-700",
   archived: "bg-slate-200 text-slate-700",
+  new: "bg-slate-100 text-slate-600",
 };
+
+const STATUS_LABEL: Record<Status | "new", string> = {
+  draft: "DRAFT",
+  published: "PUBLISHED",
+  scheduled: "SCHEDULED",
+  archived: "ARCHIVED",
+  new: "ARTIKEL BARU",
+};
+
 
 const TABS: { key: TabKey; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
   { key: "konten", label: "Konten", icon: FileText },
@@ -82,12 +92,42 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
   const [loading, setLoading] = useState(mode === "edit");
   const [busy, setBusy] = useState<null | "draft" | "publish" | "unpublish" | "duplicate" | "schedule" | "archive" | "restore">(null);
   const [toast, setToast] = useState<{ kind: "ok" | "err"; msg: string } | null>(null);
-  const [dirty, setDirty] = useState(false);
+  const [isPersisted, setIsPersisted] = useState(mode === "edit");
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
   const [lastPublishedAt, setLastPublishedAt] = useState<string | null>(null);
   const [tab, setTab] = useState<TabKey>("konten");
-  const initialized = useRef(false);
   const currentId = useRef<string | undefined>(id);
+
+  type Snapshot = {
+    title: string; slug: string; excerpt: string; content: string;
+    featuredImage: string; imageAlt: string; imageCaption: string;
+    categoryId: string; metaTitle: string; metaDesc: string; canonical: string;
+    ogTitle: string; ogDesc: string; robotsIndex: string;
+    tags: string; focusKeyword: string; publishedAt: string; scheduledAt: string;
+  };
+  const emptySnap: Snapshot = {
+    title: "", slug: "", excerpt: "", content: "", featuredImage: "", imageAlt: "",
+    imageCaption: "", categoryId: "", metaTitle: "", metaDesc: "", canonical: "",
+    ogTitle: "", ogDesc: "", robotsIndex: "index", tags: "", focusKeyword: "",
+    publishedAt: "", scheduledAt: "",
+  };
+  const [snapshot, setSnapshot] = useState<Snapshot>(emptySnap);
+
+  const currentSnap: Snapshot = {
+    title, slug, excerpt, content, featuredImage, imageAlt, imageCaption,
+    categoryId, metaTitle, metaDesc, canonical, ogTitle, ogDesc, robotsIndex,
+    tags, focusKeyword, publishedAt, scheduledAt,
+  };
+  const dirty = useMemo(
+    () => JSON.stringify(currentSnap) !== JSON.stringify(snapshot),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [currentSnap.title, currentSnap.slug, currentSnap.excerpt, currentSnap.content,
+     currentSnap.featuredImage, currentSnap.imageAlt, currentSnap.imageCaption,
+     currentSnap.categoryId, currentSnap.metaTitle, currentSnap.metaDesc,
+     currentSnap.canonical, currentSnap.ogTitle, currentSnap.ogDesc,
+     currentSnap.robotsIndex, currentSnap.tags, currentSnap.focusKeyword,
+     currentSnap.publishedAt, currentSnap.scheduledAt, snapshot],
+  );
 
   const { data: categories = [] } = useQuery({
     queryKey: ["categories"],
@@ -101,38 +141,41 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
   });
 
   useEffect(() => {
-    if (mode !== "edit" || !id) { initialized.current = true; return; }
+    if (mode !== "edit" || !id) return;
     supabase.from("blog_posts").select("*").eq("id", id).single().then(({ data, error }) => {
       if (error) { setToast({ kind: "err", msg: `Gagal memuat: ${error.message}` }); setLoading(false); return; }
       if (!data) { setLoading(false); return; }
-      setTitle(data.title); setSlug(data.slug); setExcerpt(data.excerpt ?? "");
-      setContent((typeof data.content === "string" ? data.content : "") ?? "");
-      setFeaturedImage(data.featured_image ?? "");
-      setCategoryId(data.category_id ?? "");
-      setMetaTitle(data.meta_title ?? "");
-      setMetaDesc(data.meta_description ?? "");
-      setCanonical(data.canonical_url ?? "");
-      setTags((data.tags ?? []).join(", "));
-      setStatus(data.status);
-      setReadTime(data.read_time ?? 5);
-      setPublishedAt(data.published_at ? data.published_at.slice(0, 16) : "");
-      setScheduledAt(data.scheduled_at ? data.scheduled_at.slice(0, 16) : "");
+      const loaded: Snapshot = {
+        title: data.title, slug: data.slug, excerpt: data.excerpt ?? "",
+        content: (typeof data.content === "string" ? data.content : "") ?? "",
+        featuredImage: data.featured_image ?? "", imageAlt: "", imageCaption: "",
+        categoryId: data.category_id ?? "", metaTitle: data.meta_title ?? "",
+        metaDesc: data.meta_description ?? "", canonical: data.canonical_url ?? "",
+        ogTitle: "", ogDesc: "", robotsIndex: "index",
+        tags: (data.tags ?? []).join(", "), focusKeyword: "",
+        publishedAt: data.published_at ? data.published_at.slice(0, 16) : "",
+        scheduledAt: data.scheduled_at ? data.scheduled_at.slice(0, 16) : "",
+      };
+      setTitle(loaded.title); setSlug(loaded.slug); setExcerpt(loaded.excerpt);
+      setContent(loaded.content); setFeaturedImage(loaded.featuredImage);
+      setCategoryId(loaded.categoryId); setMetaTitle(loaded.metaTitle);
+      setMetaDesc(loaded.metaDesc); setCanonical(loaded.canonical);
+      setTags(loaded.tags); setStatus(data.status); setReadTime(data.read_time ?? 5);
+      setPublishedAt(loaded.publishedAt); setScheduledAt(loaded.scheduledAt);
       setLastSavedAt(data.updated_at ?? null);
       setLastPublishedAt(data.published_at ?? null);
       setAuthorId(data.author_id ?? null);
+      setSnapshot(loaded);
+      setIsPersisted(true);
       setLoading(false);
-      setTimeout(() => { initialized.current = true; setDirty(false); }, 0);
     });
   }, [mode, id]);
 
+  // Auto-slug from title for new posts, only while slug hasn't been persisted.
   useEffect(() => {
     if (mode === "new" && title && !slug) setSlug(slugify(title));
   }, [title, slug, mode]);
 
-  useEffect(() => {
-    if (!initialized.current) return;
-    setDirty(true);
-  }, [title, slug, excerpt, content, featuredImage, imageAlt, imageCaption, categoryId, metaTitle, metaDesc, canonical, ogTitle, ogDesc, robotsIndex, tags, publishedAt, scheduledAt, focusKeyword]);
 
   const stats = useMemo(() => calcReadTime(content), [content]);
   useEffect(() => { if (stats.minutes && stats.minutes !== readTime) setReadTime(stats.minutes); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [stats.minutes]);
@@ -273,10 +316,18 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
       }
       const res = await persist(nextStatus, { schedule });
       setStatus(nextStatus);
-      setDirty(false);
+      setIsPersisted(true);
+      // Snapshot current values (incl. any slug rewritten during persist)
+      setSnapshot({
+        title, slug: res?.slug ?? slug, excerpt, content, featuredImage, imageAlt, imageCaption,
+        categoryId, metaTitle, metaDesc, canonical, ogTitle, ogDesc, robotsIndex,
+        tags, focusKeyword, publishedAt, scheduledAt,
+      });
       qc.invalidateQueries({ queryKey: ["published"] });
       qc.invalidateQueries({ queryKey: ["blog-posts"] });
       qc.invalidateQueries({ queryKey: ["blog-revisions"] });
+      qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
+
       const msg =
         action === "publish" ? "Artikel berhasil dipublikasikan"
         : action === "schedule" ? "Jadwal publish tersimpan"
@@ -342,11 +393,16 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <Link to="/admin/blog" className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border text-muted-foreground hover:bg-accent"><ArrowLeft className="h-4 w-4" /></Link>
-              <span className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold ${STATUS_STYLES[status]}`}>{status.toUpperCase()}</span>
+              {(() => {
+                const effective: Status | "new" = !isPersisted ? "new" : status;
+                return <span className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold ${STATUS_STYLES[effective]}`}>{STATUS_LABEL[effective]}</span>;
+              })()}
               {status === "scheduled" && scheduledAt && (
                 <span className="inline-flex items-center gap-1 text-[11px] text-blue-700"><Clock className="h-3 w-3" />{fmt(new Date(scheduledAt).toISOString())}</span>
               )}
-              {dirty && <span className="text-[11px] font-medium text-amber-600">• Belum disimpan</span>}
+              {!isPersisted && !dirty && <span className="text-[11px] font-medium text-slate-500">• Belum disimpan</span>}
+              {dirty && <span className="text-[11px] font-medium text-amber-600">• Ada perubahan</span>}
+
               <span className={`ml-1 rounded-full border px-2 py-0.5 text-[11px] ${publishReady ? "border-green-200 bg-green-50 text-green-700" : "border-amber-200 bg-amber-50 text-amber-700"}`}>
                 Checklist {checklistDone}/{checklistTotal}
               </span>
@@ -628,7 +684,7 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
               setMetaDesc(rev.meta_description ?? "");
               setCanonical(rev.canonical_url ?? "");
               setTags((rev.tags ?? []).join(", "));
-              setDirty(true);
+              // Restoring a revision changes form values, so dirty derives to true automatically
               setTab("konten");
               setToast({ kind: "ok", msg: `Revisi #${rev.revision_number} dimuat. Klik Save Draft untuk menyimpan.` });
             }}
