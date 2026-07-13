@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactElement } from "react";
 import { MediaLibraryModal } from "./homepage/primitives";
 import { contentStats, sanitizeHtml } from "@/lib/editor/sanitize";
 import { SupabaseUploadAdapterPlugin } from "@/lib/editor/uploadAdapter";
@@ -142,7 +142,7 @@ export function CKEditorField({ value, onChange, onStats, minHeight = 480, place
     config?: unknown;
     onReady?: (editor: unknown) => void;
     onChange?: (evt: unknown, editor: unknown) => void;
-  }) => JSX.Element;
+  }) => ReactElement;
 
   return (
     <div className="cke-wrapper" style={{ ["--cke-min-height" as string]: `${minHeight}px` }}>
