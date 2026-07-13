@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactElement } from "react";
-import { MediaLibraryModal } from "./homepage/primitives";
+import { InsertImageDialog } from "./InsertImageDialog";
 import { contentStats, sanitizeHtml } from "@/lib/editor/sanitize";
 import { SupabaseUploadAdapterPlugin } from "@/lib/editor/uploadAdapter";
-import { ImageIcon, Loader2 } from "lucide-react";
+import { ImageIcon, Loader2, Maximize2, Minimize2 } from "lucide-react";
 
 type Props = {
   value: string;
@@ -33,11 +33,28 @@ export function CKEditorField({ value, onChange, onStats, minHeight = 480, place
     return () => { cancelled = true; };
   }, []);
 
-  const insertImageUrl = useCallback((url: string) => {
-    const editor = editorRef.current as { model: { change: (cb: (writer: unknown) => void) => void; document: { selection: unknown }; insertContent?: unknown }; execute: (cmd: string, opts?: unknown) => void } | null;
+  const [fullscreen, setFullscreen] = useState(false);
+
+  const insertImage = useCallback((payload: { url: string; alt?: string; caption?: string }) => {
+    const editor = editorRef.current as {
+      model: {
+        change: (cb: (writer: {
+          createElement: (name: string, attrs?: Record<string, unknown>) => unknown;
+          insertText: (text: string, node: unknown) => void;
+          insert: (node: unknown, target: unknown) => void;
+          setSelection: (node: unknown, offset?: string | number) => void;
+        }) => void) => void;
+        document: { selection: { getFirstPosition: () => unknown } };
+      };
+      execute: (cmd: string, opts?: unknown) => void;
+    } | null;
     if (!editor) return;
     try {
-      editor.execute("insertImage", { source: url });
+      editor.execute("insertImage", { source: { src: payload.url, alt: payload.alt ?? "" } });
+      if (payload.caption) {
+        // Enable caption on the just-inserted image
+        try { editor.execute("toggleImageCaption", { focusCaptionOnShow: false }); } catch { /* noop */ }
+      }
     } catch (e) {
       console.error("[CKEditor] insertImage failed", e);
     }
@@ -144,8 +161,22 @@ export function CKEditorField({ value, onChange, onStats, minHeight = 480, place
     onChange?: (evt: unknown, editor: unknown) => void;
   }) => ReactElement;
 
+  const wrapperCls = fullscreen
+    ? "cke-wrapper fixed inset-0 z-[60] overflow-auto bg-background p-4"
+    : "cke-wrapper relative";
+
   return (
-    <div className="cke-wrapper" style={{ ["--cke-min-height" as string]: `${minHeight}px` }}>
+    <div className={wrapperCls} style={{ ["--cke-min-height" as string]: fullscreen ? "calc(100vh - 8rem)" : `${minHeight}px` }}>
+      <div className="mb-2 flex justify-end">
+        <button
+          type="button"
+          onClick={() => setFullscreen((v) => !v)}
+          className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-1 text-xs text-muted-foreground hover:bg-accent"
+          title={fullscreen ? "Keluar Fullscreen (Esc)" : "Fullscreen"}
+        >
+          {fullscreen ? <><Minimize2 className="h-3.5 w-3.5" /> Keluar Fullscreen</> : <><Maximize2 className="h-3.5 w-3.5" /> Fullscreen</>}
+        </button>
+      </div>
       <CKEditorComp
         editor={cke.ClassicEditor}
         data={value || ""}
@@ -158,7 +189,6 @@ export function CKEditorField({ value, onChange, onStats, minHeight = 480, place
               getData: () => string;
               editing: { view: { change: (cb: (writer: { addClass: (c: string, root: unknown) => void }) => void) => void; document: { getRoot: (name?: string) => unknown } } };
             };
-            // Apply article-body class to editable so styling matches frontend
             e.editing.view.change((writer) => {
               const root = e.editing.view.document.getRoot();
               if (root) writer.addClass("article-body", root);
@@ -176,9 +206,9 @@ export function CKEditorField({ value, onChange, onStats, minHeight = 480, place
         }}
       />
       {libraryOpen && (
-        <MediaLibraryModal
+        <InsertImageDialog
           onClose={() => setLibraryOpen(false)}
-          onPick={(url) => { insertImageUrl(url); setLibraryOpen(false); }}
+          onInsert={(payload) => { insertImage(payload); setLibraryOpen(false); }}
         />
       )}
     </div>
