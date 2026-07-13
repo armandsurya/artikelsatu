@@ -1,10 +1,14 @@
 import { createServerFn } from "@tanstack/react-start";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { Database } from "@/integrations/supabase/types";
 
 type Role = "super_admin" | "editor" | "author";
 const ROLES: readonly Role[] = ["super_admin", "editor", "author"] as const;
 
-async function requireSuperAdmin(context: { supabase: Awaited<ReturnType<typeof requireSupabaseAuth.server>>["context"]["supabase"]; userId: string }) {
+type AuthCtx = { supabase: SupabaseClient<Database>; userId: string };
+
+async function requireSuperAdmin(context: AuthCtx) {
   const { data, error } = await context.supabase.rpc("has_role", { _user_id: context.userId, _role: "super_admin" });
   if (error) throw new Error(error.message);
   if (!data) throw new Response("Forbidden", { status: 403 });
