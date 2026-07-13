@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { PageHeader, Card } from "@/components/admin/ui";
 import { TextField, Repeater, SelectField } from "@/components/admin/homepage/primitives";
 import { LogoField } from "@/components/admin/LogoField";
+import { EditorToolbar } from "@/components/admin/homepage/EditorToolbar";
 import { UnsavedDialog } from "@/components/admin/homepage/UnsavedDialog";
 import { jsonEqual } from "@/lib/admin/sectionMeta";
 import { settings } from "@/data/settings";
