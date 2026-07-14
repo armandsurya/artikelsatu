@@ -53,7 +53,6 @@ export function LogoField({
         <div className="flex items-start gap-4">
           <div className="flex h-16 w-32 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-white">
             {showPreviewImg ? (
-              // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={value}
                 alt="Preview logo"
