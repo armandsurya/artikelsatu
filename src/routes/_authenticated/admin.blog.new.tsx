@@ -8,5 +8,7 @@ export const Route = createFileRoute("/_authenticated/admin/blog/new")({
 
 function NewPost() {
   const navigate = useNavigate();
-  return <BlogEditor mode="new" onSaved={(id) => navigate({ to: "/admin/blog/$id", params: { id } })} />;
+  return (
+    <BlogEditor mode="new" onSaved={(id) => navigate({ to: "/admin/blog/$id", params: { id } })} />
+  );
 }

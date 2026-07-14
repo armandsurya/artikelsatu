@@ -15,7 +15,8 @@ export function CTASection({ data }: { data: CTASectionData }) {
           </p>
           <a
             href={waLink(data.cta.message)}
-            target="_blank" rel="noopener noreferrer"
+            target="_blank"
+            rel="noopener noreferrer"
             className="mt-8 inline-flex items-center gap-2 rounded-[12px] bg-background px-6 py-3 text-sm font-semibold text-primary transition-opacity hover:opacity-90"
           >
             <MessageCircle className="h-4 w-4" /> {data.cta.label}

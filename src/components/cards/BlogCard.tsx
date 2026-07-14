@@ -5,7 +5,9 @@ import { useMediaByUrl, resolveAlt } from "@/lib/media/metadata";
 
 export function BlogCard({ post }: { post: BlogPost }) {
   const date = new Date(post.publishedDate).toLocaleDateString("id-ID", {
-    day: "numeric", month: "long", year: "numeric",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
   });
   const { data: media } = useMediaByUrl(post.featuredImage);
   const alt = resolveAlt(media, post.title);
@@ -40,8 +42,14 @@ export function BlogCard({ post }: { post: BlogPost }) {
           {post.excerpt}
         </p>
         <div className="mt-4 flex items-center gap-4 text-xs text-muted-foreground">
-          <span className="inline-flex items-center gap-1"><User className="h-3.5 w-3.5" />{post.author}</span>
-          <span className="inline-flex items-center gap-1"><Clock className="h-3.5 w-3.5" />{post.readTime} menit</span>
+          <span className="inline-flex items-center gap-1">
+            <User className="h-3.5 w-3.5" />
+            {post.author}
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <Clock className="h-3.5 w-3.5" />
+            {post.readTime} menit
+          </span>
         </div>
         <div className="mt-2 text-xs text-muted-foreground">{date}</div>
       </div>

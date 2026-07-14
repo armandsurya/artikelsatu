@@ -16,30 +16,91 @@ import { comparison } from "./comparison";
 import { faq } from "./faq";
 import { ctaSection } from "./cta";
 import type {
-  HeroFormData, StatItem, ProblemItem, SolutionRow, WorkflowItem, AdvantageItem,
-  ServiceItem, PortfolioItem, PricingItem, ComparisonRow, FAQItem, BlogPreviewData, CTAData,
+  HeroFormData,
+  StatItem,
+  ProblemItem,
+  SolutionRow,
+  WorkflowItem,
+  AdvantageItem,
+  ServiceItem,
+  PortfolioItem,
+  PricingItem,
+  ComparisonRow,
+  FAQItem,
+  BlogPreviewData,
+  CTAData,
 } from "@/components/admin/homepage/forms";
 
 const boolToText = (v: string | boolean) => (typeof v === "boolean" ? (v ? "Ya" : "Tidak") : v);
 
 export type SectionKey =
-  | "hero" | "stats" | "problems" | "solutions" | "workflow" | "advantages"
-  | "services" | "portfolio" | "pricing" | "comparison" | "faq" | "blogPreview" | "cta";
+  | "hero"
+  | "stats"
+  | "problems"
+  | "solutions"
+  | "workflow"
+  | "advantages"
+  | "services"
+  | "portfolio"
+  | "pricing"
+  | "comparison"
+  | "faq"
+  | "blogPreview"
+  | "cta";
 
-export const SECTION_META: Record<SectionKey, { title: string; description: string; sortOrder: number }> = {
-  hero:        { title: "Hero",         description: "Bagian pertama halaman: badge, headline, tombol utama, dan gambar.", sortOrder: 1 },
-  stats:       { title: "Statistik",    description: "Angka pencapaian yang tampil di bawah hero.",                        sortOrder: 2 },
-  problems:    { title: "Masalah",      description: "Kartu masalah yang sering dialami calon klien.",                     sortOrder: 3 },
-  solutions:   { title: "Solusi",       description: "Perbandingan artikel biasa vs artikel SEO.",                          sortOrder: 4 },
-  workflow:    { title: "Workflow",     description: "Langkah kerja layanan Anda.",                                        sortOrder: 5 },
-  advantages:  { title: "Keunggulan",   description: "Kartu keunggulan yang ditawarkan.",                                  sortOrder: 6 },
-  services:    { title: "Layanan",      description: "Daftar layanan penulisan yang tersedia.",                            sortOrder: 7 },
-  portfolio:   { title: "Portfolio",    description: "Contoh artikel yang pernah dikerjakan.",                             sortOrder: 8 },
-  pricing:     { title: "Harga",        description: "Paket harga layanan.",                                                sortOrder: 9 },
-  comparison:  { title: "Perbandingan", description: "Tabel perbandingan dengan kompetitor.",                              sortOrder: 10 },
-  faq:         { title: "FAQ",          description: "Pertanyaan yang sering diajukan.",                                   sortOrder: 11 },
-  blogPreview: { title: "Blog Preview", description: "Preview artikel terbaru di homepage.",                               sortOrder: 12 },
-  cta:         { title: "CTA",          description: "Panggilan aksi di akhir homepage.",                                  sortOrder: 13 },
+export const SECTION_META: Record<
+  SectionKey,
+  { title: string; description: string; sortOrder: number }
+> = {
+  hero: {
+    title: "Hero",
+    description: "Bagian pertama halaman: badge, headline, tombol utama, dan gambar.",
+    sortOrder: 1,
+  },
+  stats: {
+    title: "Statistik",
+    description: "Angka pencapaian yang tampil di bawah hero.",
+    sortOrder: 2,
+  },
+  problems: {
+    title: "Masalah",
+    description: "Kartu masalah yang sering dialami calon klien.",
+    sortOrder: 3,
+  },
+  solutions: {
+    title: "Solusi",
+    description: "Perbandingan artikel biasa vs artikel SEO.",
+    sortOrder: 4,
+  },
+  workflow: { title: "Workflow", description: "Langkah kerja layanan Anda.", sortOrder: 5 },
+  advantages: {
+    title: "Keunggulan",
+    description: "Kartu keunggulan yang ditawarkan.",
+    sortOrder: 6,
+  },
+  services: {
+    title: "Layanan",
+    description: "Daftar layanan penulisan yang tersedia.",
+    sortOrder: 7,
+  },
+  portfolio: {
+    title: "Portfolio",
+    description: "Contoh artikel yang pernah dikerjakan.",
+    sortOrder: 8,
+  },
+  pricing: { title: "Harga", description: "Paket harga layanan.", sortOrder: 9 },
+  comparison: {
+    title: "Perbandingan",
+    description: "Tabel perbandingan dengan kompetitor.",
+    sortOrder: 10,
+  },
+  faq: { title: "FAQ", description: "Pertanyaan yang sering diajukan.", sortOrder: 11 },
+  blogPreview: {
+    title: "Blog Preview",
+    description: "Preview artikel terbaru di homepage.",
+    sortOrder: 12,
+  },
+  cta: { title: "CTA", description: "Panggilan aksi di akhir homepage.", sortOrder: 13 },
 };
 
 export const SECTION_KEYS = Object.keys(SECTION_META) as SectionKey[];
@@ -52,19 +113,51 @@ export const SECTION_KEYS = Object.keys(SECTION_META) as SectionKey[];
  * leaves them blank.
  */
 export const SECTION_META_DEFAULTS: Record<SectionKey, { badge: string; subtitle: string }> = {
-  hero:        { badge: hero.badge ?? "", subtitle: hero.description ?? "" },
-  stats:       { badge: "",             subtitle: "" }, // stats has no header
-  problems:    { badge: "Masalah",      subtitle: "Apakah salah satu situasi berikut ini terdengar familier untuk Anda?" },
-  solutions:   { badge: "Solusi",       subtitle: "Perbedaan mendasar antara artikel yang ditulis tanpa strategi dengan artikel yang dioptimasi untuk SEO." },
-  workflow:    { badge: "Cara Kerja",   subtitle: "Proses yang transparan dari brief hingga artikel siap publish." },
-  advantages:  { badge: "Keunggulan",   subtitle: "Kami tidak hanya menulis. Kami memastikan setiap artikel bekerja untuk bisnis Anda." },
-  services:    { badge: "Layanan",      subtitle: "Berbagai jenis konten untuk mendukung strategi digital bisnis Anda." },
-  portfolio:   { badge: "Portofolio",   subtitle: "Beberapa contoh artikel yang telah kami produksi untuk berbagai niche." },
-  pricing:     { badge: "Harga",        subtitle: "Pilih paket yang sesuai dengan skala kebutuhan konten Anda. Harga transparan tanpa biaya tersembunyi." },
-  comparison:  { badge: "Perbandingan", subtitle: "Lihat perbandingan antara freelancer, AI, agency, dan layanan kami." },
-  faq:         { badge: "FAQ",          subtitle: "Jawaban atas pertanyaan yang paling sering ditanyakan calon klien." },
-  blogPreview: { badge: "Blog",         subtitle: "Insight seputar SEO, content marketing, dan copywriting." },
-  cta:         { badge: "",             subtitle: "" }, // CTA has its own layout
+  hero: { badge: hero.badge ?? "", subtitle: hero.description ?? "" },
+  stats: { badge: "", subtitle: "" }, // stats has no header
+  problems: {
+    badge: "Masalah",
+    subtitle: "Apakah salah satu situasi berikut ini terdengar familier untuk Anda?",
+  },
+  solutions: {
+    badge: "Solusi",
+    subtitle:
+      "Perbedaan mendasar antara artikel yang ditulis tanpa strategi dengan artikel yang dioptimasi untuk SEO.",
+  },
+  workflow: {
+    badge: "Cara Kerja",
+    subtitle: "Proses yang transparan dari brief hingga artikel siap publish.",
+  },
+  advantages: {
+    badge: "Keunggulan",
+    subtitle: "Kami tidak hanya menulis. Kami memastikan setiap artikel bekerja untuk bisnis Anda.",
+  },
+  services: {
+    badge: "Layanan",
+    subtitle: "Berbagai jenis konten untuk mendukung strategi digital bisnis Anda.",
+  },
+  portfolio: {
+    badge: "Portofolio",
+    subtitle: "Beberapa contoh artikel yang telah kami produksi untuk berbagai niche.",
+  },
+  pricing: {
+    badge: "Harga",
+    subtitle:
+      "Pilih paket yang sesuai dengan skala kebutuhan konten Anda. Harga transparan tanpa biaya tersembunyi.",
+  },
+  comparison: {
+    badge: "Perbandingan",
+    subtitle: "Lihat perbandingan antara freelancer, AI, agency, dan layanan kami.",
+  },
+  faq: {
+    badge: "FAQ",
+    subtitle: "Jawaban atas pertanyaan yang paling sering ditanyakan calon klien.",
+  },
+  blogPreview: {
+    badge: "Blog",
+    subtitle: "Insight seputar SEO, content marketing, dan copywriting.",
+  },
+  cta: { badge: "", subtitle: "" }, // CTA has its own layout
 };
 
 /* ------------ per-section defaults matching the forms.tsx shapes ------------ */
@@ -86,23 +179,40 @@ export const heroDefault: HeroFormData = {
 
 export const statsDefault: { items: StatItem[] } = {
   items: stats.map((s, i) => ({
-    icon: s.icon, title: s.title, value: s.value, description: "",
-    sortOrder: i + 1, isVisible: true,
+    icon: s.icon,
+    title: s.title,
+    value: s.value,
+    description: "",
+    sortOrder: i + 1,
+    isVisible: true,
   })),
 };
 
 export const problemsDefault: { items: ProblemItem[] } = {
-  items: problems.map((p) => ({ icon: p.icon, title: p.title, description: p.description, isVisible: true })),
+  items: problems.map((p) => ({
+    icon: p.icon,
+    title: p.title,
+    description: p.description,
+    isVisible: true,
+  })),
 };
 
 export const solutionsDefault: { items: SolutionRow[] } = {
-  items: solutions.map((s) => ({ label: s.label, regular: s.regular, seo: s.seo, isVisible: true })),
+  items: solutions.map((s) => ({
+    label: s.label,
+    regular: s.regular,
+    seo: s.seo,
+    isVisible: true,
+  })),
 };
 
 export const workflowDefault: { items: WorkflowItem[] } = {
   items: workflow.map((w) => ({
-    stepNumber: w.stepNumber, title: w.title, description: w.description,
-    icon: "CheckCircle2", isVisible: true,
+    stepNumber: w.stepNumber,
+    title: w.title,
+    description: w.description,
+    icon: "CheckCircle2",
+    isVisible: true,
   })),
 };
 
@@ -112,18 +222,27 @@ export const advantagesDefault: { items: AdvantageItem[] } = {
 
 export const servicesDefault: { items: ServiceItem[] } = {
   items: services.map((s) => ({
-    icon: s.icon, name: s.title, slug: s.id, description: s.description,
-    ctaLabel: "Selengkapnya", ctaUrl: "#cta",
+    icon: s.icon,
+    name: s.title,
+    slug: s.id,
+    description: s.description,
+    ctaLabel: "Selengkapnya",
+    ctaUrl: "#cta",
   })),
 };
 
 export const portfolioDefault: { items: PortfolioItem[] } = {
   items: portfolio.map((p, i) => ({
-    title: p.title, category: p.category, excerpt: p.excerpt ?? "",
-    keyword: p.keyword, wordCount: p.wordCount,
+    title: p.title,
+    category: p.category,
+    excerpt: p.excerpt ?? "",
+    keyword: p.keyword,
+    wordCount: p.wordCount,
     labels: (p.labels ?? ["SEO Optimized", "Human Written"]).map((t) => ({ text: t })),
-    ctaLabel: p.ctaLabel ?? "Lihat Preview", ctaUrl: p.ctaUrl ?? "#",
-    sortOrder: i + 1, isVisible: true,
+    ctaLabel: p.ctaLabel ?? "Lihat Preview",
+    ctaUrl: p.ctaUrl ?? "#",
+    sortOrder: i + 1,
+    isVisible: true,
   })),
 };
 
@@ -152,7 +271,12 @@ export const comparisonDefault: { rows: ComparisonRow[] } = {
 };
 
 export const faqDefault: { items: FAQItem[] } = {
-  items: faq.map((f, i) => ({ question: f.question, answer: f.answer, sortOrder: i + 1, isVisible: true })),
+  items: faq.map((f, i) => ({
+    question: f.question,
+    answer: f.answer,
+    sortOrder: i + 1,
+    isVisible: true,
+  })),
 };
 
 export const blogPreviewDefault: BlogPreviewData = {

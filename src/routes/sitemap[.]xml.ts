@@ -9,7 +9,8 @@ const BASE_URL: string = "";
 function originFromRequest(request: Request): string {
   if (BASE_URL.length > 0) return BASE_URL.replace(/\/$/, "");
   const url = new URL(request.url);
-  const proto = request.headers.get("x-forwarded-proto") || url.protocol.replace(":", "") || "https";
+  const proto =
+    request.headers.get("x-forwarded-proto") || url.protocol.replace(":", "") || "https";
   const host = request.headers.get("x-forwarded-host") || request.headers.get("host") || url.host;
   return `${proto}://${host}`;
 }
@@ -29,7 +30,10 @@ async function fetchPublishedBlogEntries(): Promise<Entry[]> {
     .eq("status", "published")
     .is("deleted_at", null)
     .order("published_at", { ascending: false, nullsFirst: false });
-  if (error) { console.error("[sitemap] blog fetch", error); return []; }
+  if (error) {
+    console.error("[sitemap] blog fetch", error);
+    return [];
+  }
   return (data ?? []).map((p) => ({
     path: `/blog/${p.slug}`,
     lastmod: (p.updated_at ?? p.published_at ?? undefined) || undefined,
@@ -58,7 +62,9 @@ export const Route = createFileRoute("/sitemap.xml")({
             e.changefreq ? `    <changefreq>${e.changefreq}</changefreq>` : null,
             e.priority ? `    <priority>${e.priority}</priority>` : null,
             `  </url>`,
-          ].filter(Boolean).join("\n"),
+          ]
+            .filter(Boolean)
+            .join("\n"),
         );
 
         const xml = [

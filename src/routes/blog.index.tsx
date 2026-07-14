@@ -11,7 +11,8 @@ import type { BlogPost } from "@/types";
 
 const PAGE_SIZE = 6;
 const TITLE = "Blog — Insight SEO, Content Marketing & Copywriting";
-const DESC = "Kumpulan artikel dan panduan seputar SEO, penulisan konten, dan strategi digital untuk membantu bisnis Anda bertumbuh.";
+const DESC =
+  "Kumpulan artikel dan panduan seputar SEO, penulisan konten, dan strategi digital untuk membantu bisnis Anda bertumbuh.";
 
 export const Route = createFileRoute("/blog/")({
   head: () => ({
@@ -53,7 +54,10 @@ function BlogPage() {
     return posts
       .filter((p) => p.status === "published")
       .filter((p) => category === "Semua" || p.category === category)
-      .filter((p) => !q || p.title.toLowerCase().includes(q) || (p.excerpt ?? "").toLowerCase().includes(q));
+      .filter(
+        (p) =>
+          !q || p.title.toLowerCase().includes(q) || (p.excerpt ?? "").toLowerCase().includes(q),
+      );
   }, [posts, query, category]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
@@ -64,7 +68,9 @@ function BlogPage() {
       <section className="relative border-b border-border bg-background">
         <DebugSource label="blog" source={usingDb ? "database" : "fallback"} />
         <div className="container-narrow py-14">
-          <h1 className="text-3xl font-bold tracking-tight text-secondary sm:text-4xl">Blog ArtikelPro</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-secondary sm:text-4xl">
+            Blog ArtikelPro
+          </h1>
           <p className="mt-3 max-w-2xl text-base text-muted-foreground">{DESC}</p>
 
           <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -73,7 +79,10 @@ function BlogPage() {
               <input
                 type="search"
                 value={query}
-                onChange={(e) => { setQuery(e.target.value); setPage(1); }}
+                onChange={(e) => {
+                  setQuery(e.target.value);
+                  setPage(1);
+                }}
                 placeholder="Cari artikel…"
                 className="h-11 w-full rounded-[12px] border border-border bg-background pl-10 pr-3 text-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none"
               />
@@ -82,7 +91,10 @@ function BlogPage() {
               {categories.map((c) => (
                 <button
                   key={c}
-                  onClick={() => { setCategory(c); setPage(1); }}
+                  onClick={() => {
+                    setCategory(c);
+                    setPage(1);
+                  }}
                   className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
                     category === c
                       ? "border-primary bg-primary text-primary-foreground"
@@ -105,7 +117,9 @@ function BlogPage() {
             </div>
           ) : (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {current.map((p) => <BlogCard key={p.id} post={p} />)}
+              {current.map((p) => (
+                <BlogCard key={p.id} post={p} />
+              ))}
             </div>
           )}
 

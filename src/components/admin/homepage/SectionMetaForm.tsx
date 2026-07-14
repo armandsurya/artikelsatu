@@ -1,4 +1,12 @@
-import { Field, TextField, TextareaField, NumberField, Switch, MediaPicker, inputCls } from "./primitives";
+import {
+  Field,
+  TextField,
+  TextareaField,
+  NumberField,
+  Switch,
+  MediaPicker,
+  inputCls,
+} from "./primitives";
 import type { SectionMeta } from "@/lib/admin/sectionMeta";
 
 const PRESET_COLORS = [
@@ -11,8 +19,14 @@ const PRESET_COLORS = [
 ];
 
 export function SectionMetaForm({
-  title, sortOrder, visible, meta,
-  onTitle, onSortOrder, onVisible, onMeta,
+  title,
+  sortOrder,
+  visible,
+  meta,
+  onTitle,
+  onSortOrder,
+  onVisible,
+  onMeta,
   showSubtitle = true,
 }: {
   title: string;
@@ -29,10 +43,20 @@ export function SectionMetaForm({
   return (
     <div className="space-y-5">
       <div className="grid gap-4 md:grid-cols-3">
-        <TextField label="Section Badge (opsional)" value={meta.badge} onChange={(v) => patch({ badge: v })} max={60} placeholder="Mis. Layanan Kami" />
+        <TextField
+          label="Section Badge (opsional)"
+          value={meta.badge}
+          onChange={(v) => patch({ badge: v })}
+          max={60}
+          placeholder="Mis. Layanan Kami"
+        />
         <TextField label="Section Title" value={title} onChange={onTitle} max={120} required />
         <Field label="Visibility">
-          <Switch checked={visible} onChange={onVisible} label={visible ? "Tampil di homepage" : "Disembunyikan"} />
+          <Switch
+            checked={visible}
+            onChange={onVisible}
+            label={visible ? "Tampil di homepage" : "Disembunyikan"}
+          />
         </Field>
       </div>
 
@@ -85,8 +109,20 @@ export function SectionMetaForm({
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
-        <NumberField label="Padding Top (px)" value={meta.paddingTop} onChange={(v) => patch({ paddingTop: v })} min={0} max={400} />
-        <NumberField label="Padding Bottom (px)" value={meta.paddingBottom} onChange={(v) => patch({ paddingBottom: v })} min={0} max={400} />
+        <NumberField
+          label="Padding Top (px)"
+          value={meta.paddingTop}
+          onChange={(v) => patch({ paddingTop: v })}
+          min={0}
+          max={400}
+        />
+        <NumberField
+          label="Padding Bottom (px)"
+          value={meta.paddingBottom}
+          onChange={(v) => patch({ paddingBottom: v })}
+          min={0}
+          max={400}
+        />
         <NumberField label="Sort Order" value={sortOrder} onChange={onSortOrder} min={1} />
       </div>
     </div>

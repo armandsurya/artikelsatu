@@ -2,8 +2,16 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 export type PermissionKey =
-  | "homepage" | "blog" | "media" | "seo" | "redirect"
-  | "users" | "roles" | "settings" | "security" | "log";
+  | "homepage"
+  | "blog"
+  | "media"
+  | "seo"
+  | "redirect"
+  | "users"
+  | "roles"
+  | "settings"
+  | "security"
+  | "log";
 
 type PermMap = Record<string, boolean>;
 
@@ -25,7 +33,19 @@ export function usePermissions() {
         const all: PermMap = {};
         for (const r of rows ?? []) all[r.permission] = true;
         // ensure all known perms true
-        for (const k of ["homepage","blog","media","seo","redirect","users","roles","settings","security","log"]) all[k] = true;
+        for (const k of [
+          "homepage",
+          "blog",
+          "media",
+          "seo",
+          "redirect",
+          "users",
+          "roles",
+          "settings",
+          "security",
+          "log",
+        ])
+          all[k] = true;
         return all;
       }
       const map: PermMap = {};

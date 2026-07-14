@@ -8,12 +8,7 @@ import { inputCls, labelCls } from "@/components/admin/ui";
 
 const MAX_BYTES = 2 * 1024 * 1024; // 2 MB
 const ALLOWED_EXT = ["ico", "png", "svg"] as const;
-const ALLOWED_MIME = [
-  "image/x-icon",
-  "image/vnd.microsoft.icon",
-  "image/png",
-  "image/svg+xml",
-];
+const ALLOWED_MIME = ["image/x-icon", "image/vnd.microsoft.icon", "image/png", "image/svg+xml"];
 
 function validateFavicon(file: File): string | null {
   const ext = (file.name.split(".").pop() ?? "").toLowerCase();
@@ -21,7 +16,8 @@ function validateFavicon(file: File): string | null {
   const extOk = (ALLOWED_EXT as readonly string[]).includes(ext);
   if (!mimeOk && !extOk) return "Format harus .ico, .png, atau .svg.";
   if (file.size === 0) return "File kosong.";
-  if (file.size > MAX_BYTES) return `Ukuran ${(file.size / 1024 / 1024).toFixed(2)} MB melebihi batas 2 MB.`;
+  if (file.size > MAX_BYTES)
+    return `Ukuran ${(file.size / 1024 / 1024).toFixed(2)} MB melebihi batas 2 MB.`;
   return null;
 }
 
@@ -31,15 +27,18 @@ async function uploadFaviconFile(file: File): Promise<{ url: string } | { error:
 
   const ext = (file.name.split(".").pop() ?? "png").toLowerCase();
   const finalMime =
-    file.type ||
-    (ext === "ico" ? "image/x-icon" : ext === "svg" ? "image/svg+xml" : "image/png");
+    file.type || (ext === "ico" ? "image/x-icon" : ext === "svg" ? "image/svg+xml" : "image/png");
 
   const now = new Date();
   const folder = `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, "0")}`;
   let name = slugifyFilename(file.name, ext);
   let path = `${folder}/${name}`;
   for (let i = 2; i < 30; i++) {
-    const { data: existing } = await supabase.from("media").select("id").eq("path", path).maybeSingle();
+    const { data: existing } = await supabase
+      .from("media")
+      .select("id")
+      .eq("path", path)
+      .maybeSingle();
     if (!existing) break;
     const dot = name.lastIndexOf(".");
     name = `${name.slice(0, dot)}-${i}${name.slice(dot)}`;
@@ -115,7 +114,11 @@ export function FaviconField({
           {/* Preview */}
           <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-white">
             {value ? (
-              <img src={value} alt="Preview favicon" className="max-h-full max-w-full object-contain" />
+              <img
+                src={value}
+                alt="Preview favicon"
+                className="max-h-full max-w-full object-contain"
+              />
             ) : (
               <ImageIcon className="h-6 w-6 text-muted-foreground" />
             )}
@@ -136,7 +139,11 @@ export function FaviconField({
                 disabled={uploading}
                 className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-60"
               >
-                {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                {uploading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Upload className="h-4 w-4" />
+                )}
                 {uploading ? "Mengunggah…" : "Upload dari Komputer"}
               </button>
               <button

@@ -22,7 +22,6 @@ import { settings } from "@/data/settings";
 import { faq } from "@/data/faq";
 import { services } from "@/data/services";
 
-
 export const Route = createFileRoute("/")({
   // Note: title/description/OG/Twitter untuk homepage sudah di-set di __root
   // dari seo.homepageTitle / seo.homepageDescription (dibaca dari DB).
@@ -32,30 +31,34 @@ export const Route = createFileRoute("/")({
     // Failures fall back to empty arrays → SectionRenderer still mounts,
     // client re-fetches populate on hydration.
     await Promise.all([
-      context.queryClient.ensureQueryData({
-        queryKey: [...PUBLISHED_QUERY_KEY, "homepage"],
-        queryFn: fetchPublishedSections,
-        staleTime: 30_000,
-      }).catch(() => []),
-      context.queryClient.ensureQueryData({
-        queryKey: [...PUBLISHED_QUERY_KEY, "blog_posts"],
-        queryFn: fetchPublishedBlogPosts,
-        staleTime: 30_000,
-      }).catch(() => []),
-      context.queryClient.ensureQueryData({
-        queryKey: [...PUBLISHED_QUERY_KEY, "blog_categories"],
-        queryFn: fetchBlogCategories,
-        staleTime: 30_000,
-      }).catch(() => []),
+      context.queryClient
+        .ensureQueryData({
+          queryKey: [...PUBLISHED_QUERY_KEY, "homepage"],
+          queryFn: fetchPublishedSections,
+          staleTime: 30_000,
+        })
+        .catch(() => []),
+      context.queryClient
+        .ensureQueryData({
+          queryKey: [...PUBLISHED_QUERY_KEY, "blog_posts"],
+          queryFn: fetchPublishedBlogPosts,
+          staleTime: 30_000,
+        })
+        .catch(() => []),
+      context.queryClient
+        .ensureQueryData({
+          queryKey: [...PUBLISHED_QUERY_KEY, "blog_categories"],
+          queryFn: fetchBlogCategories,
+          staleTime: 30_000,
+        })
+        .catch(() => []),
     ]);
   },
   // Note: title/description/OG/Twitter untuk homepage sudah di-set di __root
   // dari seo.homepageTitle / seo.homepageDescription (dibaca dari DB).
   // Di sini hanya menambahkan canonical + og:url + JSON-LD spesifik halaman.
   head: () => ({
-    meta: [
-      { property: "og:url", content: "/" },
-    ],
+    meta: [{ property: "og:url", content: "/" }],
     links: [{ rel: "canonical", href: "/" }],
     scripts: [
       {
@@ -93,7 +96,6 @@ export const Route = createFileRoute("/")({
   component: HomePage,
 });
 
-
 function HomePage() {
   const sectionsQ = usePublishedSections();
   const postsQ = usePublishedBlogPosts();
@@ -111,7 +113,13 @@ function HomePage() {
     const out = {} as Record<SectionKey, MappedSection>;
     for (const key of SECTION_KEYS) {
       const row = byKey.get(key);
-      out[key] = mapPublishedSection(key, row?.data ?? null, row?.title ?? null, blogPosts, row?.last_published_at ?? null);
+      out[key] = mapPublishedSection(
+        key,
+        row?.data ?? null,
+        row?.title ?? null,
+        blogPosts,
+        row?.last_published_at ?? null,
+      );
     }
     return out;
   }, [sectionsQ.data, blogPosts]);

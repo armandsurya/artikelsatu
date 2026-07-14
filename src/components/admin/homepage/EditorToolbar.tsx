@@ -11,22 +11,44 @@ export function StatusBadge({ status, isDirty }: { status: SectionStatus; isDirt
     );
   }
   const map = {
-    draft: { cls: "border-slate-200 bg-slate-50 text-slate-700", dot: "bg-slate-400", label: "Draft" },
-    published: { cls: "border-emerald-200 bg-emerald-50 text-emerald-700", dot: "bg-emerald-500", label: "Published" },
-    modified: { cls: "border-blue-200 bg-blue-50 text-blue-700", dot: "bg-blue-500", label: "Modified" },
+    draft: {
+      cls: "border-slate-200 bg-slate-50 text-slate-700",
+      dot: "bg-slate-400",
+      label: "Draft",
+    },
+    published: {
+      cls: "border-emerald-200 bg-emerald-50 text-emerald-700",
+      dot: "bg-emerald-500",
+      label: "Published",
+    },
+    modified: {
+      cls: "border-blue-200 bg-blue-50 text-blue-700",
+      dot: "bg-blue-500",
+      label: "Modified",
+    },
   } as const;
   const m = map[status];
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium ${m.cls}`}>
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium ${m.cls}`}
+    >
       <span className={`h-1.5 w-1.5 rounded-full ${m.dot}`} /> {m.label}
     </span>
   );
 }
 
 export function EditorToolbar({
-  status, isDirty, saving, publishing, canPublish,
-  onSaveDraft, onPreview, onPublish, onReset,
-  lastSavedAt, lastSavedByName,
+  status,
+  isDirty,
+  saving,
+  publishing,
+  canPublish,
+  onSaveDraft,
+  onPreview,
+  onPublish,
+  onReset,
+  lastSavedAt,
+  lastSavedByName,
 }: {
   status: SectionStatus;
   isDirty: boolean;

@@ -14,20 +14,22 @@ import type { Database } from "@/integrations/supabase/types";
  * jsonb `data` payloads are JSON-stringified before crossing the RPC
  * boundary to preserve arbitrary shape through Seroval serialization.
  */
-export const listPublishedSections = createServerFn({ method: "GET" }).handler(async (): Promise<{ payload: string }> => {
-  const url = process.env.SUPABASE_URL;
-  const key = process.env.SUPABASE_PUBLISHABLE_KEY;
-  if (!url || !key) return { payload: "[]" };
-  const client = createClient<Database>(url, key, {
-    auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
-  });
-  const { data, error } = await client
-    .from("homepage_sections")
-    .select("section_key,title,sort_order,is_visible,data,last_published_at")
-    .order("sort_order");
-  if (error) {
-    console.error("[listPublishedSections]", error);
-    return { payload: "[]" };
-  }
-  return { payload: JSON.stringify(data ?? []) };
-});
+export const listPublishedSections = createServerFn({ method: "GET" }).handler(
+  async (): Promise<{ payload: string }> => {
+    const url = process.env.SUPABASE_URL;
+    const key = process.env.SUPABASE_PUBLISHABLE_KEY;
+    if (!url || !key) return { payload: "[]" };
+    const client = createClient<Database>(url, key, {
+      auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
+    });
+    const { data, error } = await client
+      .from("homepage_sections")
+      .select("section_key,title,sort_order,is_visible,data,last_published_at")
+      .order("sort_order");
+    if (error) {
+      console.error("[listPublishedSections]", error);
+      return { payload: "[]" };
+    }
+    return { payload: JSON.stringify(data ?? []) };
+  },
+);

@@ -13,7 +13,9 @@ export type VersionRow = {
 };
 
 export function VersionPanel({
-  sectionKey, reloadKey, onRestore,
+  sectionKey,
+  reloadKey,
+  onRestore,
 }: {
   sectionKey: string;
   reloadKey: number;
@@ -45,15 +47,21 @@ export function VersionPanel({
         className="flex w-full items-center gap-2 px-5 py-3 text-left hover:bg-accent/50"
       >
         <History className="h-4 w-4 text-muted-foreground" />
-        <span className="flex-1 text-sm font-medium text-secondary">Riwayat Versi ({rows.length})</span>
-        <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`} />
+        <span className="flex-1 text-sm font-medium text-secondary">
+          Riwayat Versi ({rows.length})
+        </span>
+        <ChevronDown
+          className={`h-4 w-4 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`}
+        />
       </button>
       {open && (
         <div className="border-t border-border">
           {loading ? (
             <p className="p-5 text-sm text-muted-foreground">Memuat…</p>
           ) : rows.length === 0 ? (
-            <p className="p-5 text-sm text-muted-foreground">Belum ada versi. Versi baru dibuat setiap kali di-publish.</p>
+            <p className="p-5 text-sm text-muted-foreground">
+              Belum ada versi. Versi baru dibuat setiap kali di-publish.
+            </p>
           ) : (
             <ul className="divide-y divide-border">
               {rows.map((r) => (

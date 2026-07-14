@@ -6,38 +6,55 @@ import type { SiteSettingsBlob } from "@/lib/publishedContent";
 
 export type SeoConfig = {
   // General
-  homepageTitle?: string; homepageDescription?: string;
-  blogTitle?: string; blogDescription?: string;
+  homepageTitle?: string;
+  homepageDescription?: string;
+  blogTitle?: string;
+  blogDescription?: string;
   defaultKeywords?: string;
-  robots?: string;          // meta robots default e.g. "index,follow"
-  canonicalBase?: string;   // absolute base URL used for canonical/og:url
+  robots?: string; // meta robots default e.g. "index,follow"
+  canonicalBase?: string; // absolute base URL used for canonical/og:url
   favicon?: string;
 
   // Open Graph
-  ogTitle?: string; ogDescription?: string; ogImage?: string;
-  ogType?: string; ogLocale?: string; ogSiteName?: string;
+  ogTitle?: string;
+  ogDescription?: string;
+  ogImage?: string;
+  ogType?: string;
+  ogLocale?: string;
+  ogSiteName?: string;
 
   // Twitter
   twitterCard?: "summary" | "summary_large_image" | "app" | "player";
-  twitterSite?: string; twitterCreator?: string; twitterImage?: string;
+  twitterSite?: string;
+  twitterCreator?: string;
+  twitterImage?: string;
 
   // Analytics
-  ga4Id?: string; gtmId?: string; clarityId?: string; metaPixelId?: string;
+  ga4Id?: string;
+  gtmId?: string;
+  clarityId?: string;
+  metaPixelId?: string;
   // Legacy (Modul 1 migration): analyticsId & searchConsoleId
-  analyticsId?: string; searchConsoleId?: string;
+  analyticsId?: string;
+  searchConsoleId?: string;
 
   // Verification
-  googleVerification?: string; bingVerification?: string;
-  yandexVerification?: string; facebookVerification?: string;
+  googleVerification?: string;
+  bingVerification?: string;
+  yandexVerification?: string;
+  facebookVerification?: string;
   pinterestVerification?: string;
 
   // Schema
-  schema?: string;          // raw JSON-LD blob
+  schema?: string; // raw JSON-LD blob
   schemaImage?: string;
-  organizationName?: string; organizationLogo?: string; organizationUrl?: string;
+  organizationName?: string;
+  organizationLogo?: string;
+  organizationUrl?: string;
 
   // Robots & sitemap
-  robotsTxt?: string; sitemapUrl?: string;
+  robotsTxt?: string;
+  sitemapUrl?: string;
 };
 
 export function getSeoConfig(settings: SiteSettingsBlob | null | undefined): SeoConfig {
@@ -74,7 +91,8 @@ export function buildRootMeta(seo: SeoConfig, siteName: string): Meta[] {
 
   if (title) meta.push({ title });
   if (desc) meta.push({ name: "description", content: desc });
-  if (seo.defaultKeywords?.trim()) meta.push({ name: "keywords", content: seo.defaultKeywords.trim() });
+  if (seo.defaultKeywords?.trim())
+    meta.push({ name: "keywords", content: seo.defaultKeywords.trim() });
   if (seo.robots?.trim()) meta.push({ name: "robots", content: seo.robots.trim() });
 
   meta.push({ property: "og:site_name", content: seo.ogSiteName?.trim() || siteName });
@@ -85,16 +103,22 @@ export function buildRootMeta(seo: SeoConfig, siteName: string): Meta[] {
 
   meta.push({ name: "twitter:card", content: twCard });
   if (seo.twitterSite?.trim()) meta.push({ name: "twitter:site", content: seo.twitterSite.trim() });
-  if (seo.twitterCreator?.trim()) meta.push({ name: "twitter:creator", content: seo.twitterCreator.trim() });
+  if (seo.twitterCreator?.trim())
+    meta.push({ name: "twitter:creator", content: seo.twitterCreator.trim() });
   if (ogTitle) meta.push({ name: "twitter:title", content: ogTitle });
   if (ogDesc) meta.push({ name: "twitter:description", content: ogDesc });
 
   // Verification
-  if (seo.googleVerification?.trim()) meta.push({ name: "google-site-verification", content: seo.googleVerification.trim() });
-  if (seo.bingVerification?.trim()) meta.push({ name: "msvalidate.01", content: seo.bingVerification.trim() });
-  if (seo.yandexVerification?.trim()) meta.push({ name: "yandex-verification", content: seo.yandexVerification.trim() });
-  if (seo.facebookVerification?.trim()) meta.push({ name: "facebook-domain-verification", content: seo.facebookVerification.trim() });
-  if (seo.pinterestVerification?.trim()) meta.push({ name: "p:domain_verify", content: seo.pinterestVerification.trim() });
+  if (seo.googleVerification?.trim())
+    meta.push({ name: "google-site-verification", content: seo.googleVerification.trim() });
+  if (seo.bingVerification?.trim())
+    meta.push({ name: "msvalidate.01", content: seo.bingVerification.trim() });
+  if (seo.yandexVerification?.trim())
+    meta.push({ name: "yandex-verification", content: seo.yandexVerification.trim() });
+  if (seo.facebookVerification?.trim())
+    meta.push({ name: "facebook-domain-verification", content: seo.facebookVerification.trim() });
+  if (seo.pinterestVerification?.trim())
+    meta.push({ name: "p:domain_verify", content: seo.pinterestVerification.trim() });
 
   return meta;
 }
@@ -140,9 +164,19 @@ export function buildAnalyticsScripts(seo: SeoConfig): Script[] {
 }
 
 /** Try to parse user-provided JSON-LD; fall back to Organization schema. */
-export function buildOrganizationSchema(seo: SeoConfig, siteName: string, email?: string, address?: string): string {
+export function buildOrganizationSchema(
+  seo: SeoConfig,
+  siteName: string,
+  email?: string,
+  address?: string,
+): string {
   if (seo.schema?.trim()) {
-    try { JSON.parse(seo.schema); return seo.schema; } catch { /* fall through */ }
+    try {
+      JSON.parse(seo.schema);
+      return seo.schema;
+    } catch {
+      /* fall through */
+    }
   }
   return JSON.stringify({
     "@context": "https://schema.org",

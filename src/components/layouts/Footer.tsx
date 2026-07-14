@@ -11,21 +11,34 @@ export function Footer({ footer }: { footer: FooterProps }) {
         <div className="grid gap-10 md:grid-cols-4">
           <div className="md:col-span-2">
             <div className="text-lg font-bold text-secondary">
-              {footer.logo}<span className="text-primary">.</span>
+              {footer.logo}
+              <span className="text-primary">.</span>
             </div>
             <p className="mt-3 max-w-sm text-sm leading-relaxed text-muted-foreground">
               {footer.description}
             </p>
             <ul className="mt-5 space-y-2 text-sm text-muted-foreground">
-              <li className="flex items-center gap-2"><Phone className="h-4 w-4 text-primary" />
-                <a href={waHref} target="_blank" rel="noopener noreferrer" className="hover:text-secondary">
+              <li className="flex items-center gap-2">
+                <Phone className="h-4 w-4 text-primary" />
+                <a
+                  href={waHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-secondary"
+                >
                   +{footer.contact.whatsapp}
                 </a>
               </li>
-              <li className="flex items-center gap-2"><Mail className="h-4 w-4 text-primary" />
-                <a href={`mailto:${footer.contact.email}`} className="hover:text-secondary">{footer.contact.email}</a>
+              <li className="flex items-center gap-2">
+                <Mail className="h-4 w-4 text-primary" />
+                <a href={`mailto:${footer.contact.email}`} className="hover:text-secondary">
+                  {footer.contact.email}
+                </a>
               </li>
-              <li className="flex items-center gap-2"><MapPin className="h-4 w-4 text-primary" />{footer.contact.address}</li>
+              <li className="flex items-center gap-2">
+                <MapPin className="h-4 w-4 text-primary" />
+                {footer.contact.address}
+              </li>
             </ul>
           </div>
 
@@ -35,7 +48,9 @@ export function Footer({ footer }: { footer: FooterProps }) {
               <ul className="mt-3 space-y-2">
                 {col.links.map((l) => (
                   <li key={l.label}>
-                    <a href={l.href} className="text-sm text-muted-foreground hover:text-secondary">{l.label}</a>
+                    <a href={l.href} className="text-sm text-muted-foreground hover:text-secondary">
+                      {l.label}
+                    </a>
                   </li>
                 ))}
               </ul>
@@ -47,7 +62,13 @@ export function Footer({ footer }: { footer: FooterProps }) {
           <p className="text-xs text-muted-foreground">{footer.copyright}</p>
           <div className="flex gap-4">
             {footer.social.map((s) => (
-              <a key={s.label} href={s.url} target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground hover:text-secondary">
+              <a
+                key={s.label}
+                href={s.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-muted-foreground hover:text-secondary"
+              >
                 {s.label}
               </a>
             ))}

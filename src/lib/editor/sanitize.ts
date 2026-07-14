@@ -52,14 +52,19 @@ export function contentStats(html: string) {
   const text = htmlToText(html);
   const words = text ? text.split(/\s+/).filter(Boolean).length : 0;
   const chars = text.length;
-  const doc = typeof window !== "undefined"
-    ? new DOMParser().parseFromString(html || "<div/>", "text/html")
-    : null;
+  const doc =
+    typeof window !== "undefined"
+      ? new DOMParser().parseFromString(html || "<div/>", "text/html")
+      : null;
   const count = (sel: string) => (doc ? doc.querySelectorAll(sel).length : 0);
   const links = doc ? Array.from(doc.querySelectorAll("a[href]")) : [];
   const internal = links.filter((a) => {
     const href = (a as HTMLAnchorElement).getAttribute("href") || "";
-    return href.startsWith("/") || href.startsWith("#") || (typeof location !== "undefined" && href.includes(location.host));
+    return (
+      href.startsWith("/") ||
+      href.startsWith("#") ||
+      (typeof location !== "undefined" && href.includes(location.host))
+    );
   }).length;
   return {
     words,

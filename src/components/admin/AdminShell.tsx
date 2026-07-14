@@ -1,26 +1,58 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
 import {
-  LayoutDashboard, Globe, FileText, Image as ImageIcon, Search, Menu, ArrowRightLeft,
-  Users, Shield, Settings, Activity, LogOut, ChevronDown, X, Menu as MenuIcon, KeyRound,
+  LayoutDashboard,
+  Globe,
+  FileText,
+  Image as ImageIcon,
+  Search,
+  Menu,
+  ArrowRightLeft,
+  Users,
+  Shield,
+  Settings,
+  Activity,
+  LogOut,
+  ChevronDown,
+  X,
+  Menu as MenuIcon,
+  KeyRound,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { usePermissions, type PermissionKey } from "@/lib/admin/usePermissions";
 
-type Item = { label: string; to: string; icon: React.ComponentType<{ className?: string }>; perm?: PermissionKey; children?: { label: string; to: string }[] };
+type Item = {
+  label: string;
+  to: string;
+  icon: React.ComponentType<{ className?: string }>;
+  perm?: PermissionKey;
+  children?: { label: string; to: string }[];
+};
 
 const NAV: Item[] = [
   { label: "Dashboard", to: "/admin", icon: LayoutDashboard },
-  { label: "Website", to: "/admin/website/homepage", icon: Globe, perm: "homepage", children: [
-    { label: "Homepage", to: "/admin/website/homepage" },
-    { label: "Header", to: "/admin/website/header" },
-    { label: "Footer", to: "/admin/website/footer" },
-  ]},
-  { label: "Blog", to: "/admin/blog", icon: FileText, perm: "blog", children: [
-    { label: "Semua Artikel", to: "/admin/blog" },
-    { label: "Tambah Artikel", to: "/admin/blog/new" },
-    { label: "Kategori", to: "/admin/blog/kategori" },
-  ]},
+  {
+    label: "Website",
+    to: "/admin/website/homepage",
+    icon: Globe,
+    perm: "homepage",
+    children: [
+      { label: "Homepage", to: "/admin/website/homepage" },
+      { label: "Header", to: "/admin/website/header" },
+      { label: "Footer", to: "/admin/website/footer" },
+    ],
+  },
+  {
+    label: "Blog",
+    to: "/admin/blog",
+    icon: FileText,
+    perm: "blog",
+    children: [
+      { label: "Semua Artikel", to: "/admin/blog" },
+      { label: "Tambah Artikel", to: "/admin/blog/new" },
+      { label: "Kategori", to: "/admin/blog/kategori" },
+    ],
+  },
   { label: "Media", to: "/admin/media", icon: ImageIcon, perm: "media" },
   { label: "SEO", to: "/admin/seo", icon: Search, perm: "seo" },
   { label: "Redirect URL", to: "/admin/redirect", icon: ArrowRightLeft, perm: "redirect" },
@@ -44,11 +76,11 @@ export function AdminShell({ children }: { children: ReactNode }) {
     import("@/lib/admin/blogSeed").then((m) => m.ensureBlogSeeded()).catch(() => {});
   }, []);
 
-
   async function signOut() {
     await supabase.from("activity_log").insert({
       user_id: (await supabase.auth.getUser()).data.user?.id,
-      action: "logout", entity: "auth",
+      action: "logout",
+      entity: "auth",
     });
     await supabase.auth.signOut();
     navigate({ to: "/auth" });
@@ -74,7 +106,9 @@ export function AdminShell({ children }: { children: ReactNode }) {
           ))}
         </nav>
       </aside>
-      {open && <div onClick={() => setOpen(false)} className="fixed inset-0 z-30 bg-black/30 lg:hidden" />}
+      {open && (
+        <div onClick={() => setOpen(false)} className="fixed inset-0 z-30 bg-black/30 lg:hidden" />
+      )}
 
       {/* Main */}
       <div className="flex min-w-0 flex-1 flex-col">
@@ -84,13 +118,22 @@ export function AdminShell({ children }: { children: ReactNode }) {
           </button>
           <div className="text-sm text-muted-foreground">Panel Admin</div>
           <div className="flex items-center gap-3">
-            <Link to="/" className="hidden text-sm text-muted-foreground hover:text-secondary md:inline">Lihat situs →</Link>
+            <Link
+              to="/"
+              className="hidden text-sm text-muted-foreground hover:text-secondary md:inline"
+            >
+              Lihat situs →
+            </Link>
             <div className="flex items-center gap-2 rounded-lg border border-border px-2.5 py-1.5">
               <div className="h-6 w-6 rounded-full bg-primary/10 text-center text-xs font-semibold leading-6 text-primary">
                 {email.charAt(0).toUpperCase() || "A"}
               </div>
               <span className="hidden max-w-[140px] truncate text-sm md:inline">{email}</span>
-              <button onClick={signOut} className="rounded p-1 text-muted-foreground hover:text-secondary" aria-label="Logout">
+              <button
+                onClick={signOut}
+                className="rounded p-1 text-muted-foreground hover:text-secondary"
+                aria-label="Logout"
+              >
                 <LogOut className="h-4 w-4" />
               </button>
             </div>
@@ -104,9 +147,14 @@ export function AdminShell({ children }: { children: ReactNode }) {
 
 function NavGroup({ item, pathname }: { item: Item; pathname: string }) {
   const Icon = item.icon;
-  const isActive = pathname === item.to || pathname.startsWith(item.to + "/") || item.children?.some((c) => pathname === c.to || pathname.startsWith(c.to + "/"));
+  const isActive =
+    pathname === item.to ||
+    pathname.startsWith(item.to + "/") ||
+    item.children?.some((c) => pathname === c.to || pathname.startsWith(c.to + "/"));
   const [open, setOpen] = useState(!!isActive);
-  useEffect(() => { if (isActive) setOpen(true); }, [isActive]);
+  useEffect(() => {
+    if (isActive) setOpen(true);
+  }, [isActive]);
 
   if (!item.children) {
     const active = pathname === item.to;
@@ -133,7 +181,11 @@ function NavGroup({ item, pathname }: { item: Item; pathname: string }) {
           {item.children.map((c) => {
             const active = pathname === c.to;
             return (
-              <Link key={c.to} to={c.to} className={`rounded-md px-3 py-1.5 text-sm ${active ? "text-primary font-medium" : "text-muted-foreground hover:text-secondary"}`}>
+              <Link
+                key={c.to}
+                to={c.to}
+                className={`rounded-md px-3 py-1.5 text-sm ${active ? "text-primary font-medium" : "text-muted-foreground hover:text-secondary"}`}
+              >
                 {c.label}
               </Link>
             );

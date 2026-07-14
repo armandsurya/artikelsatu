@@ -14,7 +14,12 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { settings as staticSettings } from "@/data/settings";
 import { PUBLISHED_QUERY_KEY } from "@/lib/publishedContent";
 import { fetchPublicSiteSettings } from "@/lib/site-settings.functions";
-import { getSeoConfig, buildRootMeta, buildAnalyticsScripts, buildOrganizationSchema } from "@/lib/seo/config";
+import {
+  getSeoConfig,
+  buildRootMeta,
+  buildAnalyticsScripts,
+  buildOrganizationSchema,
+} from "@/lib/seo/config";
 import {
   fetchActiveRedirects,
   REDIRECTS_QUERY_KEY,
@@ -32,7 +37,10 @@ function NotFoundComponent() {
           Halaman yang Anda cari tidak tersedia atau sudah dipindahkan.
         </p>
         <div className="mt-6">
-          <a href="/" className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90">
+          <a
+            href="/"
+            className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90"
+          >
             Kembali ke Beranda
           </a>
         </div>
@@ -52,15 +60,23 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-xl font-semibold text-foreground">Terjadi kesalahan</h1>
-        <p className="mt-2 text-sm text-muted-foreground">Silakan coba lagi atau kembali ke beranda.</p>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Silakan coba lagi atau kembali ke beranda.
+        </p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
-            onClick={() => { router.invalidate(); reset(); }}
+            onClick={() => {
+              router.invalidate();
+              reset();
+            }}
             className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90"
           >
             Coba lagi
           </button>
-          <a href="/" className="inline-flex items-center justify-center rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium text-foreground hover:bg-accent">
+          <a
+            href="/"
+            className="inline-flex items-center justify-center rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium text-foreground hover:bg-accent"
+          >
             Beranda
           </a>
         </div>
@@ -78,7 +94,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       path.startsWith("/auth") ||
       path.startsWith("/api") ||
       path.startsWith("/_")
-    ) return;
+    )
+      return;
     try {
       const rows = await context.queryClient.ensureQueryData({
         queryKey: [...REDIRECTS_QUERY_KEY],
@@ -118,9 +135,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     // else, append a lightweight cache-buster derived from the settings snapshot.
     const isSigned = /\/storage\/v1\/object\/sign\//.test(rawFavicon);
     const cacheKey = (s.updatedAt as string | undefined) || (s._v as string | undefined) || "";
-    const favicon = isSigned || !cacheKey
-      ? rawFavicon
-      : rawFavicon + (rawFavicon.includes("?") ? "&" : "?") + "v=" + encodeURIComponent(cacheKey);
+    const favicon =
+      isSigned || !cacheKey
+        ? rawFavicon
+        : rawFavicon + (rawFavicon.includes("?") ? "&" : "?") + "v=" + encodeURIComponent(cacheKey);
     const isSvgFavicon = /\.svg(\?|$)/i.test(rawFavicon);
     const isIcoFavicon = /\.ico(\?|$)/i.test(rawFavicon);
     const iconType = isSvgFavicon ? "image/svg+xml" : isIcoFavicon ? "image/x-icon" : "image/png";
@@ -146,12 +164,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         ...(isSvgFavicon ? [{ rel: "mask-icon", href: favicon, color: "#2563EB" }] : []),
         { rel: "preconnect", href: "https://fonts.googleapis.com" },
         { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-        { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" },
+        {
+          rel: "stylesheet",
+          href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap",
+        },
       ],
-      scripts: [
-        { type: "application/ld+json", children: orgSchema },
-        ...analytics,
-      ],
+      scripts: [{ type: "application/ld+json", children: orgSchema }, ...analytics],
     };
   },
   shellComponent: RootShell,

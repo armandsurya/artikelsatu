@@ -1,7 +1,10 @@
 import type { ReactNode } from "react";
 
 export function SectionHeader({
-  eyebrow, title, description, align = "center",
+  eyebrow,
+  title,
+  description,
+  align = "center",
 }: {
   eyebrow?: string;
   title: ReactNode;
@@ -17,7 +20,9 @@ export function SectionHeader({
         </div>
       )}
       <h2 className="text-3xl font-bold text-secondary sm:text-4xl">{title}</h2>
-      {description && <p className="mt-4 text-base leading-relaxed text-muted-foreground">{description}</p>}
+      {description && (
+        <p className="mt-4 text-base leading-relaxed text-muted-foreground">{description}</p>
+      )}
     </div>
   );
 }

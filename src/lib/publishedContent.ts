@@ -52,7 +52,11 @@ export async function fetchPublishedSections(): Promise<PublishedSectionRow[]> {
   // sides → SSR HTML matches client hydration.
   const { listPublishedSections } = await import("./homepage-public.functions");
   const { payload } = await listPublishedSections();
-  try { return (JSON.parse(payload) as PublishedSectionRow[]) ?? []; } catch { return []; }
+  try {
+    return (JSON.parse(payload) as PublishedSectionRow[]) ?? [];
+  } catch {
+    return [];
+  }
 }
 
 export async function fetchSiteSettings(): Promise<SiteSettingsBlob> {
@@ -60,20 +64,27 @@ export async function fetchSiteSettings(): Promise<SiteSettingsBlob> {
   return fetchPublicSiteSettings();
 }
 
-
 export async function fetchPublishedBlogPosts(): Promise<PublishedBlogPostRow[]> {
   // Isomorphic (SSR-safe): server fn uses the server publishable client on the
   // worker where the browser client cannot reach localStorage. On the client
   // the RPC returns the same shape from the same DB.
   const { listPublishedPosts } = await import("./blog-public.functions");
   const { payload } = await listPublishedPosts();
-  try { return (JSON.parse(payload) as PublishedBlogPostRow[]) ?? []; } catch { return []; }
+  try {
+    return (JSON.parse(payload) as PublishedBlogPostRow[]) ?? [];
+  } catch {
+    return [];
+  }
 }
 
 export async function fetchBlogCategories(): Promise<PublishedCategoryRow[]> {
   const { listBlogCategories } = await import("./blog-public.functions");
   const { payload } = await listBlogCategories();
-  try { return (JSON.parse(payload) as PublishedCategoryRow[]) ?? []; } catch { return []; }
+  try {
+    return (JSON.parse(payload) as PublishedCategoryRow[]) ?? [];
+  } catch {
+    return [];
+  }
 }
 
 /* ---------------- Hooks ---------------- */
@@ -112,18 +123,25 @@ export function usePublishedBlogCategories(): UseQueryResult<PublishedCategoryRo
   });
 }
 
-export async function fetchPublishedBlogPostBySlug(slug: string): Promise<PublishedBlogPostRow | null> {
+export async function fetchPublishedBlogPostBySlug(
+  slug: string,
+): Promise<PublishedBlogPostRow | null> {
   const { getPublishedPostBySlug } = await import("./blog-public.functions");
   const { payload } = await getPublishedPostBySlug({ data: { slug } });
   if (!payload) return null;
-  try { return JSON.parse(payload) as PublishedBlogPostRow; } catch { return null; }
+  try {
+    return JSON.parse(payload) as PublishedBlogPostRow;
+  } catch {
+    return null;
+  }
 }
 
-export function usePublishedBlogPostBySlug(slug: string): UseQueryResult<PublishedBlogPostRow | null> {
+export function usePublishedBlogPostBySlug(
+  slug: string,
+): UseQueryResult<PublishedBlogPostRow | null> {
   return useQuery({
     queryKey: [...PUBLISHED_QUERY_KEY, "blog_post", slug],
     queryFn: () => fetchPublishedBlogPostBySlug(slug),
     staleTime: 30_000,
   });
 }
-

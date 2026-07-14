@@ -11,7 +11,11 @@ import { jsonEqual } from "@/lib/admin/sectionMeta";
 import { settings } from "@/data/settings";
 import { mainNav } from "@/data/navigation";
 import { logActivity } from "@/lib/admin/log";
-import { loadSiteSettings, patchSiteSettings, invalidateSiteSettings } from "@/lib/admin/siteSettings";
+import {
+  loadSiteSettings,
+  patchSiteSettings,
+  invalidateSiteSettings,
+} from "@/lib/admin/siteSettings";
 import { trackMediaUsage, clearMediaUsage } from "@/lib/media/usage";
 
 type HeaderData = {
@@ -46,8 +50,16 @@ function HeaderEditor() {
 
   useEffect(() => {
     (async () => {
-      const all = await loadSiteSettings<{ header?: HeaderData; header_draft?: HeaderData; header_saved_at?: string }>();
-      const liveVal = { ...DEFAULT_HEADER, ...(all.header ?? {}), menu: all.header?.menu?.length ? all.header.menu : DEFAULT_HEADER.menu };
+      const all = await loadSiteSettings<{
+        header?: HeaderData;
+        header_draft?: HeaderData;
+        header_saved_at?: string;
+      }>();
+      const liveVal = {
+        ...DEFAULT_HEADER,
+        ...(all.header ?? {}),
+        menu: all.header?.menu?.length ? all.header.menu : DEFAULT_HEADER.menu,
+      };
       const draftVal = all.header_draft ? { ...DEFAULT_HEADER, ...all.header_draft } : liveVal;
       if (!all.header) await patchSiteSettings({ header: liveVal, header_draft: draftVal });
       setLive(liveVal);
@@ -57,8 +69,12 @@ function HeaderEditor() {
     })();
   }, []);
 
-  const isDirty = useMemo(() => !!local && !!serverDraft && !jsonEqual(local, serverDraft), [local, serverDraft]);
-  const status = !live || !serverDraft ? "draft" : jsonEqual(live, serverDraft) ? "published" : "modified";
+  const isDirty = useMemo(
+    () => !!local && !!serverDraft && !jsonEqual(local, serverDraft),
+    [local, serverDraft],
+  );
+  const status =
+    !live || !serverDraft ? "draft" : jsonEqual(live, serverDraft) ? "published" : "modified";
 
   const blocker = useBlocker({ shouldBlockFn: () => isDirty, withResolver: true });
 
@@ -79,12 +95,17 @@ function HeaderEditor() {
       await logActivity("save_draft_header", "site_settings", "header");
       toast.success("Draft header disimpan");
       return true;
-    } finally { setSaving(false); }
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function publish() {
     if (!local) return;
-    if (isDirty) { const ok = await saveDraft(); if (!ok) return; }
+    if (isDirty) {
+      const ok = await saveDraft();
+      if (!ok) return;
+    }
     setPublishing(true);
     try {
       const { error } = await patchSiteSettings({ header: local });
@@ -99,7 +120,9 @@ function HeaderEditor() {
       invalidateSiteSettings(queryClient);
       await logActivity("publish_header", "site_settings", "header");
       toast.success("Header berhasil di-publish");
-    } finally { setPublishing(false); }
+    } finally {
+      setPublishing(false);
+    }
   }
 
   function resetLocal() {
@@ -113,7 +136,8 @@ function HeaderEditor() {
   }
 
   if (!local) return <div className="text-sm text-muted-foreground">Memuat…</div>;
-  const set = <K extends keyof HeaderData>(k: K, v: HeaderData[K]) => setLocal({ ...local, [k]: v });
+  const set = <K extends keyof HeaderData>(k: K, v: HeaderData[K]) =>
+    setLocal({ ...local, [k]: v });
 
   return (
     <div className="space-y-6">
@@ -138,8 +162,18 @@ function HeaderEditor() {
           <div className="md:col-span-2">
             <LogoField value={local.logo ?? ""} onChange={(v) => set("logo", v)} />
           </div>
-          <TextField label="CTA Label" value={local.ctaLabel} onChange={(v) => set("ctaLabel", v)} max={40} />
-          <TextField label="CTA URL" value={local.ctaUrl} onChange={(v) => set("ctaUrl", v)} placeholder="https://wa.me/…" />
+          <TextField
+            label="CTA Label"
+            value={local.ctaLabel}
+            onChange={(v) => set("ctaLabel", v)}
+            max={40}
+          />
+          <TextField
+            label="CTA URL"
+            value={local.ctaUrl}
+            onChange={(v) => set("ctaUrl", v)}
+            placeholder="https://wa.me/…"
+          />
         </div>
       </Card>
 
@@ -153,10 +187,27 @@ function HeaderEditor() {
           newItem={() => ({ label: "", href: "", target: "_self" as const })}
           renderItem={(it, up) => (
             <div className="grid gap-4 md:grid-cols-3">
-              <TextField label="Label" value={it.label} onChange={(label) => up({ label })} max={40} />
-              <TextField label="URL / Anchor" value={it.href} onChange={(href) => up({ href })} placeholder="/blog atau /#pricing" />
-              <SelectField label="Target" value={it.target} onChange={(target) => up({ target: target as "_self" | "_blank" })}
-                options={[{ label: "Sama tab", value: "_self" }, { label: "Tab baru", value: "_blank" }]} />
+              <TextField
+                label="Label"
+                value={it.label}
+                onChange={(label) => up({ label })}
+                max={40}
+              />
+              <TextField
+                label="URL / Anchor"
+                value={it.href}
+                onChange={(href) => up({ href })}
+                placeholder="/blog atau /#pricing"
+              />
+              <SelectField
+                label="Target"
+                value={it.target}
+                onChange={(target) => up({ target: target as "_self" | "_blank" })}
+                options={[
+                  { label: "Sama tab", value: "_self" },
+                  { label: "Tab baru", value: "_blank" },
+                ]}
+              />
             </div>
           )}
         />
@@ -165,7 +216,10 @@ function HeaderEditor() {
       <UnsavedDialog
         open={blocker.status === "blocked"}
         saving={saving}
-        onSave={async () => { const ok = await saveDraft(); if (ok && blocker.status === "blocked") blocker.proceed?.(); }}
+        onSave={async () => {
+          const ok = await saveDraft();
+          if (ok && blocker.status === "blocked") blocker.proceed?.();
+        }}
         onDiscard={() => blocker.status === "blocked" && blocker.proceed?.()}
         onCancel={() => blocker.status === "blocked" && blocker.reset?.()}
       />
