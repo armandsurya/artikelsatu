@@ -13,7 +13,7 @@ import { saveRevision, listRevisions, getRevision } from "@/lib/blog/revisions";
 import {
   ArrowLeft, Save, Loader2, Eye, Send, Copy, EyeOff, Archive, RotateCcw,
   Check, AlertCircle, FileText, History, Clock, Image as ImageIcon,
-  Search as SearchIcon, Settings as SettingsIcon, User as UserIcon,
+  Search as SearchIcon, Settings as SettingsIcon,
   ExternalLink, X as CloseIcon,
 } from "lucide-react";
 
@@ -489,41 +489,16 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
 
   if (loading) return <div className="py-10 text-center text-sm text-muted-foreground"><Loader2 className="mx-auto h-5 w-5 animate-spin" /></div>;
 
-  const fmt = (d: string | null) => (d ? new Date(d).toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" }) : "—");
   const bandColor = seo.band === "green" ? "text-green-700 bg-green-50 border-green-200"
     : seo.band === "yellow" ? "text-amber-700 bg-amber-50 border-amber-200"
     : "text-red-700 bg-red-50 border-red-200";
 
   return (
     <div>
-      {/* Sticky header: judul, status, meta, tombol aksi */}
-      <div className="sticky top-0 z-20 -mx-6 mb-4 border-b border-border bg-background/95 px-6 py-3 backdrop-blur">
-        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4">
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
-              <Link to="/admin/blog" className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border text-muted-foreground hover:bg-accent"><ArrowLeft className="h-4 w-4" /></Link>
-              {(() => {
-                const effective: Status | "new" = !isPersisted ? "new" : status;
-                return <span className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold ${STATUS_STYLES[effective]}`}>{STATUS_LABEL[effective]}</span>;
-              })()}
-              {status === "scheduled" && scheduledAt && (
-                <span className="inline-flex items-center gap-1 text-[11px] text-blue-700"><Clock className="h-3 w-3" />{fmt(new Date(scheduledAt).toISOString())}</span>
-              )}
-              {!isPersisted && !dirty && <span className="text-[11px] font-medium text-slate-500">• Belum disimpan</span>}
-              {dirty && <span className="text-[11px] font-medium text-amber-600">• Ada perubahan</span>}
-
-              <span className={`ml-1 rounded-full border px-2 py-0.5 text-[11px] ${publishReady ? "border-green-200 bg-green-50 text-green-700" : "border-amber-200 bg-amber-50 text-amber-700"}`}>
-                Checklist {checklistDone}/{checklistTotal}
-              </span>
-            </div>
-            <h1 className="mt-1 truncate text-lg font-semibold text-secondary">{title || (mode === "new" ? "Artikel Baru" : "Tanpa Judul")}</h1>
-            <div className="mt-0.5 flex flex-wrap gap-x-4 gap-y-0.5 text-[11px] text-muted-foreground">
-              <span className="inline-flex items-center gap-1"><UserIcon className="h-3 w-3" />{authorName ?? "—"}</span>
-              <span>Saved: {fmt(lastSavedAt)}</span>
-              <span>Published: {fmt(lastPublishedAt)}</span>
-              <span>{stats.words} kata · ~{stats.minutes} mnt</span>
-            </div>
-          </div>
+      {/* Header: tombol aksi */}
+      <div className="z-20 -mx-6 mb-4 border-b border-border bg-background/95 px-6 py-3 backdrop-blur">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <Link to="/admin/blog" className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border text-muted-foreground hover:bg-accent"><ArrowLeft className="h-4 w-4" /></Link>
           <div className="flex flex-wrap items-center justify-end gap-2">
             {currentId.current && (
               <button onClick={handleDuplicate} disabled={!!busy} className={btnGhost} title="Duplikat artikel">
