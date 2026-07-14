@@ -99,11 +99,12 @@ export function usePublishedSections(): UseQueryResult<PublishedSectionRow[]> {
   });
 }
 
-export function useSiteSettings(): UseQueryResult<SiteSettingsBlob> {
+export function useSiteSettings(initialData?: SiteSettingsBlob): UseQueryResult<SiteSettingsBlob> {
   return useQuery({
     queryKey: [...PUBLISHED_QUERY_KEY, "site_settings"],
     queryFn: fetchSiteSettings,
     staleTime: 30_000,
+    initialData,
   });
 }
 
