@@ -1,7 +1,17 @@
 import type { WorkflowStep } from "@/types";
 import { SectionHeader } from "@/components/SectionHeader";
 
-export function WorkflowSection({ eyebrow, subtitle, title, data }: { eyebrow?: string; subtitle?: string; title?: string; data: WorkflowStep[] }) {
+export function WorkflowSection({
+  eyebrow,
+  subtitle,
+  title,
+  data,
+}: {
+  eyebrow?: string;
+  subtitle?: string;
+  title?: string;
+  data: WorkflowStep[];
+}) {
   return (
     <section id="workflow" className="bg-background">
       <div className="container-narrow py-20">

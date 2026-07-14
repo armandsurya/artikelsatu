@@ -1,7 +1,11 @@
 import { Modal } from "./primitives";
 
 export function UnsavedDialog({
-  open, onSave, onDiscard, onCancel, saving,
+  open,
+  onSave,
+  onDiscard,
+  onCancel,
+  saving,
 }: {
   open: boolean;
   onSave: () => void;
@@ -13,7 +17,8 @@ export function UnsavedDialog({
   return (
     <Modal title="Perubahan belum disimpan" onClose={onCancel}>
       <p className="text-sm text-muted-foreground">
-        Anda memiliki perubahan yang belum disimpan. Apakah ingin menyimpan sebagai draft terlebih dahulu sebelum meninggalkan halaman?
+        Anda memiliki perubahan yang belum disimpan. Apakah ingin menyimpan sebagai draft terlebih
+        dahulu sebelum meninggalkan halaman?
       </p>
       <div className="mt-5 flex flex-wrap justify-end gap-2">
         <button

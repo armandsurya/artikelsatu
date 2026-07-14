@@ -6,7 +6,8 @@ export const blogPosts: BlogPost[] = [
     title: "10 Cara Menulis Artikel SEO Friendly untuk Pemula",
     slug: "cara-menulis-artikel-seo-friendly",
     excerpt: "Panduan lengkap menulis artikel yang disukai Google sekaligus enak dibaca manusia.",
-    featuredImage: "https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=800&auto=format&fit=crop",
+    featuredImage:
+      "https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=800&auto=format&fit=crop",
     category: "SEO",
     author: "Tim ArtikelPro",
     publishedDate: "2025-06-12",
@@ -19,7 +20,8 @@ export const blogPosts: BlogPost[] = [
     title: "Panduan Riset Kata Kunci Menggunakan Tools Gratis",
     slug: "panduan-riset-kata-kunci-gratis",
     excerpt: "Kenali cara menemukan keyword bernilai tanpa harus mengeluarkan biaya berlangganan.",
-    featuredImage: "https://images.unsplash.com/photo-1432888622747-4eb9a8efeb07?w=800&auto=format&fit=crop",
+    featuredImage:
+      "https://images.unsplash.com/photo-1432888622747-4eb9a8efeb07?w=800&auto=format&fit=crop",
     category: "SEO",
     author: "Tim ArtikelPro",
     publishedDate: "2025-06-05",
@@ -31,8 +33,10 @@ export const blogPosts: BlogPost[] = [
     id: "b3",
     title: "Content Marketing untuk UMKM: Mulai dari Mana?",
     slug: "content-marketing-umkm",
-    excerpt: "Strategi content marketing sederhana yang bisa langsung diterapkan oleh pemilik UMKM.",
-    featuredImage: "https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&auto=format&fit=crop",
+    excerpt:
+      "Strategi content marketing sederhana yang bisa langsung diterapkan oleh pemilik UMKM.",
+    featuredImage:
+      "https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&auto=format&fit=crop",
     category: "Content Marketing",
     author: "Tim ArtikelPro",
     publishedDate: "2025-05-28",
@@ -44,8 +48,10 @@ export const blogPosts: BlogPost[] = [
     id: "b4",
     title: "Perbedaan Blog Post dan Landing Page yang Wajib Anda Tahu",
     slug: "perbedaan-blog-post-landing-page",
-    excerpt: "Kedua jenis konten ini punya tujuan berbeda. Ketahui kapan menggunakan masing-masing.",
-    featuredImage: "https://images.unsplash.com/photo-1517048676732-d65bc937f952?w=800&auto=format&fit=crop",
+    excerpt:
+      "Kedua jenis konten ini punya tujuan berbeda. Ketahui kapan menggunakan masing-masing.",
+    featuredImage:
+      "https://images.unsplash.com/photo-1517048676732-d65bc937f952?w=800&auto=format&fit=crop",
     category: "Copywriting",
     author: "Tim ArtikelPro",
     publishedDate: "2025-05-15",
@@ -57,8 +63,10 @@ export const blogPosts: BlogPost[] = [
     id: "b5",
     title: "Mengapa Artikel Panjang Lebih Baik untuk SEO?",
     slug: "artikel-panjang-lebih-baik-seo",
-    excerpt: "Statistik menunjukkan artikel panjang cenderung menempati peringkat teratas di Google.",
-    featuredImage: "https://images.unsplash.com/photo-1455390582262-044cdead277a?w=800&auto=format&fit=crop",
+    excerpt:
+      "Statistik menunjukkan artikel panjang cenderung menempati peringkat teratas di Google.",
+    featuredImage:
+      "https://images.unsplash.com/photo-1455390582262-044cdead277a?w=800&auto=format&fit=crop",
     category: "SEO",
     author: "Tim ArtikelPro",
     publishedDate: "2025-05-02",
@@ -70,8 +78,10 @@ export const blogPosts: BlogPost[] = [
     id: "b6",
     title: "Tips Membuat Meta Description yang Meningkatkan CTR",
     slug: "tips-meta-description-ctr",
-    excerpt: "Meta description yang menarik dapat menggandakan click-through rate dari hasil pencarian.",
-    featuredImage: "https://images.unsplash.com/photo-1467232004584-a241de8bcf5d?w=800&auto=format&fit=crop",
+    excerpt:
+      "Meta description yang menarik dapat menggandakan click-through rate dari hasil pencarian.",
+    featuredImage:
+      "https://images.unsplash.com/photo-1467232004584-a241de8bcf5d?w=800&auto=format&fit=crop",
     category: "SEO",
     author: "Tim ArtikelPro",
     publishedDate: "2025-04-20",

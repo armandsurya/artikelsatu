@@ -2,7 +2,16 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { PageHeader, Card } from "@/components/admin/ui";
-import { FileText, FolderTree, Image as ImageIcon, Users, Database, Clock, CheckCircle2, PenLine } from "lucide-react";
+import {
+  FileText,
+  FolderTree,
+  Image as ImageIcon,
+  Users,
+  Database,
+  Clock,
+  CheckCircle2,
+  PenLine,
+} from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/")({
   head: () => ({ meta: [{ title: "Dashboard — Admin ArtikelPro" }] }),
@@ -16,28 +25,45 @@ function Dashboard() {
     refetchOnMount: "always",
     refetchOnWindowFocus: true,
     queryFn: async () => {
-      const base = () => supabase.from("blog_posts").select("*", { count: "exact", head: true }).is("deleted_at", null);
-      const [posts, drafts, published, scheduled, archived, cats, media, users, recent] = await Promise.all([
-        base(),
-        base().eq("status", "draft"),
-        base().eq("status", "published"),
-        base().eq("status", "scheduled"),
-        supabase.from("blog_posts").select("*", { count: "exact", head: true }).not("deleted_at", "is", null),
-        supabase.from("blog_categories").select("*", { count: "exact", head: true }),
-        supabase.from("media").select("size_bytes"),
-        supabase.from("profiles").select("*", { count: "exact", head: true }),
-        supabase.from("activity_log").select("id, action, entity, created_at, user_id").order("created_at", { ascending: false }).limit(8),
-      ]);
+      const base = () =>
+        supabase
+          .from("blog_posts")
+          .select("*", { count: "exact", head: true })
+          .is("deleted_at", null);
+      const [posts, drafts, published, scheduled, archived, cats, media, users, recent] =
+        await Promise.all([
+          base(),
+          base().eq("status", "draft"),
+          base().eq("status", "published"),
+          base().eq("status", "scheduled"),
+          supabase
+            .from("blog_posts")
+            .select("*", { count: "exact", head: true })
+            .not("deleted_at", "is", null),
+          supabase.from("blog_categories").select("*", { count: "exact", head: true }),
+          supabase.from("media").select("size_bytes"),
+          supabase.from("profiles").select("*", { count: "exact", head: true }),
+          supabase
+            .from("activity_log")
+            .select("id, action, entity, created_at, user_id")
+            .order("created_at", { ascending: false })
+            .limit(8),
+        ]);
       const storage = (media.data ?? []).reduce((a, m) => a + Number(m.size_bytes ?? 0), 0);
       return {
-        posts: posts.count ?? 0, drafts: drafts.count ?? 0, published: published.count ?? 0,
-        scheduled: scheduled.count ?? 0, archived: archived.count ?? 0,
-        cats: cats.count ?? 0, mediaCount: media.data?.length ?? 0, users: users.count ?? 0,
-        storage, recent: recent.data ?? [],
+        posts: posts.count ?? 0,
+        drafts: drafts.count ?? 0,
+        published: published.count ?? 0,
+        scheduled: scheduled.count ?? 0,
+        archived: archived.count ?? 0,
+        cats: cats.count ?? 0,
+        mediaCount: media.data?.length ?? 0,
+        users: users.count ?? 0,
+        storage,
+        recent: recent.data ?? [],
       };
     },
   });
-
 
   const stats = [
     { label: "Jumlah Artikel", value: data?.posts ?? "—", icon: FileText },
@@ -56,7 +82,9 @@ function Dashboard() {
         {stats.map((s) => (
           <Card key={s.label}>
             <div className="flex items-center gap-3">
-              <div className="rounded-lg bg-primary/10 p-2 text-primary"><s.icon className="h-4 w-4" /></div>
+              <div className="rounded-lg bg-primary/10 p-2 text-primary">
+                <s.icon className="h-4 w-4" />
+              </div>
               <div>
                 <div className="text-xs text-muted-foreground">{s.label}</div>
                 <div className="text-lg font-semibold text-secondary">{s.value}</div>
@@ -76,8 +104,13 @@ function Dashboard() {
             <ul className="divide-y divide-border">
               {data.recent.map((r) => (
                 <li key={r.id} className="flex items-center justify-between py-2.5 text-sm">
-                  <span><span className="font-medium text-secondary">{r.action}</span>{r.entity && <span className="text-muted-foreground"> · {r.entity}</span>}</span>
-                  <span className="text-xs text-muted-foreground">{new Date(r.created_at).toLocaleString("id-ID")}</span>
+                  <span>
+                    <span className="font-medium text-secondary">{r.action}</span>
+                    {r.entity && <span className="text-muted-foreground"> · {r.entity}</span>}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {new Date(r.created_at).toLocaleString("id-ID")}
+                  </span>
                 </li>
               ))}
             </ul>

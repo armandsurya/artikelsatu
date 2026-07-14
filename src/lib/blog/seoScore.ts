@@ -24,7 +24,10 @@ export type SeoInput = {
 };
 
 function stripHtml(html: string) {
-  return html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+  return html
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 export function analyzeSeo(input: SeoInput): SeoReport {
@@ -34,7 +37,9 @@ export function analyzeSeo(input: SeoInput): SeoReport {
   const h1Count = (doc.match(/<h1[\s>]/gi) ?? []).length;
   const h2Count = (doc.match(/<h2[\s>]/gi) ?? []).length;
   const imgs = doc.match(/<img[^>]*>/gi) ?? [];
-  const imgsMissingAlt = imgs.filter((t) => !/\balt=/.test(t) || /\balt=["']\s*["']/i.test(t)).length;
+  const imgsMissingAlt = imgs.filter(
+    (t) => !/\balt=/.test(t) || /\balt=["']\s*["']/i.test(t),
+  ).length;
   const anchors = doc.match(/<a[^>]*href=["']([^"']+)["'][^>]*>/gi) ?? [];
   const internal = anchors.filter((a) => {
     const m = a.match(/href=["']([^"']+)["']/i);

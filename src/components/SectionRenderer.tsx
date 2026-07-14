@@ -61,18 +61,101 @@ export function SectionRenderer({
 
 function renderOne(p: MappedSection) {
   switch (p.type) {
-    case "hero":       return <HeroSection data={p.data} />;
-    case "stats":      return <StatsSection data={p.data} />;
-    case "problems":   return <ProblemsSection eyebrow={p.meta.eyebrow} subtitle={p.meta.subtitle} title={p.title} data={p.data} />;
-    case "solutions":  return <SolutionsSection eyebrow={p.meta.eyebrow} subtitle={p.meta.subtitle} title={p.title} data={p.data} />;
-    case "workflow":   return <WorkflowSection eyebrow={p.meta.eyebrow} subtitle={p.meta.subtitle} title={p.title} data={p.data} />;
-    case "advantages": return <AdvantagesSection eyebrow={p.meta.eyebrow} subtitle={p.meta.subtitle} title={p.title} data={p.data} />;
-    case "services":   return <ServicesSection eyebrow={p.meta.eyebrow} subtitle={p.meta.subtitle} title={p.title} data={p.data} />;
-    case "portfolio":  return <PortfolioSection eyebrow={p.meta.eyebrow} subtitle={p.meta.subtitle} title={p.title} data={p.data} />;
-    case "pricing":    return <PricingSection eyebrow={p.meta.eyebrow} subtitle={p.meta.subtitle} title={p.title} data={p.data} />;
-    case "comparison": return <ComparisonSection eyebrow={p.meta.eyebrow} subtitle={p.meta.subtitle} title={p.title} data={p.data} />;
-    case "faq":        return <FAQSection eyebrow={p.meta.eyebrow} subtitle={p.meta.subtitle} title={p.title} data={p.data} />;
-    case "blogPreview":return <BlogPreviewSection eyebrow={p.meta.eyebrow} subtitle={p.meta.subtitle} title={p.title} data={p.data} />;
-    case "cta":        return <CTASection data={p.data} />;
+    case "hero":
+      return <HeroSection data={p.data} />;
+    case "stats":
+      return <StatsSection data={p.data} />;
+    case "problems":
+      return (
+        <ProblemsSection
+          eyebrow={p.meta.eyebrow}
+          subtitle={p.meta.subtitle}
+          title={p.title}
+          data={p.data}
+        />
+      );
+    case "solutions":
+      return (
+        <SolutionsSection
+          eyebrow={p.meta.eyebrow}
+          subtitle={p.meta.subtitle}
+          title={p.title}
+          data={p.data}
+        />
+      );
+    case "workflow":
+      return (
+        <WorkflowSection
+          eyebrow={p.meta.eyebrow}
+          subtitle={p.meta.subtitle}
+          title={p.title}
+          data={p.data}
+        />
+      );
+    case "advantages":
+      return (
+        <AdvantagesSection
+          eyebrow={p.meta.eyebrow}
+          subtitle={p.meta.subtitle}
+          title={p.title}
+          data={p.data}
+        />
+      );
+    case "services":
+      return (
+        <ServicesSection
+          eyebrow={p.meta.eyebrow}
+          subtitle={p.meta.subtitle}
+          title={p.title}
+          data={p.data}
+        />
+      );
+    case "portfolio":
+      return (
+        <PortfolioSection
+          eyebrow={p.meta.eyebrow}
+          subtitle={p.meta.subtitle}
+          title={p.title}
+          data={p.data}
+        />
+      );
+    case "pricing":
+      return (
+        <PricingSection
+          eyebrow={p.meta.eyebrow}
+          subtitle={p.meta.subtitle}
+          title={p.title}
+          data={p.data}
+        />
+      );
+    case "comparison":
+      return (
+        <ComparisonSection
+          eyebrow={p.meta.eyebrow}
+          subtitle={p.meta.subtitle}
+          title={p.title}
+          data={p.data}
+        />
+      );
+    case "faq":
+      return (
+        <FAQSection
+          eyebrow={p.meta.eyebrow}
+          subtitle={p.meta.subtitle}
+          title={p.title}
+          data={p.data}
+        />
+      );
+    case "blogPreview":
+      return (
+        <BlogPreviewSection
+          eyebrow={p.meta.eyebrow}
+          subtitle={p.meta.subtitle}
+          title={p.title}
+          data={p.data}
+        />
+      );
+    case "cta":
+      return <CTASection data={p.data} />;
   }
 }

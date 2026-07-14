@@ -24,7 +24,9 @@ export function normalizePath(input: string): string {
   // strip origin if given
   try {
     if (/^https?:\/\//i.test(p)) p = new URL(p).pathname + (new URL(p).search || "");
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
   // remove hash
   const hashIdx = p.indexOf("#");
   if (hashIdx >= 0) p = p.slice(0, hashIdx);
@@ -40,7 +42,12 @@ export function normalizePath(input: string): string {
 export function splitPathAndSearch(input: string): { path: string; search: string } {
   let raw = input || "/";
   if (/^https?:\/\//i.test(raw)) {
-    try { const u = new URL(raw); raw = u.pathname + u.search; } catch { /* ignore */ }
+    try {
+      const u = new URL(raw);
+      raw = u.pathname + u.search;
+    } catch {
+      /* ignore */
+    }
   }
   const q = raw.indexOf("?");
   if (q < 0) return { path: raw, search: "" };
@@ -50,7 +57,9 @@ export function splitPathAndSearch(input: string): { path: string; search: strin
 export async function fetchActiveRedirects(): Promise<RedirectRow[]> {
   const { data, error } = await supabase
     .from("redirects")
-    .select("id, source, destination, code, active, hits, last_hit_at, notes, preserve_query, created_at, updated_at")
+    .select(
+      "id, source, destination, code, active, hits, last_hit_at, notes, preserve_query, created_at, updated_at",
+    )
     .eq("active", true);
   if (error) return [];
   return (data ?? []) as RedirectRow[];
@@ -59,7 +68,9 @@ export async function fetchActiveRedirects(): Promise<RedirectRow[]> {
 export async function fetchAllRedirects(): Promise<RedirectRow[]> {
   const { data, error } = await supabase
     .from("redirects")
-    .select("id, source, destination, code, active, hits, last_hit_at, notes, preserve_query, created_at, updated_at")
+    .select(
+      "id, source, destination, code, active, hits, last_hit_at, notes, preserve_query, created_at, updated_at",
+    )
     .order("updated_at", { ascending: false });
   if (error) throw error;
   return (data ?? []) as RedirectRow[];

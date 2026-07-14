@@ -25,7 +25,9 @@ export async function fetchMediaByUrl(url: string | null | undefined): Promise<M
   if (!url) return null;
   const { data } = await supabase
     .from("media")
-    .select("id,url,name,title,alt,caption,description,mime_type,width,height,size_bytes,uploaded_by,created_at,updated_at")
+    .select(
+      "id,url,name,title,alt,caption,description,mime_type,width,height,size_bytes,uploaded_by,created_at,updated_at",
+    )
     .eq("url", url)
     .maybeSingle();
   return (data as MediaMeta | null) ?? null;

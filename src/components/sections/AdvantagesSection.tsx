@@ -2,14 +2,27 @@ import type { Advantage } from "@/types";
 import { Icon } from "@/components/Icon";
 import { SectionHeader } from "@/components/SectionHeader";
 
-export function AdvantagesSection({ eyebrow, subtitle, title, data }: { eyebrow?: string; subtitle?: string; title?: string; data: Advantage[] }) {
+export function AdvantagesSection({
+  eyebrow,
+  subtitle,
+  title,
+  data,
+}: {
+  eyebrow?: string;
+  subtitle?: string;
+  title?: string;
+  data: Advantage[];
+}) {
   return (
     <section id="advantages" className="bg-accent/40 border-y border-border">
       <div className="container-narrow py-20">
         <SectionHeader
           eyebrow={eyebrow ?? "Keunggulan"}
           title={title ?? "Kenapa Memilih Kami"}
-          description={subtitle ?? "Kami tidak hanya menulis. Kami memastikan setiap artikel bekerja untuk bisnis Anda."}
+          description={
+            subtitle ??
+            "Kami tidak hanya menulis. Kami memastikan setiap artikel bekerja untuk bisnis Anda."
+          }
         />
         <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {data.map((a) => (

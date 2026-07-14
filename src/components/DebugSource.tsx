@@ -23,7 +23,9 @@ export function DebugSource({
   if (!import.meta.env.DEV) return null;
   if (!mounted) return null;
   const isDb = source === "database";
-  const ts = lastPublishedAt ? new Date(lastPublishedAt).toLocaleString("id-ID", { dateStyle: "short", timeStyle: "short" }) : "—";
+  const ts = lastPublishedAt
+    ? new Date(lastPublishedAt).toLocaleString("id-ID", { dateStyle: "short", timeStyle: "short" })
+    : "—";
   return (
     <div className="pointer-events-none absolute right-2 top-2 z-10 select-none">
       <span

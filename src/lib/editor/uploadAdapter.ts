@@ -18,7 +18,9 @@ type EditorLike = {
 class SupabaseUploadAdapter {
   private loader: Loader;
   private aborted = false;
-  constructor(loader: Loader) { this.loader = loader; }
+  constructor(loader: Loader) {
+    this.loader = loader;
+  }
 
   async upload(): Promise<{ default: string }> {
     const file = await this.loader.file;
@@ -29,7 +31,9 @@ class SupabaseUploadAdapter {
     return { default: res.media.url };
   }
 
-  abort(): void { this.aborted = true; }
+  abort(): void {
+    this.aborted = true;
+  }
 }
 
 export function SupabaseUploadAdapterPlugin(editor: EditorLike): void {

@@ -19,7 +19,9 @@ export function PortfolioSection({
         <SectionHeader
           eyebrow={eyebrow ?? "Portofolio"}
           title={title ?? "Contoh Hasil Artikel"}
-          description={subtitle ?? "Beberapa contoh artikel yang telah kami produksi untuk berbagai niche."}
+          description={
+            subtitle ?? "Beberapa contoh artikel yang telah kami produksi untuk berbagai niche."
+          }
         />
         <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {data.map((p) => {
@@ -37,9 +39,7 @@ export function PortfolioSection({
                   {p.title}
                 </h3>
                 {p.excerpt && (
-                  <p className="mt-1.5 text-sm text-muted-foreground line-clamp-2">
-                    {p.excerpt}
-                  </p>
+                  <p className="mt-1.5 text-sm text-muted-foreground line-clamp-2">{p.excerpt}</p>
                 )}
 
                 <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs">
@@ -75,7 +75,8 @@ export function PortfolioSection({
                   aria-label={`${ctaLabel}: ${p.title}`}
                   className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-primary transition-colors hover:text-primary/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 rounded"
                 >
-                  {ctaLabel} <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                  {ctaLabel}{" "}
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                 </a>
               </article>
             );

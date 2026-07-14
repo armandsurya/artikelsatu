@@ -29,7 +29,10 @@ export function LogoField({
     const f = files?.[0];
     if (!f) return;
     const bad = validateFile(f);
-    if (bad) { toast.error("File tidak valid", { description: bad.message }); return; }
+    if (bad) {
+      toast.error("File tidak valid", { description: bad.message });
+      return;
+    }
     setUploading(true);
     const res = await uploadMediaFile(f);
     setUploading(false);
@@ -82,7 +85,11 @@ export function LogoField({
                 disabled={uploading}
                 className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-60"
               >
-                {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                {uploading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Upload className="h-4 w-4" />
+                )}
                 {uploading ? "Mengunggah…" : "Upload dari Komputer"}
               </button>
               <button
@@ -113,7 +120,10 @@ export function LogoField({
           <input
             type="text"
             value={value ?? ""}
-            onChange={(e) => { setImgError(false); onChange(e.target.value); }}
+            onChange={(e) => {
+              setImgError(false);
+              onChange(e.target.value);
+            }}
             placeholder="https://cdn.example.com/logo.svg"
             className={inputCls}
           />
@@ -134,7 +144,8 @@ export function LogoField({
       {confirmOpen && (
         <Modal title="Hapus Logo?" onClose={() => setConfirmOpen(false)}>
           <p className="text-sm text-secondary">
-            Logo akan dihapus dari Header website. File asli di Media Library tidak akan ikut dihapus.
+            Logo akan dihapus dari Header website. File asli di Media Library tidak akan ikut
+            dihapus.
           </p>
           <div className="mt-5 flex justify-end gap-2">
             <button

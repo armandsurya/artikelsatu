@@ -1,7 +1,8 @@
 import type { FooterData } from "@/types";
 
 export const footer: FooterData = {
-  description: "Jasa pembuatan artikel SEO berbahasa Indonesia untuk bisnis yang ingin bertumbuh di mesin pencari.",
+  description:
+    "Jasa pembuatan artikel SEO berbahasa Indonesia untuk bisnis yang ingin bertumbuh di mesin pencari.",
   columns: [
     {
       title: "Navigasi",

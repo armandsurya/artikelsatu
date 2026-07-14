@@ -15,8 +15,12 @@ function HomepageIndex() {
         title="Homepage"
         description="Kelola setiap section homepage. Data awal diambil otomatis dari frontend."
         actions={
-          <a href="/" target="_blank" rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-1.5 text-sm text-secondary hover:bg-accent">
+          <a
+            href="/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-1.5 text-sm text-secondary hover:bg-accent"
+          >
             <ExternalLink className="h-4 w-4" /> Lihat Homepage
           </a>
         }
@@ -35,7 +39,8 @@ function HomepageIndex() {
               <div className="text-base font-semibold text-secondary">{m.title}</div>
               <p className="mt-1 flex-1 text-sm text-muted-foreground">{m.description}</p>
               <div className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-primary">
-                Edit section <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                Edit section{" "}
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </div>
             </Link>
           );

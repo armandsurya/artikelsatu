@@ -7,7 +7,8 @@ const DEFAULT_ROBOTS = `User-agent: *\nAllow: /\n`;
 
 function originFromRequest(request: Request): string {
   const url = new URL(request.url);
-  const proto = request.headers.get("x-forwarded-proto") || url.protocol.replace(":", "") || "https";
+  const proto =
+    request.headers.get("x-forwarded-proto") || url.protocol.replace(":", "") || "https";
   const host = request.headers.get("x-forwarded-host") || request.headers.get("host") || url.host;
   return `${proto}://${host}`;
 }
@@ -17,7 +18,11 @@ export const Route = createFileRoute("/robots.txt")({
     handlers: {
       GET: async ({ request }) => {
         let seo: SeoConfig = {};
-        try { seo = getSeoConfig(await fetchPublicSiteSettings()); } catch { /* fallback */ }
+        try {
+          seo = getSeoConfig(await fetchPublicSiteSettings());
+        } catch {
+          /* fallback */
+        }
 
         const body = seo.robotsTxt?.trim() ? seo.robotsTxt.trim() + "\n" : DEFAULT_ROBOTS;
         // Auto-advertise sitemap using request origin so it works on any deploy URL,

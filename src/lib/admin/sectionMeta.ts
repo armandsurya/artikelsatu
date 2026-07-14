@@ -18,7 +18,9 @@ export const DEFAULT_META: SectionMeta = {
 
 /** Split raw section payload into (meta, content). */
 export function splitMeta<T>(raw: unknown): { meta: SectionMeta; content: T } {
-  const obj = (raw && typeof raw === "object" ? { ...(raw as Record<string, unknown>) } : {}) as Record<string, unknown>;
+  const obj = (
+    raw && typeof raw === "object" ? { ...(raw as Record<string, unknown>) } : {}
+  ) as Record<string, unknown>;
   const rawMeta = (obj._meta as Partial<SectionMeta>) ?? {};
   delete obj._meta;
   return {
@@ -34,5 +36,9 @@ export function joinMeta<T>(meta: SectionMeta, content: T): Record<string, unkno
 
 /** Deep-ish equality for JSON-serializable objects. */
 export function jsonEqual(a: unknown, b: unknown): boolean {
-  try { return JSON.stringify(a) === JSON.stringify(b); } catch { return false; }
+  try {
+    return JSON.stringify(a) === JSON.stringify(b);
+  } catch {
+    return false;
+  }
 }

@@ -13,9 +13,17 @@ export function Navbar({ header }: { header: HeaderProps }) {
     <header className="sticky top-0 z-40 w-full border-b border-border bg-background/85 backdrop-blur">
       <div className="relative container-narrow flex h-16 items-center justify-between">
         <DebugSource label="header" source={header.source} />
-        <Link to="/" className="flex items-center text-lg font-bold tracking-tight text-secondary" aria-label={header.siteName || "Beranda"}>
+        <Link
+          to="/"
+          className="flex items-center text-lg font-bold tracking-tight text-secondary"
+          aria-label={header.siteName || "Beranda"}
+        >
           {isImage ? (
-            <img src={logo} alt={header.siteName || "Logo"} className="h-8 w-auto max-w-[180px] object-contain" />
+            <img
+              src={logo}
+              alt={header.siteName || "Logo"}
+              className="h-8 w-auto max-w-[180px] object-contain"
+            />
           ) : (
             <>
               {fallbackText}

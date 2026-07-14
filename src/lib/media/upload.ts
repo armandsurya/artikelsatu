@@ -32,13 +32,14 @@ export function slugifyFilename(originalName: string, forcedExt?: string): strin
   const ext = (forcedExt ?? (dot > 0 ? originalName.slice(dot + 1) : "bin"))
     .toLowerCase()
     .replace(/[^a-z0-9]/g, "");
-  const slug = base
-    .toLowerCase()
-    .normalize("NFKD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 80) || "file";
+  const slug =
+    base
+      .toLowerCase()
+      .normalize("NFKD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 80) || "file";
   return `${slug}.${ext}`;
 }
 
@@ -47,7 +48,9 @@ function formatMonthPath(): string {
   return `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, "0")}`;
 }
 
-async function readDimensions(file: Blob): Promise<{ width: number | null; height: number | null }> {
+async function readDimensions(
+  file: Blob,
+): Promise<{ width: number | null; height: number | null }> {
   try {
     if (typeof createImageBitmap === "function") {
       const bmp = await createImageBitmap(file);
@@ -55,12 +58,20 @@ async function readDimensions(file: Blob): Promise<{ width: number | null; heigh
       bmp.close?.();
       return dims;
     }
-  } catch { /* fall back below */ }
+  } catch {
+    /* fall back below */
+  }
   return await new Promise((resolve) => {
     const img = new Image();
     const url = URL.createObjectURL(file);
-    img.onload = () => { resolve({ width: img.naturalWidth, height: img.naturalHeight }); URL.revokeObjectURL(url); };
-    img.onerror = () => { resolve({ width: null, height: null }); URL.revokeObjectURL(url); };
+    img.onload = () => {
+      resolve({ width: img.naturalWidth, height: img.naturalHeight });
+      URL.revokeObjectURL(url);
+    };
+    img.onerror = () => {
+      resolve({ width: null, height: null });
+      URL.revokeObjectURL(url);
+    };
     img.src = url;
   });
 }
@@ -76,7 +87,8 @@ async function compressImage(file: File): Promise<{ blob: Blob; mime: string; ex
     const w = Math.round(bmp.width * scale);
     const h = Math.round(bmp.height * scale);
     const canvas = document.createElement("canvas");
-    canvas.width = w; canvas.height = h;
+    canvas.width = w;
+    canvas.height = h;
     const ctx = canvas.getContext("2d");
     if (!ctx) throw new Error("no canvas ctx");
     ctx.drawImage(bmp, 0, 0, w, h);
@@ -98,19 +110,30 @@ export type ValidationError = { code: "size" | "format" | "empty"; message: stri
 export function validateFile(file: File): ValidationError | null {
   if (!file || file.size === 0) return { code: "empty", message: "File kosong." };
   if (!ALLOWED_MIME.includes(file.type as (typeof ALLOWED_MIME)[number])) {
-    return { code: "format", message: `Format ${file.type || "tidak dikenal"} tidak didukung. Gunakan JPG, PNG, WebP, SVG, GIF, atau AVIF.` };
+    return {
+      code: "format",
+      message: `Format ${file.type || "tidak dikenal"} tidak didukung. Gunakan JPG, PNG, WebP, SVG, GIF, atau AVIF.`,
+    };
   }
   if (file.size > MAX_SIZE_BYTES) {
-    return { code: "size", message: `Ukuran ${(file.size / 1024 / 1024).toFixed(1)} MB melebihi batas 5 MB.` };
+    return {
+      code: "size",
+      message: `Ukuran ${(file.size / 1024 / 1024).toFixed(1)} MB melebihi batas 5 MB.`,
+    };
   }
   return null;
 }
 
 /* ---------------- upload pipeline ---------------- */
 
-export type UploadResult = { ok: true; media: UploadedMedia } | { ok: false; step: string; message: string };
+export type UploadResult =
+  | { ok: true; media: UploadedMedia }
+  | { ok: false; step: string; message: string };
 
-export async function uploadMediaFile(file: File, opts?: { renameTo?: string }): Promise<UploadResult> {
+export async function uploadMediaFile(
+  file: File,
+  opts?: { renameTo?: string },
+): Promise<UploadResult> {
   const invalid = validateFile(file);
   if (invalid) return { ok: false, step: "validation", message: invalid.message };
 
@@ -128,7 +151,11 @@ export async function uploadMediaFile(file: File, opts?: { renameTo?: string }):
 
   // Ensure no collision
   for (let i = 2; i < 20; i++) {
-    const { data: existing } = await supabase.from("media").select("id").eq("path", path).maybeSingle();
+    const { data: existing } = await supabase
+      .from("media")
+      .select("id")
+      .eq("path", path)
+      .maybeSingle();
     if (!existing) break;
     const dot = finalName.lastIndexOf(".");
     finalName = `${finalName.slice(0, dot)}-${i}${finalName.slice(dot)}`;
@@ -144,7 +171,9 @@ export async function uploadMediaFile(file: File, opts?: { renameTo?: string }):
   if (upErr) return { ok: false, step: "storage", message: upErr.message };
 
   // Signed URL (bucket is private)
-  const { data: signed, error: signErr } = await supabase.storage.from("media").createSignedUrl(path, SIGNED_URL_TTL);
+  const { data: signed, error: signErr } = await supabase.storage
+    .from("media")
+    .createSignedUrl(path, SIGNED_URL_TTL);
   if (signErr || !signed?.signedUrl) {
     await supabase.storage.from("media").remove([path]);
     return { ok: false, step: "sign", message: signErr?.message ?? "Gagal membuat signed URL." };
@@ -191,8 +220,13 @@ export async function uploadMediaFile(file: File, opts?: { renameTo?: string }):
 export async function replaceMediaFile(mediaId: string, file: File): Promise<UploadResult> {
   const invalid = validateFile(file);
   if (invalid) return { ok: false, step: "validation", message: invalid.message };
-  const { data: row, error: rowErr } = await supabase.from("media").select("*").eq("id", mediaId).single();
-  if (rowErr || !row) return { ok: false, step: "database", message: rowErr?.message ?? "Media tidak ditemukan." };
+  const { data: row, error: rowErr } = await supabase
+    .from("media")
+    .select("*")
+    .eq("id", mediaId)
+    .single();
+  if (rowErr || !row)
+    return { ok: false, step: "database", message: rowErr?.message ?? "Media tidak ditemukan." };
 
   const { blob, mime } = await compressImage(file);
   const { width, height } = await readDimensions(blob);
@@ -205,7 +239,9 @@ export async function replaceMediaFile(mediaId: string, file: File): Promise<Upl
   if (upErr) return { ok: false, step: "storage", message: upErr.message };
 
   // Signed URL may change token — refresh it
-  const { data: signed } = await supabase.storage.from("media").createSignedUrl(row.path, SIGNED_URL_TTL);
+  const { data: signed } = await supabase.storage
+    .from("media")
+    .createSignedUrl(row.path, SIGNED_URL_TTL);
 
   const { data: updated, error: dbErr } = await supabase
     .from("media")
@@ -219,7 +255,8 @@ export async function replaceMediaFile(mediaId: string, file: File): Promise<Upl
     .eq("id", mediaId)
     .select("*")
     .single();
-  if (dbErr || !updated) return { ok: false, step: "database", message: dbErr?.message ?? "Gagal update metadata." };
+  if (dbErr || !updated)
+    return { ok: false, step: "database", message: dbErr?.message ?? "Gagal update metadata." };
 
   return {
     ok: true,

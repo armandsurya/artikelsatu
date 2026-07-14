@@ -12,9 +12,18 @@ import { SectionMetaForm } from "./SectionMetaForm";
 import { EditorToolbar, type SectionStatus } from "./EditorToolbar";
 import { UnsavedDialog } from "./UnsavedDialog";
 import { VersionPanel, type VersionRow } from "./VersionPanel";
-import { DEFAULTS, SECTION_META, SECTION_META_DEFAULTS, type SectionKey } from "@/data/homepageDefaults";
 import {
-  splitMeta, joinMeta, jsonEqual, DEFAULT_META, type SectionMeta,
+  DEFAULTS,
+  SECTION_META,
+  SECTION_META_DEFAULTS,
+  type SectionKey,
+} from "@/data/homepageDefaults";
+import {
+  splitMeta,
+  joinMeta,
+  jsonEqual,
+  DEFAULT_META,
+  type SectionMeta,
 } from "@/lib/admin/sectionMeta";
 import { validateTitle, validateMeta, validateContent } from "@/lib/admin/sectionValidators";
 import { useDirtyGuard } from "@/lib/admin/useDirtyGuard";
@@ -72,7 +81,10 @@ export function SectionEditor<T>({
   useEffect(() => {
     (async () => {
       const { data: existing } = await supabase
-        .from("homepage_sections").select("*").eq("section_key", sectionKey).maybeSingle();
+        .from("homepage_sections")
+        .select("*")
+        .eq("section_key", sectionKey)
+        .maybeSingle();
 
       // Seed defaults with per-section meta so admin sees the current frontend badge/subtitle.
       const seedMeta: SectionMeta = { ...DEFAULT_META, ...SECTION_META_DEFAULTS[sectionKey] };
@@ -124,14 +136,17 @@ export function SectionEditor<T>({
 
         applyRow({ ...row, draft_data: draft, data: published });
         if (row.last_saved_by) {
-          const { data: prof } = await supabase.from("profiles").select("full_name").eq("id", row.last_saved_by).maybeSingle();
+          const { data: prof } = await supabase
+            .from("profiles")
+            .select("full_name")
+            .eq("id", row.last_saved_by)
+            .maybeSingle();
           setSavedByName((prof as { full_name?: string } | null)?.full_name ?? null);
         }
       }
       setLoaded(true);
       bootstrap.current = true;
     })();
-
 
     function applyRow(row: Row) {
       const draftRaw = row.draft_data as Record<string, unknown>;
@@ -177,7 +192,11 @@ export function SectionEditor<T>({
   }, [currentRaw, serverDraft]);
 
   // Track title/order/visible dirty separately (server row values snapshot).
-  const [rowSnap, setRowSnap] = useState<{ title: string; sortOrder: number; visible: boolean } | null>(null);
+  const [rowSnap, setRowSnap] = useState<{
+    title: string;
+    sortOrder: number;
+    visible: boolean;
+  } | null>(null);
   useEffect(() => {
     if (loaded && rowSnap === null && serverDraft !== null) {
       setRowSnap({ title, sortOrder, visible });
@@ -223,13 +242,20 @@ export function SectionEditor<T>({
       const { data: userData, error: userErr } = await supabase.auth.getUser();
       if (userErr || !userData.user) {
         console.error("[saveDraft] no auth session", userErr);
-        toast.error("Sesi login berakhir", { description: "Silakan login ulang sebelum menyimpan." });
+        toast.error("Sesi login berakhir", {
+          description: "Silakan login ulang sebelum menyimpan.",
+        });
         return false;
       }
       const user = userData.user;
       const payload = joinMeta(sectionMeta, content);
       const nowIso = new Date().toISOString();
-      console.info("[saveDraft] payload", { sectionKey, userId: user.id, title, payloadSize: JSON.stringify(payload).length });
+      console.info("[saveDraft] payload", {
+        sectionKey,
+        userId: user.id,
+        title,
+        payloadSize: JSON.stringify(payload).length,
+      });
       const { data: updated, error } = await supabase
         .from("homepage_sections")
         .update({
@@ -237,7 +263,12 @@ export function SectionEditor<T>({
           sort_order: sortOrder,
           is_visible: visible,
           draft_data: payload as never,
-          status: serverPublished && jsonEqual(serverPublished, payload) ? "published" : (serverPublished ? "modified" : "draft"),
+          status:
+            serverPublished && jsonEqual(serverPublished, payload)
+              ? "published"
+              : serverPublished
+                ? "modified"
+                : "draft",
           last_saved_at: nowIso,
           last_saved_by: user.id,
         })
@@ -245,14 +276,20 @@ export function SectionEditor<T>({
         .select();
       if (error) {
         console.error("[saveDraft] update error", error);
-        const desc = [error.message, error.code && `(code ${error.code})`, error.hint].filter(Boolean).join(" ");
+        const desc = [error.message, error.code && `(code ${error.code})`, error.hint]
+          .filter(Boolean)
+          .join(" ");
         toast.error("Perubahan gagal disimpan", { description: desc || "Silakan coba lagi." });
         return false;
       }
       if (!updated || updated.length === 0) {
-        console.error("[saveDraft] 0 rows updated — RLS likely blocked write", { sectionKey, userId: user.id });
+        console.error("[saveDraft] 0 rows updated — RLS likely blocked write", {
+          sectionKey,
+          userId: user.id,
+        });
         toast.error("Perubahan tidak tersimpan", {
-          description: "Tidak ada baris yang ter-update. Akun Anda kemungkinan bukan super_admin atau session sudah kadaluarsa. Silakan login ulang.",
+          description:
+            "Tidak ada baris yang ter-update. Akun Anda kemungkinan bukan super_admin atau session sudah kadaluarsa. Silakan login ulang.",
         });
         return false;
       }
@@ -264,7 +301,9 @@ export function SectionEditor<T>({
       return true;
     } catch (e) {
       console.error("[saveDraft] unexpected", e);
-      toast.error("Perubahan gagal disimpan", { description: e instanceof Error ? e.message : String(e) });
+      toast.error("Perubahan gagal disimpan", {
+        description: e instanceof Error ? e.message : String(e),
+      });
       return false;
     } finally {
       setSaving(false);
@@ -294,7 +333,11 @@ export function SectionEditor<T>({
         return;
       }
       const user = userData.user;
-      console.info("[publish] payload", { sectionKey, userId: user.id, payloadSize: JSON.stringify(payload).length });
+      console.info("[publish] payload", {
+        sectionKey,
+        userId: user.id,
+        payloadSize: JSON.stringify(payload).length,
+      });
 
       const { data: updated, error } = await supabase
         .from("homepage_sections")
@@ -313,14 +356,20 @@ export function SectionEditor<T>({
         .select();
       if (error) {
         console.error("[publish] update error", error);
-        const desc = [error.message, error.code && `(code ${error.code})`, error.hint].filter(Boolean).join(" ");
+        const desc = [error.message, error.code && `(code ${error.code})`, error.hint]
+          .filter(Boolean)
+          .join(" ");
         toast.error("Gagal mem-publish", { description: desc || "Silakan coba lagi." });
         return;
       }
       if (!updated || updated.length === 0) {
-        console.error("[publish] 0 rows updated — RLS likely blocked", { sectionKey, userId: user.id });
+        console.error("[publish] 0 rows updated — RLS likely blocked", {
+          sectionKey,
+          userId: user.id,
+        });
         toast.error("Publish gagal", {
-          description: "Tidak ada baris yang ter-update. Akun Anda kemungkinan bukan super_admin atau session sudah kadaluarsa.",
+          description:
+            "Tidak ada baris yang ter-update. Akun Anda kemungkinan bukan super_admin atau session sudah kadaluarsa.",
         });
         return;
       }
@@ -355,7 +404,8 @@ export function SectionEditor<T>({
         await clearMediaUsage("homepage_section", sectionKey);
         const c = content as unknown as Record<string, unknown>;
         const track = async (url: unknown, field: string) => {
-          if (typeof url === "string" && url) await trackMediaUsage(url, "homepage_section", sectionKey, field);
+          if (typeof url === "string" && url)
+            await trackMediaUsage(url, "homepage_section", sectionKey, field);
         };
         if (sectionKey === "hero") await track(c.image, "image");
         if (sectionKey === "cta") await track(c.backgroundImage, "background");
@@ -366,7 +416,9 @@ export function SectionEditor<T>({
             await track(items[i].image, `items.${i}.image`);
           }
         }
-      } catch (usageErr) { console.warn("[publish] usage sync failed (non-fatal)", usageErr); }
+      } catch (usageErr) {
+        console.warn("[publish] usage sync failed (non-fatal)", usageErr);
+      }
       await logActivity("publish_section", "homepage_sections", sectionKey);
       toast.success(`Berhasil di-publish (Version ${nextVersion})`);
     } catch (e) {
@@ -417,7 +469,10 @@ export function SectionEditor<T>({
       {/* Header row */}
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <Link to="/admin/website/homepage" className="mb-2 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-secondary">
+          <Link
+            to="/admin/website/homepage"
+            className="mb-2 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-secondary"
+          >
             <ArrowLeft className="h-4 w-4" /> Kembali ke Homepage
           </Link>
           <h1 className="text-2xl font-bold text-secondary">Section: {meta.title}</h1>
@@ -445,7 +500,9 @@ export function SectionEditor<T>({
             <AlertTriangle className="h-4 w-4" /> Validasi gagal
           </div>
           <ul className="list-inside list-disc space-y-0.5 text-xs text-red-700">
-            {validationErrors.map((e, i) => <li key={i}>{e}</li>)}
+            {validationErrors.map((e, i) => (
+              <li key={i}>{e}</li>
+            ))}
           </ul>
         </div>
       )}
@@ -472,7 +529,11 @@ export function SectionEditor<T>({
         {render(content, setContent)}
       </Card>
 
-      <VersionPanel sectionKey={sectionKey} reloadKey={versionReloadKey} onRestore={restoreVersion} />
+      <VersionPanel
+        sectionKey={sectionKey}
+        reloadKey={versionReloadKey}
+        onRestore={restoreVersion}
+      />
 
       <UnsavedDialog
         open={blocker.status === "blocked"}

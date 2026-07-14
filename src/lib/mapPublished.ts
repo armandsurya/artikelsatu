@@ -7,15 +7,43 @@ import type { SectionKey } from "@/data/homepageDefaults";
 import { DEFAULTS, SECTION_META_DEFAULTS } from "@/data/homepageDefaults";
 import { splitMeta, DEFAULT_META, type SectionMeta } from "@/lib/admin/sectionMeta";
 import type {
-  HeroFormData, StatItem, ProblemItem, SolutionRow, WorkflowItem, AdvantageItem,
-  ServiceItem, PortfolioItem, PricingItem, ComparisonRow, FAQItem, BlogPreviewData, CTAData,
+  HeroFormData,
+  StatItem,
+  ProblemItem,
+  SolutionRow,
+  WorkflowItem,
+  AdvantageItem,
+  ServiceItem,
+  PortfolioItem,
+  PricingItem,
+  ComparisonRow,
+  FAQItem,
+  BlogPreviewData,
+  CTAData,
 } from "@/components/admin/homepage/forms";
 import type {
-  HeroData, Statistic, ProblemItem as ProblemT, ComparisonItem, WorkflowStep,
-  Advantage, Service, Portfolio, PricingPackage, CompetitorComparison,
-  FAQItem as FAQT, BlogPost, CTASectionData, NavItem, FooterData,
+  HeroData,
+  Statistic,
+  ProblemItem as ProblemT,
+  ComparisonItem,
+  WorkflowStep,
+  Advantage,
+  Service,
+  Portfolio,
+  PricingPackage,
+  CompetitorComparison,
+  FAQItem as FAQT,
+  BlogPost,
+  CTASectionData,
+  NavItem,
+  FooterData,
 } from "@/types";
-import type { PublishedSectionRow, PublishedBlogPostRow, PublishedCategoryRow, SiteSettingsBlob } from "@/lib/publishedContent";
+import type {
+  PublishedSectionRow,
+  PublishedBlogPostRow,
+  PublishedCategoryRow,
+  SiteSettingsBlob,
+} from "@/lib/publishedContent";
 import { footer as staticFooter } from "@/data/footer";
 import { settings as staticSettings } from "@/data/settings";
 import { mainNav as staticMainNav } from "@/data/navigation";
@@ -24,15 +52,20 @@ export type SectionSource = "database" | "fallback";
 
 /** Per-section meta after merging DB values with SECTION_META_DEFAULTS. */
 export type ResolvedMeta = {
-  eyebrow: string;    // meta.badge → SectionHeader eyebrow
-  subtitle: string;   // meta.subtitle → SectionHeader description
+  eyebrow: string; // meta.badge → SectionHeader eyebrow
+  subtitle: string; // meta.subtitle → SectionHeader description
   bgColor: string;
   bgImage: string;
   paddingTop: number;
   paddingBottom: number;
 };
 
-type MappedBase = { source: SectionSource; title?: string; meta: ResolvedMeta; lastPublishedAt?: string | null };
+type MappedBase = {
+  source: SectionSource;
+  title?: string;
+  meta: ResolvedMeta;
+  lastPublishedAt?: string | null;
+};
 
 export type MappedSection =
   | ({ type: "hero"; data: HeroData } & MappedBase)
@@ -67,7 +100,10 @@ export function resolveMeta(key: SectionKey, m: SectionMeta | null | undefined):
 }
 
 /** Pick DB content or static default (returns source + content + raw meta). */
-function pickContent<T>(key: SectionKey, dbData: Record<string, unknown> | null): { source: SectionSource; content: T; meta: SectionMeta } {
+function pickContent<T>(
+  key: SectionKey,
+  dbData: Record<string, unknown> | null,
+): { source: SectionSource; content: T; meta: SectionMeta } {
   if (dbData && !isEmpty(dbData)) {
     const { content, meta } = splitMeta<T>(dbData);
     if (!isEmpty(content as unknown)) return { source: "database", content, meta };
@@ -79,9 +115,10 @@ function pickContent<T>(key: SectionKey, dbData: Record<string, unknown> | null)
 /* ---------------- Section mappers ---------------- */
 
 function mapHero(v: HeroFormData): HeroData {
-  const secondary = v.secondaryButtonTarget === "custom" && v.secondaryButtonCustomUrl
-    ? v.secondaryButtonCustomUrl
-    : v.secondaryButtonTarget;
+  const secondary =
+    v.secondaryButtonTarget === "custom" && v.secondaryButtonCustomUrl
+      ? v.secondaryButtonCustomUrl
+      : v.secondaryButtonTarget;
   // Hero is edited exclusively through "Konten Section" fields.
   // Section-level meta (badge/subtitle) is NOT bound to the frontend for hero.
   const badge = (v.badge || "").trim() || undefined;
@@ -103,29 +140,54 @@ function mapHero(v: HeroFormData): HeroData {
 }
 
 const mapStats = (v: { items: StatItem[] }): Statistic[] =>
-  (v.items ?? []).filter((s) => s.isVisible !== false)
+  (v.items ?? [])
+    .filter((s) => s.isVisible !== false)
     .map((s, i) => ({ id: `stat-${i}`, title: s.title, value: s.value, icon: s.icon }));
 
 const mapProblems = (v: { items: ProblemItem[] }): ProblemT[] =>
-  (v.items ?? []).filter((p) => p.isVisible !== false)
-    .map((p, i) => ({ id: `problem-${i}`, title: p.title, description: p.description, icon: p.icon }));
+  (v.items ?? [])
+    .filter((p) => p.isVisible !== false)
+    .map((p, i) => ({
+      id: `problem-${i}`,
+      title: p.title,
+      description: p.description,
+      icon: p.icon,
+    }));
 
 const mapSolutions = (v: { items: SolutionRow[] }): ComparisonItem[] =>
-  (v.items ?? []).filter((s) => s.isVisible !== false)
+  (v.items ?? [])
+    .filter((s) => s.isVisible !== false)
     .map((s, i) => ({ id: `sol-${i}`, label: s.label, regular: s.regular, seo: s.seo }));
 
 const mapWorkflow = (v: { items: WorkflowItem[] }): WorkflowStep[] =>
-  (v.items ?? []).filter((w) => w.isVisible !== false)
-    .map((w, i) => ({ id: `wf-${i}`, stepNumber: w.stepNumber, title: w.title, description: w.description }));
+  (v.items ?? [])
+    .filter((w) => w.isVisible !== false)
+    .map((w, i) => ({
+      id: `wf-${i}`,
+      stepNumber: w.stepNumber,
+      title: w.title,
+      description: w.description,
+    }));
 
 const mapAdvantages = (v: { items: AdvantageItem[] }): Advantage[] =>
-  (v.items ?? []).map((a, i) => ({ id: `adv-${i}`, title: a.title, description: a.description, icon: a.icon }));
+  (v.items ?? []).map((a, i) => ({
+    id: `adv-${i}`,
+    title: a.title,
+    description: a.description,
+    icon: a.icon,
+  }));
 
 const mapServices = (v: { items: ServiceItem[] }): Service[] =>
-  (v.items ?? []).map((s, i) => ({ id: s.slug || `svc-${i}`, title: s.name, description: s.description, icon: s.icon }));
+  (v.items ?? []).map((s, i) => ({
+    id: s.slug || `svc-${i}`,
+    title: s.name,
+    description: s.description,
+    icon: s.icon,
+  }));
 
 const mapPortfolio = (v: { items: PortfolioItem[] }): Portfolio[] =>
-  (v.items ?? []).filter((p) => p.isVisible !== false)
+  (v.items ?? [])
+    .filter((p) => p.isVisible !== false)
     .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
     .map((p, i) => ({
       id: `pf-${i}`,
@@ -134,22 +196,27 @@ const mapPortfolio = (v: { items: PortfolioItem[] }): Portfolio[] =>
       excerpt: (p.excerpt ?? "").trim() || undefined,
       keyword: p.keyword,
       wordCount: p.wordCount,
-      labels: (p.labels ?? []).map((l) => l.text).filter(Boolean).slice(0, 3),
+      labels: (p.labels ?? [])
+        .map((l) => l.text)
+        .filter(Boolean)
+        .slice(0, 3),
       ctaLabel: (p.ctaLabel ?? "").trim() || "Lihat Preview",
       ctaUrl: (p.ctaUrl ?? "").trim() || "#",
     }));
 
 const mapPricing = (v: { items: PricingItem[] }): PricingPackage[] =>
-  (v.items ?? []).filter((p) => p.isVisible !== false).map((p, i) => ({
-    id: `pk-${i}`,
-    packageName: p.packageName,
-    price: p.price,
-    priceNote: p.priceNote || undefined,
-    description: p.badge || "",
-    features: (p.features ?? []).map((f) => f.text).filter(Boolean),
-    isPopular: !!p.isPopular,
-    cta: { label: p.ctaLabel || "Pesan Sekarang" },
-  }));
+  (v.items ?? [])
+    .filter((p) => p.isVisible !== false)
+    .map((p, i) => ({
+      id: `pk-${i}`,
+      packageName: p.packageName,
+      price: p.price,
+      priceNote: p.priceNote || undefined,
+      description: p.badge || "",
+      features: (p.features ?? []).map((f) => f.text).filter(Boolean),
+      isPopular: !!p.isPopular,
+      cta: { label: p.ctaLabel || "Pesan Sekarang" },
+    }));
 
 const boolFromText = (v: string): string | boolean => {
   const t = v.trim().toLowerCase();
@@ -168,7 +235,8 @@ const mapComparison = (v: { rows: ComparisonRow[] }): CompetitorComparison[] =>
   }));
 
 const mapFaq = (v: { items: FAQItem[] }): FAQT[] =>
-  (v.items ?? []).filter((f) => f.isVisible !== false)
+  (v.items ?? [])
+    .filter((f) => f.isVisible !== false)
     .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
     .map((f, i) => ({ id: `faq-${i}`, question: f.question, answer: f.answer }));
 
@@ -180,7 +248,10 @@ const mapCta = (v: CTAData): CTASectionData => ({
 
 /* ---------------- Blog mapping ---------------- */
 
-export function mapBlogPosts(rows: PublishedBlogPostRow[], cats: PublishedCategoryRow[]): BlogPost[] {
+export function mapBlogPosts(
+  rows: PublishedBlogPostRow[],
+  cats: PublishedCategoryRow[],
+): BlogPost[] {
   const catMap = new Map(cats.map((c) => [c.id, c.name]));
   return rows.map((r) => ({
     id: r.id,
@@ -201,7 +272,12 @@ export function mapBlogPosts(rows: PublishedBlogPostRow[], cats: PublishedCatego
 
 /* ---------------- Sections list assembly ---------------- */
 
-export type SectionArrangement = { key: SectionKey; title: string | null; sortOrder: number; isVisible: boolean };
+export type SectionArrangement = {
+  key: SectionKey;
+  title: string | null;
+  sortOrder: number;
+  isVisible: boolean;
+};
 
 const DEFAULT_ORDER: SectionArrangement[] = [
   { key: "hero", title: null, sortOrder: 1, isVisible: true },
@@ -219,13 +295,20 @@ const DEFAULT_ORDER: SectionArrangement[] = [
   { key: "cta", title: null, sortOrder: 13, isVisible: true },
 ];
 
-export function buildHomepageArrangement(rows: PublishedSectionRow[] | undefined): SectionArrangement[] {
+export function buildHomepageArrangement(
+  rows: PublishedSectionRow[] | undefined,
+): SectionArrangement[] {
   if (!rows || rows.length === 0) return DEFAULT_ORDER;
   const byKey = new Map(rows.map((r) => [r.section_key, r]));
   return DEFAULT_ORDER.map((d) => {
     const r = byKey.get(d.key);
     if (!r) return d;
-    return { key: d.key, title: r.title ?? d.title, sortOrder: r.sort_order ?? d.sortOrder, isVisible: r.is_visible !== false };
+    return {
+      key: d.key,
+      title: r.title ?? d.title,
+      sortOrder: r.sort_order ?? d.sortOrder,
+      isVisible: r.is_visible !== false,
+    };
   }).sort((a, b) => a.sortOrder - b.sortOrder);
 }
 
@@ -253,45 +336,100 @@ export function mapPublishedSection(
     }
     case "problems": {
       const { source, content, meta } = pickContent<{ items: ProblemItem[] }>("problems", dbData);
-      return { type: "problems", ...base(source, meta), title: title ?? undefined, data: mapProblems(content) };
+      return {
+        type: "problems",
+        ...base(source, meta),
+        title: title ?? undefined,
+        data: mapProblems(content),
+      };
     }
     case "solutions": {
       const { source, content, meta } = pickContent<{ items: SolutionRow[] }>("solutions", dbData);
-      return { type: "solutions", ...base(source, meta), title: title ?? undefined, data: mapSolutions(content) };
+      return {
+        type: "solutions",
+        ...base(source, meta),
+        title: title ?? undefined,
+        data: mapSolutions(content),
+      };
     }
     case "workflow": {
       const { source, content, meta } = pickContent<{ items: WorkflowItem[] }>("workflow", dbData);
-      return { type: "workflow", ...base(source, meta), title: title ?? undefined, data: mapWorkflow(content) };
+      return {
+        type: "workflow",
+        ...base(source, meta),
+        title: title ?? undefined,
+        data: mapWorkflow(content),
+      };
     }
     case "advantages": {
-      const { source, content, meta } = pickContent<{ items: AdvantageItem[] }>("advantages", dbData);
-      return { type: "advantages", ...base(source, meta), title: title ?? undefined, data: mapAdvantages(content) };
+      const { source, content, meta } = pickContent<{ items: AdvantageItem[] }>(
+        "advantages",
+        dbData,
+      );
+      return {
+        type: "advantages",
+        ...base(source, meta),
+        title: title ?? undefined,
+        data: mapAdvantages(content),
+      };
     }
     case "services": {
       const { source, content, meta } = pickContent<{ items: ServiceItem[] }>("services", dbData);
-      return { type: "services", ...base(source, meta), title: title ?? undefined, data: mapServices(content) };
+      return {
+        type: "services",
+        ...base(source, meta),
+        title: title ?? undefined,
+        data: mapServices(content),
+      };
     }
     case "portfolio": {
-      const { source, content, meta } = pickContent<{ items: PortfolioItem[] }>("portfolio", dbData);
-      return { type: "portfolio", ...base(source, meta), title: title ?? undefined, data: mapPortfolio(content) };
+      const { source, content, meta } = pickContent<{ items: PortfolioItem[] }>(
+        "portfolio",
+        dbData,
+      );
+      return {
+        type: "portfolio",
+        ...base(source, meta),
+        title: title ?? undefined,
+        data: mapPortfolio(content),
+      };
     }
     case "pricing": {
       const { source, content, meta } = pickContent<{ items: PricingItem[] }>("pricing", dbData);
-      return { type: "pricing", ...base(source, meta), title: title ?? undefined, data: mapPricing(content) };
+      return {
+        type: "pricing",
+        ...base(source, meta),
+        title: title ?? undefined,
+        data: mapPricing(content),
+      };
     }
     case "comparison": {
-      const { source, content, meta } = pickContent<{ rows: ComparisonRow[] }>("comparison", dbData);
-      return { type: "comparison", ...base(source, meta), title: title ?? undefined, data: mapComparison(content) };
+      const { source, content, meta } = pickContent<{ rows: ComparisonRow[] }>(
+        "comparison",
+        dbData,
+      );
+      return {
+        type: "comparison",
+        ...base(source, meta),
+        title: title ?? undefined,
+        data: mapComparison(content),
+      };
     }
     case "faq": {
       const { source, content, meta } = pickContent<{ items: FAQItem[] }>("faq", dbData);
-      return { type: "faq", ...base(source, meta), title: title ?? undefined, data: mapFaq(content) };
+      return {
+        type: "faq",
+        ...base(source, meta),
+        title: title ?? undefined,
+        data: mapFaq(content),
+      };
     }
     case "blogPreview": {
       const { source, content, meta } = pickContent<BlogPreviewData>("blogPreview", dbData);
       const count = Math.max(1, Number(content.count) || 3);
       const cat = content.category || "auto";
-      const filtered = cat === "auto" || !cat ? blogPosts : blogPosts.filter((p) => p.category === cat);
+      const filtered =
+        cat === "auto" || !cat ? blogPosts : blogPosts.filter((p) => p.category === cat);
       return {
         type: "blogPreview",
         ...base(source, meta),
@@ -354,7 +492,11 @@ export function mapHeader(settings: SiteSettingsBlob | undefined): HeaderProps {
 }
 
 function defaultMenu(): HeaderProps["menu"] {
-  return staticMainNav.map((m: NavItem) => ({ label: m.label, href: m.href, target: "_self" as const }));
+  return staticMainNav.map((m: NavItem) => ({
+    label: m.label,
+    href: m.href,
+    target: "_self" as const,
+  }));
 }
 
 export type FooterProps = {
@@ -368,22 +510,32 @@ export type FooterProps = {
 };
 
 export function mapFooter(settings: SiteSettingsBlob | undefined): FooterProps {
-  const raw = (settings?.footer as {
-    description?: string; copyright?: string;
-    contact?: Partial<FooterProps["contact"]>;
-    social?: FooterProps["social"];
-    columns?: FooterData["columns"];
-  } | undefined) ?? undefined;
+  const raw =
+    (settings?.footer as
+      | {
+          description?: string;
+          copyright?: string;
+          contact?: Partial<FooterProps["contact"]>;
+          social?: FooterProps["social"];
+          columns?: FooterData["columns"];
+        }
+      | undefined) ?? undefined;
 
-  const globalLogo = (settings?.logo as string | undefined)
-    || (settings?.siteName as string | undefined)
-    || (settings?.header as { logo?: string } | undefined)?.logo
-    || staticSettings.logo;
+  const globalLogo =
+    (settings?.logo as string | undefined) ||
+    (settings?.siteName as string | undefined) ||
+    (settings?.header as { logo?: string } | undefined)?.logo ||
+    staticSettings.logo;
   const globalWa = (settings?.whatsapp as string | undefined) || staticSettings.whatsapp;
   const globalEmail = (settings?.email as string | undefined) || staticSettings.email;
   const globalAddress = (settings?.address as string | undefined) || staticSettings.address;
-  const globalSocial = (settings?.social as FooterProps["social"] | undefined);
-  const hasGlobal = !!(settings?.logo || settings?.siteName || settings?.whatsapp || settings?.email);
+  const globalSocial = settings?.social as FooterProps["social"] | undefined;
+  const hasGlobal = !!(
+    settings?.logo ||
+    settings?.siteName ||
+    settings?.whatsapp ||
+    settings?.email
+  );
 
   if (raw && raw.description) {
     return {
@@ -396,7 +548,11 @@ export function mapFooter(settings: SiteSettingsBlob | undefined): FooterProps {
         email: raw.contact?.email || globalEmail,
         address: raw.contact?.address || globalAddress,
       },
-      social: (globalSocial?.length ? globalSocial : raw.social?.length ? raw.social : staticSettings.social),
+      social: globalSocial?.length
+        ? globalSocial
+        : raw.social?.length
+          ? raw.social
+          : staticSettings.social,
       columns: raw.columns?.length ? raw.columns : staticFooter.columns,
     };
   }

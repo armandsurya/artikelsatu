@@ -31,10 +31,21 @@ export function CKEditorField({ value, onChange, onStats, minHeight = 480, place
 
   useEffect(() => {
     let cancelled = false;
-    Promise.all([import("@ckeditor/ckeditor5-react"), import("ckeditor5"), import("ckeditor5/ckeditor5.css")])
-      .then(([react, cke]) => { if (!cancelled) setMods({ react, cke }); })
-      .catch((e) => { console.error("[CKEditor] load failed", e); if (!cancelled) setLoadError(String(e?.message ?? e)); });
-    return () => { cancelled = true; };
+    Promise.all([
+      import("@ckeditor/ckeditor5-react"),
+      import("ckeditor5"),
+      import("ckeditor5/ckeditor5.css"),
+    ])
+      .then(([react, cke]) => {
+        if (!cancelled) setMods({ react, cke });
+      })
+      .catch((e) => {
+        console.error("[CKEditor] load failed", e);
+        if (!cancelled) setLoadError(String(e?.message ?? e));
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const [fullscreen, setFullscreen] = useState(false);
@@ -42,7 +53,9 @@ export function CKEditorField({ value, onChange, onStats, minHeight = 480, place
   // Esc closes fullscreen
   useEffect(() => {
     if (!fullscreen) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setFullscreen(false); };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setFullscreen(false);
+    };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [fullscreen]);
@@ -55,7 +68,11 @@ export function CKEditorField({ value, onChange, onStats, minHeight = 480, place
     try {
       editor.execute("insertImage", { source: { src: payload.url, alt: payload.alt ?? "" } });
       if (payload.caption) {
-        try { editor.execute("toggleImageCaption", { focusCaptionOnShow: false }); } catch { /* noop */ }
+        try {
+          editor.execute("toggleImageCaption", { focusCaptionOnShow: false });
+        } catch {
+          /* noop */
+        }
       }
     } catch (e) {
       console.error("[CKEditor] insertImage failed", e);
@@ -68,34 +85,100 @@ export function CKEditorField({ value, onChange, onStats, minHeight = 480, place
     return {
       licenseKey: "GPL" as const,
       plugins: [
-        cke.Essentials, cke.Paragraph, cke.Heading, cke.Bold, cke.Italic, cke.Underline, cke.Strikethrough,
-        cke.Subscript, cke.Superscript, cke.Code, cke.CodeBlock, cke.BlockQuote, cke.Highlight,
-        cke.FontSize, cke.FontFamily, cke.FontColor, cke.FontBackgroundColor,
-        cke.Alignment, cke.Indent, cke.IndentBlock,
-        cke.List, cke.TodoList, cke.ListProperties,
-        cke.Link, cke.AutoLink, cke.LinkImage,
-        cke.Image, cke.ImageToolbar, cke.ImageCaption, cke.ImageStyle, cke.ImageResize,
-        cke.ImageUpload, cke.ImageInsertViaUrl, cke.PictureEditing,
-        cke.Table, cke.TableToolbar, cke.TableProperties, cke.TableCellProperties,
-        cke.TableColumnResize, cke.TableCaption,
-        cke.HorizontalLine, cke.RemoveFormat,
-        cke.FindAndReplace, cke.WordCount,
-        cke.SourceEditing, cke.HtmlEmbed, cke.GeneralHtmlSupport,
-        cke.PasteFromOffice, cke.AutoImage,
-        cke.SpecialCharacters, cke.SpecialCharactersEssentials,
+        cke.Essentials,
+        cke.Paragraph,
+        cke.Heading,
+        cke.Bold,
+        cke.Italic,
+        cke.Underline,
+        cke.Strikethrough,
+        cke.Subscript,
+        cke.Superscript,
+        cke.Code,
+        cke.CodeBlock,
+        cke.BlockQuote,
+        cke.Highlight,
+        cke.FontSize,
+        cke.FontFamily,
+        cke.FontColor,
+        cke.FontBackgroundColor,
+        cke.Alignment,
+        cke.Indent,
+        cke.IndentBlock,
+        cke.List,
+        cke.TodoList,
+        cke.ListProperties,
+        cke.Link,
+        cke.AutoLink,
+        cke.LinkImage,
+        cke.Image,
+        cke.ImageToolbar,
+        cke.ImageCaption,
+        cke.ImageStyle,
+        cke.ImageResize,
+        cke.ImageUpload,
+        cke.ImageInsertViaUrl,
+        cke.PictureEditing,
+        cke.Table,
+        cke.TableToolbar,
+        cke.TableProperties,
+        cke.TableCellProperties,
+        cke.TableColumnResize,
+        cke.TableCaption,
+        cke.HorizontalLine,
+        cke.RemoveFormat,
+        cke.FindAndReplace,
+        cke.WordCount,
+        cke.SourceEditing,
+        cke.HtmlEmbed,
+        cke.GeneralHtmlSupport,
+        cke.PasteFromOffice,
+        cke.AutoImage,
+        cke.SpecialCharacters,
+        cke.SpecialCharactersEssentials,
         cke.Clipboard,
       ],
       toolbar: {
         items: [
-          "undo", "redo", "|",
-          "heading", "|",
-          "bold", "italic", "underline", "strikethrough", "subscript", "superscript", "|",
-          "fontSize", "fontColor", "fontBackgroundColor", "highlight", "|",
-          "alignment", "outdent", "indent", "|",
-          "bulletedList", "numberedList", "todoList", "|",
-          "blockQuote", "horizontalLine", "code", "codeBlock", "|",
-          "link", "openMediaLibrary", "insertImage", "insertTable", "specialCharacters", "|",
-          "removeFormat", "findAndReplace", "sourceEditing",
+          "undo",
+          "redo",
+          "|",
+          "heading",
+          "|",
+          "bold",
+          "italic",
+          "underline",
+          "strikethrough",
+          "subscript",
+          "superscript",
+          "|",
+          "fontSize",
+          "fontColor",
+          "fontBackgroundColor",
+          "highlight",
+          "|",
+          "alignment",
+          "outdent",
+          "indent",
+          "|",
+          "bulletedList",
+          "numberedList",
+          "todoList",
+          "|",
+          "blockQuote",
+          "horizontalLine",
+          "code",
+          "codeBlock",
+          "|",
+          "link",
+          "openMediaLibrary",
+          "insertImage",
+          "insertTable",
+          "specialCharacters",
+          "|",
+          "removeFormat",
+          "findAndReplace",
+          "sourceEditing",
         ],
         shouldNotGroupWhenFull: true,
       },
@@ -112,42 +195,76 @@ export function CKEditorField({ value, onChange, onStats, minHeight = 480, place
       },
       image: {
         toolbar: [
-          "imageTextAlternative", "toggleImageCaption", "|",
-          "imageStyle:inline", "imageStyle:alignLeft", "imageStyle:alignCenter", "imageStyle:alignRight", "imageStyle:block", "|",
-          "resizeImage", "linkImage",
+          "imageTextAlternative",
+          "toggleImageCaption",
+          "|",
+          "imageStyle:inline",
+          "imageStyle:alignLeft",
+          "imageStyle:alignCenter",
+          "imageStyle:alignRight",
+          "imageStyle:block",
+          "|",
+          "resizeImage",
+          "linkImage",
         ],
       },
       table: {
         contentToolbar: [
-          "tableColumn", "tableRow", "mergeTableCells",
-          "tableProperties", "tableCellProperties", "toggleTableCaption",
+          "tableColumn",
+          "tableRow",
+          "mergeTableCells",
+          "tableProperties",
+          "tableCellProperties",
+          "toggleTableCaption",
         ],
       },
       link: { addTargetToExternalLinks: true, defaultProtocol: "https://" },
-      fontSize: { options: [10, 12, 14, "default", 18, 20, 24, 30, 36, 48], supportAllValues: true },
+      fontSize: {
+        options: [10, 12, 14, "default", 18, 20, 24, 30, 36, 48],
+        supportAllValues: true,
+      },
       htmlSupport: { allow: [{ name: /.*/, attributes: true, classes: true, styles: true }] },
       placeholder: placeholder ?? "Mulai menulis artikel di sini…",
       extraPlugins: [
         SupabaseUploadAdapterPlugin as unknown as never,
-        (function OpenMediaLibraryPlugin(this: unknown, editor: { ui: { componentFactory: { add: (n: string, cb: (locale: unknown) => unknown) => void } } }) {
+        function OpenMediaLibraryPlugin(
+          this: unknown,
+          editor: {
+            ui: {
+              componentFactory: { add: (n: string, cb: (locale: unknown) => unknown) => void };
+            };
+          },
+        ) {
           editor.ui.componentFactory.add("openMediaLibrary", (locale) => {
             const view = new cke.ButtonView(locale as never);
-            view.set({ label: "Media Library", tooltip: true, withText: false, icon: '<svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M3 5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5zm2 0v7l3-3 3 3 2-2 2 2V5H5zm4 3a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z" fill="currentColor"/></svg>' });
+            view.set({
+              label: "Media Library",
+              tooltip: true,
+              withText: false,
+              icon: '<svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M3 5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5zm2 0v7l3-3 3 3 2-2 2 2V5H5zm4 3a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z" fill="currentColor"/></svg>',
+            });
             view.on("execute", () => setLibraryOpen(true));
             return view;
           });
-        }) as unknown as never,
+        } as unknown as never,
       ],
     };
   }, [mods, placeholder]);
 
   if (loadError) {
-    return <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">Editor gagal dimuat: {loadError}</div>;
+    return (
+      <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        Editor gagal dimuat: {loadError}
+      </div>
+    );
   }
 
   if (!mods || !config) {
     return (
-      <div className="flex items-center justify-center rounded-lg border border-border bg-background text-sm text-muted-foreground" style={{ minHeight }}>
+      <div
+        className="flex items-center justify-center rounded-lg border border-border bg-background text-sm text-muted-foreground"
+        style={{ minHeight }}
+      >
         <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Memuat editor…
       </div>
     );
@@ -170,7 +287,9 @@ export function CKEditorField({ value, onChange, onStats, minHeight = 480, place
   return (
     <div
       className={wrapperCls}
-      style={{ ["--cke-min-height" as string]: fullscreen ? "calc(100vh - 8rem)" : `${minHeight}px` }}
+      style={{
+        ["--cke-min-height" as string]: fullscreen ? "calc(100vh - 8rem)" : `${minHeight}px`,
+      }}
     >
       <div className="mb-2 flex flex-wrap items-center justify-end gap-2">
         <button
@@ -179,7 +298,15 @@ export function CKEditorField({ value, onChange, onStats, minHeight = 480, place
           className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-1 text-xs text-muted-foreground hover:bg-accent"
           title={fullscreen ? "Keluar Fullscreen (Esc)" : "Fullscreen"}
         >
-          {fullscreen ? <><Minimize2 className="h-3.5 w-3.5" /> Keluar Fullscreen</> : <><Maximize2 className="h-3.5 w-3.5" /> Fullscreen</>}
+          {fullscreen ? (
+            <>
+              <Minimize2 className="h-3.5 w-3.5" /> Keluar Fullscreen
+            </>
+          ) : (
+            <>
+              <Maximize2 className="h-3.5 w-3.5" /> Fullscreen
+            </>
+          )}
         </button>
       </div>
       <div className="cke-editor-pane min-w-0">
@@ -191,9 +318,20 @@ export function CKEditorField({ value, onChange, onStats, minHeight = 480, place
             editorRef.current = editor;
             try {
               const e = editor as {
-                plugins: { get: (n: string) => { on: (evt: string, cb: (_: unknown, data: unknown) => void) => void } };
+                plugins: {
+                  get: (n: string) => {
+                    on: (evt: string, cb: (_: unknown, data: unknown) => void) => void;
+                  };
+                };
                 getData: () => string;
-                editing: { view: { change: (cb: (writer: { addClass: (c: string, root: unknown) => void }) => void) => void; document: { getRoot: (name?: string) => unknown } } };
+                editing: {
+                  view: {
+                    change: (
+                      cb: (writer: { addClass: (c: string, root: unknown) => void }) => void,
+                    ) => void;
+                    document: { getRoot: (name?: string) => unknown };
+                  };
+                };
               };
               e.editing.view.change((writer) => {
                 const root = e.editing.view.document.getRoot();
@@ -219,7 +357,10 @@ export function CKEditorField({ value, onChange, onStats, minHeight = 480, place
       {libraryOpen && (
         <InsertImageDialog
           onClose={() => setLibraryOpen(false)}
-          onInsert={(payload) => { insertImage(payload); setLibraryOpen(false); }}
+          onInsert={(payload) => {
+            insertImage(payload);
+            setLibraryOpen(false);
+          }}
         />
       )}
     </div>

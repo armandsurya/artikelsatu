@@ -8,8 +8,7 @@ export const hero: HeroData = {
     "Kami menulis artikel yang tidak hanya enak dibaca, tetapi juga dioptimasi untuk mesin pencari — membantu bisnis Anda mendapatkan trafik organik yang konsisten dari Google.",
   primaryButtonText: "Pesan via WhatsApp",
   primaryButtonLink: "https://wa.me/6282214949685",
-  primaryButtonMessage:
-    "Halo, saya ingin konsultasi mengenai jasa pembuatan artikel SEO.",
+  primaryButtonMessage: "Halo, saya ingin konsultasi mengenai jasa pembuatan artikel SEO.",
   secondaryButtonText: "Lihat Harga",
   secondaryButtonTarget: "#pricing",
   image: heroImage,

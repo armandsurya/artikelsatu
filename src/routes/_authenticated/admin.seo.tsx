@@ -32,12 +32,19 @@ const DEFAULT_ROBOTS = `User-agent: *\nAllow: /\n`;
 function validate(d: SeoConfig): string | null {
   if (d.ga4Id && !VALIDATORS.ga4(d.ga4Id)) return "Google Analytics ID harus format G-XXXXXXXX.";
   if (d.gtmId && !VALIDATORS.gtm(d.gtmId)) return "Google Tag Manager ID harus format GTM-XXXXXXX.";
-  if (d.clarityId && !VALIDATORS.clarity(d.clarityId)) return "Microsoft Clarity ID harus alfanumerik 5-20 karakter.";
-  if (d.metaPixelId && !VALIDATORS.metaPixel(d.metaPixelId)) return "Meta Pixel ID harus angka (8-20 digit).";
+  if (d.clarityId && !VALIDATORS.clarity(d.clarityId))
+    return "Microsoft Clarity ID harus alfanumerik 5-20 karakter.";
+  if (d.metaPixelId && !VALIDATORS.metaPixel(d.metaPixelId))
+    return "Meta Pixel ID harus angka (8-20 digit).";
   if (d.schema && d.schema.trim()) {
-    try { JSON.parse(d.schema); } catch { return "Schema JSON-LD tidak valid (JSON parse error)."; }
+    try {
+      JSON.parse(d.schema);
+    } catch {
+      return "Schema JSON-LD tidak valid (JSON parse error).";
+    }
   }
-  if (d.canonicalBase && !/^https?:\/\//i.test(d.canonicalBase)) return "Canonical Base URL harus dimulai dengan http(s)://";
+  if (d.canonicalBase && !/^https?:\/\//i.test(d.canonicalBase))
+    return "Canonical Base URL harus dimulai dengan http(s)://";
   return null;
 }
 
@@ -51,7 +58,11 @@ function SEO() {
   const { data, isLoading } = useQuery({
     queryKey: ["seo-settings-full"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("site_settings").select("data").eq("id", 1).maybeSingle();
+      const { data, error } = await supabase
+        .from("site_settings")
+        .select("data")
+        .eq("id", 1)
+        .maybeSingle();
       if (error) throw error;
       return (data?.data ?? {}) as Record<string, unknown>;
     },
@@ -69,21 +80,33 @@ function SEO() {
 
   async function save() {
     const err = validate(d);
-    if (err) { toast.error("Validasi gagal", { description: err }); return; }
+    if (err) {
+      toast.error("Validasi gagal", { description: err });
+      return;
+    }
 
     setStatus("saving");
     try {
-      const { data: row, error: readErr } = await supabase.from("site_settings").select("data").eq("id", 1).maybeSingle();
+      const { data: row, error: readErr } = await supabase
+        .from("site_settings")
+        .select("data")
+        .eq("id", 1)
+        .maybeSingle();
       if (readErr) throw readErr;
       const current = (row?.data as Record<string, unknown>) ?? {};
       const merged = { ...current, seo: d };
-      const { error } = await supabase.from("site_settings").update({ data: merged as never }).eq("id", 1);
+      const { error } = await supabase
+        .from("site_settings")
+        .update({ data: merged as never })
+        .eq("id", 1);
       if (error) throw error;
 
       // Sync media usage
       const fields: Array<[keyof SeoConfig, string]> = [
-        ["favicon", "favicon"], ["ogImage", "og_image"],
-        ["twitterImage", "twitter_image"], ["schemaImage", "schema_image"],
+        ["favicon", "favicon"],
+        ["ogImage", "og_image"],
+        ["twitterImage", "twitter_image"],
+        ["schemaImage", "schema_image"],
         ["organizationLogo", "organization_logo"],
       ];
       for (const [key, field] of fields) {
@@ -106,7 +129,9 @@ function SEO() {
       const msg = e instanceof Error ? e.message : String(e);
       const hint = /permission|policy|rls/i.test(msg)
         ? "Tidak memiliki akses (super_admin) atau session kadaluarsa. Login ulang."
-        : /network|fetch/i.test(msg) ? "Koneksi gagal. Coba lagi." : msg;
+        : /network|fetch/i.test(msg)
+          ? "Koneksi gagal. Coba lagi."
+          : msg;
       setStatus("error");
       toast.error("Gagal menyimpan SEO", { description: hint });
     }
@@ -117,12 +142,29 @@ function SEO() {
     onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
       setD({ ...d, [k]: e.target.value }),
   });
-  const setImg = <K extends keyof SeoConfig>(k: K) => (v: string) => setD({ ...d, [k]: v });
+  const setImg =
+    <K extends keyof SeoConfig>(k: K) =>
+    (v: string) =>
+      setD({ ...d, [k]: v });
 
-  const btnLabel = status === "saving" ? "Menyimpan…" : status === "success" ? "Tersimpan" : status === "error" ? "Coba Lagi" : "Simpan";
-  const btnIcon = status === "saving" ? <Loader2 className="h-4 w-4 animate-spin" />
-    : status === "success" ? <CheckCircle2 className="h-4 w-4" />
-    : status === "error" ? <AlertCircle className="h-4 w-4" /> : <Save className="h-4 w-4" />;
+  const btnLabel =
+    status === "saving"
+      ? "Menyimpan…"
+      : status === "success"
+        ? "Tersimpan"
+        : status === "error"
+          ? "Coba Lagi"
+          : "Simpan";
+  const btnIcon =
+    status === "saving" ? (
+      <Loader2 className="h-4 w-4 animate-spin" />
+    ) : status === "success" ? (
+      <CheckCircle2 className="h-4 w-4" />
+    ) : status === "error" ? (
+      <AlertCircle className="h-4 w-4" />
+    ) : (
+      <Save className="h-4 w-4" />
+    );
 
   return (
     <div>
@@ -131,8 +173,14 @@ function SEO() {
         description="Konfigurasi SEO global, meta tag, analytics, verifikasi, schema, robots, dan sitemap."
         actions={
           <div className="flex items-center gap-3">
-            {dirty && status === "idle" && <span className="text-xs text-amber-600">Ada perubahan belum disimpan</span>}
-            <button onClick={save} disabled={status === "saving" || isLoading || !dirty} className={btnPrimary}>
+            {dirty && status === "idle" && (
+              <span className="text-xs text-amber-600">Ada perubahan belum disimpan</span>
+            )}
+            <button
+              onClick={save}
+              disabled={status === "saving" || isLoading || !dirty}
+              className={btnPrimary}
+            >
               {btnIcon} {btnLabel}
             </button>
           </div>
@@ -161,26 +209,50 @@ function SEO() {
                 <input {...bindText("homepageTitle")} className={inputCls} maxLength={70} />
               </Field>
               <Field label="Meta Description" hint="≤ 160 karakter untuk hasil pencarian optimal.">
-                <textarea {...bindText("homepageDescription")} rows={3} className={inputCls} maxLength={200} />
+                <textarea
+                  {...bindText("homepageDescription")}
+                  rows={3}
+                  className={inputCls}
+                  maxLength={200}
+                />
               </Field>
             </div>
           </Card>
           <Card>
             <h3 className="mb-3 text-sm font-semibold text-secondary">Blog</h3>
             <div className="space-y-3">
-              <Field label="Meta Title (Blog Archive)"><input {...bindText("blogTitle")} className={inputCls} maxLength={70} /></Field>
-              <Field label="Meta Description (Blog Archive)"><textarea {...bindText("blogDescription")} rows={3} className={inputCls} maxLength={200} /></Field>
+              <Field label="Meta Title (Blog Archive)">
+                <input {...bindText("blogTitle")} className={inputCls} maxLength={70} />
+              </Field>
+              <Field label="Meta Description (Blog Archive)">
+                <textarea
+                  {...bindText("blogDescription")}
+                  rows={3}
+                  className={inputCls}
+                  maxLength={200}
+                />
+              </Field>
             </div>
           </Card>
           <Card>
             <h3 className="mb-3 text-sm font-semibold text-secondary">Default Meta</h3>
             <div className="space-y-3">
-              <Field label="Keywords (pisahkan koma)"><input {...bindText("defaultKeywords")} className={inputCls} placeholder="jasa artikel seo, penulis konten" /></Field>
+              <Field label="Keywords (pisahkan koma)">
+                <input
+                  {...bindText("defaultKeywords")}
+                  className={inputCls}
+                  placeholder="jasa artikel seo, penulis konten"
+                />
+              </Field>
               <Field label="Robots Meta" hint="Contoh: index,follow atau noindex,nofollow.">
                 <input {...bindText("robots")} className={inputCls} placeholder="index,follow" />
               </Field>
               <Field label="Canonical Base URL" hint="Domain absolut, contoh https://artikelpro.id">
-                <input {...bindText("canonicalBase")} className={inputCls} placeholder="https://…" />
+                <input
+                  {...bindText("canonicalBase")}
+                  className={inputCls}
+                  placeholder="https://…"
+                />
               </Field>
               <MediaPicker label="Favicon" value={d.favicon ?? ""} onChange={setImg("favicon")} />
             </div>
@@ -190,19 +262,35 @@ function SEO() {
 
       {tab === "og" && (
         <Card>
-          <h3 className="mb-3 text-sm font-semibold text-secondary">Open Graph (Facebook, WhatsApp, LinkedIn)</h3>
+          <h3 className="mb-3 text-sm font-semibold text-secondary">
+            Open Graph (Facebook, WhatsApp, LinkedIn)
+          </h3>
           <div className="grid gap-4 md:grid-cols-2">
-            <Field label="OG Title (default)"><input {...bindText("ogTitle")} className={inputCls} placeholder="Kosongkan untuk pakai Meta Title" /></Field>
+            <Field label="OG Title (default)">
+              <input
+                {...bindText("ogTitle")}
+                className={inputCls}
+                placeholder="Kosongkan untuk pakai Meta Title"
+              />
+            </Field>
             <Field label="OG Type" hint="Umum: website, article, product.">
               <input {...bindText("ogType")} className={inputCls} placeholder="website" />
             </Field>
-            <Field label="OG Description (default)"><textarea {...bindText("ogDescription")} rows={2} className={inputCls} /></Field>
+            <Field label="OG Description (default)">
+              <textarea {...bindText("ogDescription")} rows={2} className={inputCls} />
+            </Field>
             <Field label="OG Locale" hint="Contoh: id_ID, en_US">
               <input {...bindText("ogLocale")} className={inputCls} placeholder="id_ID" />
             </Field>
-            <Field label="OG Site Name"><input {...bindText("ogSiteName")} className={inputCls} /></Field>
+            <Field label="OG Site Name">
+              <input {...bindText("ogSiteName")} className={inputCls} />
+            </Field>
             <div className="md:col-span-2">
-              <MediaPicker label="OG Image (default, 1200×630 direkomendasikan)" value={d.ogImage ?? ""} onChange={setImg("ogImage")} />
+              <MediaPicker
+                label="OG Image (default, 1200×630 direkomendasikan)"
+                value={d.ogImage ?? ""}
+                onChange={setImg("ogImage")}
+              />
             </div>
           </div>
         </Card>
@@ -223,9 +311,15 @@ function SEO() {
             <Field label="Twitter @site" hint="Handle akun brand, contoh @artikelpro">
               <input {...bindText("twitterSite")} className={inputCls} placeholder="@artikelpro" />
             </Field>
-            <Field label="Twitter @creator"><input {...bindText("twitterCreator")} className={inputCls} placeholder="@armand" /></Field>
+            <Field label="Twitter @creator">
+              <input {...bindText("twitterCreator")} className={inputCls} placeholder="@armand" />
+            </Field>
             <div className="md:col-span-2">
-              <MediaPicker label="Twitter Image (default)" value={d.twitterImage ?? ""} onChange={setImg("twitterImage")} />
+              <MediaPicker
+                label="Twitter Image (default)"
+                value={d.twitterImage ?? ""}
+                onChange={setImg("twitterImage")}
+              />
             </div>
           </div>
         </Card>
@@ -247,19 +341,27 @@ function SEO() {
           <Card>
             <h3 className="mb-3 text-sm font-semibold text-secondary">Microsoft</h3>
             <div className="space-y-3">
-              <Field label="Microsoft Clarity ID"><input {...bindText("clarityId")} className={inputCls} placeholder="abcd1234ef" /></Field>
+              <Field label="Microsoft Clarity ID">
+                <input {...bindText("clarityId")} className={inputCls} placeholder="abcd1234ef" />
+              </Field>
             </div>
           </Card>
           <Card>
             <h3 className="mb-3 text-sm font-semibold text-secondary">Meta / Facebook</h3>
             <div className="space-y-3">
-              <Field label="Meta Pixel ID" hint="Angka 8-20 digit."><input {...bindText("metaPixelId")} className={inputCls} placeholder="123456789012345" /></Field>
+              <Field label="Meta Pixel ID" hint="Angka 8-20 digit.">
+                <input
+                  {...bindText("metaPixelId")}
+                  className={inputCls}
+                  placeholder="123456789012345"
+                />
+              </Field>
             </div>
           </Card>
           <Card className="md:col-span-2 border-dashed bg-muted/30">
             <p className="text-xs text-muted-foreground">
-              Skrip analytics hanya dimuat jika ID valid. Kosongkan untuk menonaktifkan.
-              Semua skrip dimuat setelah render halaman (non-blocking).
+              Skrip analytics hanya dimuat jika ID valid. Kosongkan untuk menonaktifkan. Semua skrip
+              dimuat setelah render halaman (non-blocking).
             </p>
           </Card>
         </div>
@@ -272,10 +374,18 @@ function SEO() {
             <Field label="Google Search Console" hint="Isi konten tag verification (bukan URL).">
               <input {...bindText("googleVerification")} className={inputCls} />
             </Field>
-            <Field label="Bing Webmaster (msvalidate.01)"><input {...bindText("bingVerification")} className={inputCls} /></Field>
-            <Field label="Yandex Webmaster"><input {...bindText("yandexVerification")} className={inputCls} /></Field>
-            <Field label="Facebook Domain Verification"><input {...bindText("facebookVerification")} className={inputCls} /></Field>
-            <Field label="Pinterest Verification"><input {...bindText("pinterestVerification")} className={inputCls} /></Field>
+            <Field label="Bing Webmaster (msvalidate.01)">
+              <input {...bindText("bingVerification")} className={inputCls} />
+            </Field>
+            <Field label="Yandex Webmaster">
+              <input {...bindText("yandexVerification")} className={inputCls} />
+            </Field>
+            <Field label="Facebook Domain Verification">
+              <input {...bindText("facebookVerification")} className={inputCls} />
+            </Field>
+            <Field label="Pinterest Verification">
+              <input {...bindText("pinterestVerification")} className={inputCls} />
+            </Field>
           </div>
         </Card>
       )}
@@ -285,20 +395,44 @@ function SEO() {
           <Card>
             <h3 className="mb-3 text-sm font-semibold text-secondary">Organization Schema</h3>
             <div className="grid gap-4 md:grid-cols-2">
-              <Field label="Organization Name"><input {...bindText("organizationName")} className={inputCls} /></Field>
-              <Field label="Organization URL"><input {...bindText("organizationUrl")} className={inputCls} placeholder="https://…" /></Field>
+              <Field label="Organization Name">
+                <input {...bindText("organizationName")} className={inputCls} />
+              </Field>
+              <Field label="Organization URL">
+                <input
+                  {...bindText("organizationUrl")}
+                  className={inputCls}
+                  placeholder="https://…"
+                />
+              </Field>
               <div className="md:col-span-2">
-                <MediaPicker label="Organization Logo" value={d.organizationLogo ?? ""} onChange={setImg("organizationLogo")} />
+                <MediaPicker
+                  label="Organization Logo"
+                  value={d.organizationLogo ?? ""}
+                  onChange={setImg("organizationLogo")}
+                />
               </div>
               <div className="md:col-span-2">
-                <MediaPicker label="Schema Image (default)" value={d.schemaImage ?? ""} onChange={setImg("schemaImage")} />
+                <MediaPicker
+                  label="Schema Image (default)"
+                  value={d.schemaImage ?? ""}
+                  onChange={setImg("schemaImage")}
+                />
               </div>
             </div>
           </Card>
           <Card>
             <h3 className="mb-3 text-sm font-semibold text-secondary">Custom JSON-LD</h3>
-            <Field label="Kode JSON-LD (override)" hint="Jika diisi, akan menggantikan schema Organization default. Wajib JSON valid.">
-              <textarea {...bindText("schema")} rows={12} className={`${inputCls} font-mono text-xs`} placeholder='{"@context":"https://schema.org", …}' />
+            <Field
+              label="Kode JSON-LD (override)"
+              hint="Jika diisi, akan menggantikan schema Organization default. Wajib JSON valid."
+            >
+              <textarea
+                {...bindText("schema")}
+                rows={12}
+                className={`${inputCls} font-mono text-xs`}
+                placeholder='{"@context":"https://schema.org", …}'
+              />
             </Field>
           </Card>
         </div>
@@ -309,7 +443,12 @@ function SEO() {
           <Card>
             <h3 className="mb-3 text-sm font-semibold text-secondary">robots.txt</h3>
             <Field label="Isi robots.txt" hint="Kosongkan untuk memakai default 'Allow: /'.">
-              <textarea {...bindText("robotsTxt")} rows={10} className={`${inputCls} font-mono text-xs`} placeholder={DEFAULT_ROBOTS} />
+              <textarea
+                {...bindText("robotsTxt")}
+                rows={10}
+                className={`${inputCls} font-mono text-xs`}
+                placeholder={DEFAULT_ROBOTS}
+              />
             </Field>
           </Card>
           <Card>

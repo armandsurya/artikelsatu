@@ -4,21 +4,35 @@ import { SectionHeader } from "@/components/SectionHeader";
 
 function Cell({ value }: { value: string | boolean }) {
   if (typeof value === "boolean") {
-    return value
-      ? <Check className="mx-auto h-4 w-4 text-primary" />
-      : <X className="mx-auto h-4 w-4 text-muted-foreground" />;
+    return value ? (
+      <Check className="mx-auto h-4 w-4 text-primary" />
+    ) : (
+      <X className="mx-auto h-4 w-4 text-muted-foreground" />
+    );
   }
   return <span className="text-sm text-secondary">{value}</span>;
 }
 
-export function ComparisonSection({ eyebrow, subtitle, title, data }: { eyebrow?: string; subtitle?: string; title?: string; data: CompetitorComparison[] }) {
+export function ComparisonSection({
+  eyebrow,
+  subtitle,
+  title,
+  data,
+}: {
+  eyebrow?: string;
+  subtitle?: string;
+  title?: string;
+  data: CompetitorComparison[];
+}) {
   return (
     <section id="comparison" className="bg-accent/40 border-y border-border">
       <div className="container-narrow py-20">
         <SectionHeader
           eyebrow={eyebrow ?? "Perbandingan"}
           title={title ?? "Bandingkan dengan Alternatif Lain"}
-          description={subtitle ?? "Lihat perbandingan antara freelancer, AI, agency, dan layanan kami."}
+          description={
+            subtitle ?? "Lihat perbandingan antara freelancer, AI, agency, dan layanan kami."
+          }
         />
 
         <div className="mx-auto mt-12 max-w-5xl overflow-x-auto rounded-[16px] border border-border bg-card">
@@ -34,12 +48,23 @@ export function ComparisonSection({ eyebrow, subtitle, title, data }: { eyebrow?
             </thead>
             <tbody>
               {data.map((row, i) => (
-                <tr key={row.feature} className={i !== data.length - 1 ? "border-b border-border" : ""}>
+                <tr
+                  key={row.feature}
+                  className={i !== data.length - 1 ? "border-b border-border" : ""}
+                >
                   <td className="p-4 font-medium text-secondary">{row.feature}</td>
-                  <td className="p-4 text-center text-muted-foreground"><Cell value={row.freelancer} /></td>
-                  <td className="p-4 text-center text-muted-foreground"><Cell value={row.ai} /></td>
-                  <td className="p-4 text-center text-muted-foreground"><Cell value={row.agency} /></td>
-                  <td className="p-4 text-center bg-accent/60"><Cell value={row.us} /></td>
+                  <td className="p-4 text-center text-muted-foreground">
+                    <Cell value={row.freelancer} />
+                  </td>
+                  <td className="p-4 text-center text-muted-foreground">
+                    <Cell value={row.ai} />
+                  </td>
+                  <td className="p-4 text-center text-muted-foreground">
+                    <Cell value={row.agency} />
+                  </td>
+                  <td className="p-4 text-center bg-accent/60">
+                    <Cell value={row.us} />
+                  </td>
                 </tr>
               ))}
             </tbody>
