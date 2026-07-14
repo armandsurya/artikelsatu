@@ -489,7 +489,6 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
 
   if (loading) return <div className="py-10 text-center text-sm text-muted-foreground"><Loader2 className="mx-auto h-5 w-5 animate-spin" /></div>;
 
-  
   const bandColor = seo.band === "green" ? "text-green-700 bg-green-50 border-green-200"
     : seo.band === "yellow" ? "text-amber-700 bg-amber-50 border-amber-200"
     : "text-red-700 bg-red-50 border-red-200";
