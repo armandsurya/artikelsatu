@@ -45,6 +45,23 @@ function calcReadTime(html: string) {
   return { words: s.words, chars: s.chars, minutes: Math.max(1, s.minutes || 1) };
 }
 
+/**
+ * Content column is `jsonb`. Historically it has been persisted in two shapes:
+ *   - string  : `"<p>…</p>"`               (current — CKEditor writes raw HTML)
+ *   - object  : `{"html": "<p>…</p>"}`     (legacy seed rows)
+ * The DB has been migrated to string-only and a CHECK constraint prevents
+ * regressions, but we keep this helper defensive so any surviving/imported
+ * row still renders correctly instead of silently loading as empty.
+ */
+function normalizeContentHtml(raw: unknown): string {
+  if (typeof raw === "string") return raw;
+  if (raw && typeof raw === "object" && "html" in (raw as Record<string, unknown>)) {
+    const h = (raw as Record<string, unknown>).html;
+    if (typeof h === "string") return h;
+  }
+  return "";
+}
+
 async function ensureUniqueSlug(base: string, ignoreId?: string) {
   let candidate = base || "artikel";
   let i = 2;
