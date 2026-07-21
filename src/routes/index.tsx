@@ -6,10 +6,9 @@ import {
   usePublishedSections,
   usePublishedBlogPosts,
   usePublishedBlogCategories,
-  fetchPublishedSections,
-  fetchPublishedBlogPosts,
-  fetchBlogCategories,
-  PUBLISHED_QUERY_KEY,
+  publishedSectionsQueryOptions,
+  publishedBlogPostsQueryOptions,
+  blogCategoriesQueryOptions,
 } from "@/lib/publishedContent";
 import {
   buildHomepageArrangement,
@@ -27,31 +26,10 @@ export const Route = createFileRoute("/")({
   // dari seo.homepageTitle / seo.homepageDescription (dibaca dari DB).
   // Di sini hanya menambahkan canonical + og:url + JSON-LD spesifik halaman.
   loader: async ({ context }) => {
-    // Prime caches so SSR renders full homepage HTML with real DB content.
-    // Failures fall back to empty arrays → SectionRenderer still mounts,
-    // client re-fetches populate on hydration.
     await Promise.all([
-      context.queryClient
-        .ensureQueryData({
-          queryKey: [...PUBLISHED_QUERY_KEY, "homepage"],
-          queryFn: fetchPublishedSections,
-          staleTime: 30_000,
-        })
-        .catch(() => []),
-      context.queryClient
-        .ensureQueryData({
-          queryKey: [...PUBLISHED_QUERY_KEY, "blog_posts"],
-          queryFn: fetchPublishedBlogPosts,
-          staleTime: 30_000,
-        })
-        .catch(() => []),
-      context.queryClient
-        .ensureQueryData({
-          queryKey: [...PUBLISHED_QUERY_KEY, "blog_categories"],
-          queryFn: fetchBlogCategories,
-          staleTime: 30_000,
-        })
-        .catch(() => []),
+      context.queryClient.fetchQuery(publishedSectionsQueryOptions()),
+      context.queryClient.fetchQuery(publishedBlogPostsQueryOptions()),
+      context.queryClient.fetchQuery(blogCategoriesQueryOptions()),
     ]);
   },
   // Note: title/description/OG/Twitter untuk homepage sudah di-set di __root

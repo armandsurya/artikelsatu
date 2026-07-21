@@ -18,7 +18,7 @@ export const listPublishedSections = createServerFn({ method: "GET" }).handler(
   async (): Promise<{ payload: string }> => {
     const url = process.env.SUPABASE_URL;
     const key = process.env.SUPABASE_PUBLISHABLE_KEY;
-    if (!url || !key) return { payload: "[]" };
+    if (!url || !key) throw new Error("Published homepage backend is not configured");
     const client = createClient<Database>(url, key, {
       auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
     });
@@ -28,7 +28,7 @@ export const listPublishedSections = createServerFn({ method: "GET" }).handler(
       .order("sort_order");
     if (error) {
       console.error("[listPublishedSections]", error);
-      return { payload: "[]" };
+      throw error;
     }
     return { payload: JSON.stringify(data ?? []) };
   },

@@ -1,11 +1,11 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { SiteLayout } from "@/components/layouts/SiteLayout";
 import {
-  fetchPublishedBlogPostBySlug,
   usePublishedBlogCategories,
   usePublishedBlogPosts,
+  publishedBlogPostBySlugQueryOptions,
+  publishedBlogPostsQueryOptions,
+  blogCategoriesQueryOptions,
 } from "@/lib/publishedContent";
 import { mapBlogPosts } from "@/lib/mapPublished";
 import { BlogCard } from "@/components/cards/BlogCard";
@@ -15,12 +15,12 @@ import { sanitizeHtml } from "@/lib/editor/sanitize";
 
 export const Route = createFileRoute("/blog/$slug")({
   loader: async ({ params, context }) => {
-    const post = await context.queryClient.ensureQueryData({
-      queryKey: ["published", "blog_post", params.slug],
-      queryFn: () => fetchPublishedBlogPostBySlug(params.slug),
-      staleTime: 30_000,
-    });
+    const post = await context.queryClient.fetchQuery(publishedBlogPostBySlugQueryOptions(params.slug));
     if (!post) throw notFound();
+    await Promise.all([
+      context.queryClient.fetchQuery(blogCategoriesQueryOptions()),
+      context.queryClient.fetchQuery(publishedBlogPostsQueryOptions()),
+    ]);
     return { post };
   },
   head: ({ loaderData, params }) => {
@@ -121,18 +121,7 @@ function BlogDetail() {
         ? String((rawContent as { html: unknown }).html ?? "")
         : "";
 
-  const { data: author } = useQuery({
-    queryKey: ["profile", post.author_id],
-    enabled: !!post.author_id,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("profiles")
-        .select("full_name")
-        .eq("id", post.author_id!)
-        .maybeSingle();
-      return data?.full_name ?? null;
-    },
-  });
+  const author = post.author_name || "Tim ArtikelPro";
 
   return (
     <SiteLayout>
@@ -155,7 +144,7 @@ function BlogDetail() {
             <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted-foreground">
               <span className="inline-flex items-center gap-1.5">
                 <User className="h-4 w-4" />
-                {author ?? "Tim ArtikelPro"}
+                {author}
               </span>
               <span className="inline-flex items-center gap-1.5">
                 <Clock className="h-4 w-4" />

@@ -8,10 +8,9 @@ import {
   usePublishedBlogPosts,
   usePublishedBlogCategories,
   useSiteSettings,
-  fetchPublishedBlogPosts,
-  fetchBlogCategories,
-  fetchSiteSettings,
-  PUBLISHED_QUERY_KEY,
+  publishedBlogPostsQueryOptions,
+  blogCategoriesQueryOptions,
+  siteSettingsQueryOptions,
 } from "@/lib/publishedContent";
 import { mapBlogPosts } from "@/lib/mapPublished";
 
@@ -27,27 +26,9 @@ export const Route = createFileRoute("/blog/")({
   // client refetch completes.
   loader: async ({ context }) => {
     await Promise.all([
-      context.queryClient
-        .ensureQueryData({
-          queryKey: [...PUBLISHED_QUERY_KEY, "blog_posts"],
-          queryFn: fetchPublishedBlogPosts,
-          staleTime: 30_000,
-        })
-        .catch(() => []),
-      context.queryClient
-        .ensureQueryData({
-          queryKey: [...PUBLISHED_QUERY_KEY, "blog_categories"],
-          queryFn: fetchBlogCategories,
-          staleTime: 30_000,
-        })
-        .catch(() => []),
-      context.queryClient
-        .ensureQueryData({
-          queryKey: [...PUBLISHED_QUERY_KEY, "site_settings"],
-          queryFn: fetchSiteSettings,
-          staleTime: 30_000,
-        })
-        .catch(() => ({})),
+      context.queryClient.fetchQuery(publishedBlogPostsQueryOptions()),
+      context.queryClient.fetchQuery(blogCategoriesQueryOptions()),
+      context.queryClient.fetchQuery(siteSettingsQueryOptions()),
     ]);
   },
   head: () => ({
