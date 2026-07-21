@@ -51,6 +51,7 @@ const NAV: Item[] = [
       { label: "Semua Artikel", to: "/admin/blog" },
       { label: "Tambah Artikel", to: "/admin/blog/new" },
       { label: "Kategori", to: "/admin/blog/kategori" },
+      { label: "Hero Blog", to: "/admin/blog/hero" },
     ],
   },
   { label: "Media", to: "/admin/media", icon: ImageIcon, perm: "media" },

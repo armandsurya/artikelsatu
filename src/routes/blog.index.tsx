@@ -4,21 +4,26 @@ import { Search } from "lucide-react";
 import { SiteLayout } from "@/components/layouts/SiteLayout";
 import { BlogCard } from "@/components/cards/BlogCard";
 import { DebugSource } from "@/components/DebugSource";
-import { usePublishedBlogPosts, usePublishedBlogCategories } from "@/lib/publishedContent";
+import {
+  usePublishedBlogPosts,
+  usePublishedBlogCategories,
+  useSiteSettings,
+} from "@/lib/publishedContent";
 import { mapBlogPosts } from "@/lib/mapPublished";
 
 const PAGE_SIZE = 6;
-const TITLE = "Blog — Insight SEO, Content Marketing & Copywriting";
-const DESC =
+const DEFAULT_TITLE = "Blog ArtikelPro";
+const DEFAULT_DESC =
   "Kumpulan artikel dan panduan seputar SEO, penulisan konten, dan strategi digital untuk membantu bisnis Anda bertumbuh.";
+const META_TITLE = "Blog — Insight SEO, Content Marketing & Copywriting";
 
 export const Route = createFileRoute("/blog/")({
   head: () => ({
     meta: [
-      { title: TITLE },
-      { name: "description", content: DESC },
-      { property: "og:title", content: TITLE },
-      { property: "og:description", content: DESC },
+      { title: META_TITLE },
+      { name: "description", content: DEFAULT_DESC },
+      { property: "og:title", content: META_TITLE },
+      { property: "og:description", content: DEFAULT_DESC },
       { property: "og:url", content: "/blog" },
       { property: "og:type", content: "website" },
     ],
@@ -34,6 +39,17 @@ function BlogPage() {
 
   const postsQ = usePublishedBlogPosts();
   const catsQ = usePublishedBlogCategories();
+  const settingsQ = useSiteSettings();
+
+  const hero = useMemo(() => {
+    const blob = (settingsQ.data?.blogHero ?? {}) as {
+      published?: { title?: string; description?: string };
+    };
+    return {
+      title: blob.published?.title?.trim() || DEFAULT_TITLE,
+      description: blob.published?.description?.trim() || DEFAULT_DESC,
+    };
+  }, [settingsQ.data]);
 
   // Single source of truth: public.blog_posts. No static fallback — an empty
   // DB shows the empty state, not seeded/mock data that never syncs back.
@@ -67,9 +83,9 @@ function BlogPage() {
         <DebugSource label="blog" source="database" />
         <div className="container-narrow py-14">
           <h1 className="text-3xl font-bold tracking-tight text-secondary sm:text-4xl">
-            Blog ArtikelPro
+            {hero.title}
           </h1>
-          <p className="mt-3 max-w-2xl text-base text-muted-foreground">{DESC}</p>
+          <p className="mt-3 max-w-2xl text-base text-muted-foreground">{hero.description}</p>
 
           <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="relative w-full sm:max-w-md">
