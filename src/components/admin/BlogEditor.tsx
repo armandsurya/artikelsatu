@@ -45,6 +45,23 @@ function calcReadTime(html: string) {
   return { words: s.words, chars: s.chars, minutes: Math.max(1, s.minutes || 1) };
 }
 
+/**
+ * Content column is `jsonb`. Historically it has been persisted in two shapes:
+ *   - string  : `"<p>…</p>"`               (current — CKEditor writes raw HTML)
+ *   - object  : `{"html": "<p>…</p>"}`     (legacy seed rows)
+ * The DB has been migrated to string-only and a CHECK constraint prevents
+ * regressions, but we keep this helper defensive so any surviving/imported
+ * row still renders correctly instead of silently loading as empty.
+ */
+function normalizeContentHtml(raw: unknown): string {
+  if (typeof raw === "string") return raw;
+  if (raw && typeof raw === "object" && "html" in (raw as Record<string, unknown>)) {
+    const h = (raw as Record<string, unknown>).html;
+    if (typeof h === "string") return h;
+  }
+  return "";
+}
+
 async function ensureUniqueSlug(base: string, ignoreId?: string) {
   let candidate = base || "artikel";
   let i = 2;
@@ -307,7 +324,7 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
           title: data.title,
           slug: data.slug,
           excerpt: data.excerpt ?? "",
-          content: (typeof data.content === "string" ? data.content : "") ?? "",
+          content: normalizeContentHtml(data.content),
           featuredImage: data.featured_image ?? "",
           imageAlt: "",
           imageCaption: "",
@@ -625,19 +642,27 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
 
   /* Autosave — every 60s, drafts only, requires title + dirty state.
      Never triggers publish; only silently writes as `draft` when the article
-     is already a draft. Skips when user is actively busy or in a modal flow. */
+     is already a draft. Skips when user is actively busy or in a modal flow.
+
+     We route through a ref so the interval always calls the FRESH `handle()`
+     closure (which reads the latest `content`/`title`/etc). Previously the
+     interval captured a stale `handle` from the render when [title, status]
+     last changed, causing autosave to overwrite the row with older content. */
   const busyRef = useRef(busy);
   useEffect(() => {
     busyRef.current = busy;
   }, [busy]);
+  const handleRef = useRef(handle);
+  useEffect(() => {
+    handleRef.current = handle;
+  });
   useEffect(() => {
     const iv = setInterval(() => {
       if (busyRef.current) return;
       if (!dirtyRef.current) return;
       if (!title.trim()) return;
       if (status !== "draft") return; // never overwrite scheduled/published/archived
-      // Fire and forget; handle() manages its own toast/busy states.
-      handle("draft").catch((e) => console.warn("[autosave]", e));
+      handleRef.current("draft").catch((e) => console.warn("[autosave]", e));
     }, 60_000);
     return () => clearInterval(iv);
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -6,8 +6,6 @@ import { BlogCard } from "@/components/cards/BlogCard";
 import { DebugSource } from "@/components/DebugSource";
 import { usePublishedBlogPosts, usePublishedBlogCategories } from "@/lib/publishedContent";
 import { mapBlogPosts } from "@/lib/mapPublished";
-import { blogPosts as fallbackPosts, blogCategories as fallbackCategories } from "@/data/blog";
-import type { BlogPost } from "@/types";
 
 const PAGE_SIZE = 6;
 const TITLE = "Blog — Insight SEO, Content Marketing & Copywriting";
@@ -37,17 +35,17 @@ function BlogPage() {
   const postsQ = usePublishedBlogPosts();
   const catsQ = usePublishedBlogCategories();
 
-  const dbPosts = useMemo(
+  // Single source of truth: public.blog_posts. No static fallback — an empty
+  // DB shows the empty state, not seeded/mock data that never syncs back.
+  const posts = useMemo(
     () => mapBlogPosts(postsQ.data ?? [], catsQ.data ?? []),
     [postsQ.data, catsQ.data],
   );
+  const categories = useMemo(
+    () => ["Semua", ...(catsQ.data ?? []).map((c) => c.name)],
+    [catsQ.data],
+  );
 
-  // Only use static fallback when the query is settled but returned nothing.
-  const usingDb = (postsQ.data?.length ?? 0) > 0;
-  const posts: BlogPost[] = usingDb ? dbPosts : fallbackPosts;
-  const categories = usingDb
-    ? ["Semua", ...(catsQ.data ?? []).map((c) => c.name)]
-    : fallbackCategories;
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -66,7 +64,7 @@ function BlogPage() {
   return (
     <SiteLayout>
       <section className="relative border-b border-border bg-background">
-        <DebugSource label="blog" source={usingDb ? "database" : "fallback"} />
+        <DebugSource label="blog" source="database" />
         <div className="container-narrow py-14">
           <h1 className="text-3xl font-bold tracking-tight text-secondary sm:text-4xl">
             Blog ArtikelPro
