@@ -24,11 +24,27 @@ function getClient() {
   });
 }
 
+async function withAuthorNames<T extends { author_id: string | null }>(
+  client: ReturnType<typeof getClient>,
+  rows: T[],
+): Promise<(T & { author_name: string | null })[]> {
+  if (!client || rows.length === 0) return rows.map((row) => ({ ...row, author_name: null }));
+  const authorIds = Array.from(new Set(rows.map((row) => row.author_id).filter(Boolean))) as string[];
+  if (authorIds.length === 0) return rows.map((row) => ({ ...row, author_name: null }));
+  const { data, error } = await client.from("profiles").select("id,full_name").in("id", authorIds);
+  if (error) {
+    console.error("[withAuthorNames]", error);
+    return rows.map((row) => ({ ...row, author_name: null }));
+  }
+  const names = new Map((data ?? []).map((profile) => [profile.id, profile.full_name]));
+  return rows.map((row) => ({ ...row, author_name: row.author_id ? names.get(row.author_id) ?? null : null }));
+}
+
 export const getPublishedPostBySlug = createServerFn({ method: "GET" })
   .inputValidator((data: { slug: string }) => data)
   .handler(async ({ data }): Promise<{ payload: string | null }> => {
     const client = getClient();
-    if (!client) return { payload: null };
+    if (!client) throw new Error("Public blog backend is not configured");
     const { data: row, error } = await client
       .from("blog_posts")
       .select(
@@ -37,18 +53,21 @@ export const getPublishedPostBySlug = createServerFn({ method: "GET" })
       .eq("slug", data.slug)
       .eq("status", "published")
       .is("deleted_at", null)
+      .lte("published_at", new Date().toISOString())
       .maybeSingle();
     if (error) {
       console.error("[getPublishedPostBySlug]", error);
-      return { payload: null };
+      throw error;
     }
-    return { payload: row ? JSON.stringify(row) : null };
+    if (!row) return { payload: null };
+    const [enriched] = await withAuthorNames(client, [row]);
+    return { payload: JSON.stringify(enriched) };
   });
 
 export const listPublishedPosts = createServerFn({ method: "GET" }).handler(
   async (): Promise<{ payload: string }> => {
     const client = getClient();
-    if (!client) return { payload: "[]" };
+    if (!client) throw new Error("Public blog backend is not configured");
     const { data, error } = await client
       .from("blog_posts")
       .select(
@@ -60,23 +79,24 @@ export const listPublishedPosts = createServerFn({ method: "GET" }).handler(
       .order("published_at", { ascending: false, nullsFirst: false });
     if (error) {
       console.error("[listPublishedPosts]", error);
-      return { payload: "[]" };
+      throw error;
     }
-    return { payload: JSON.stringify(data ?? []) };
+    const enriched = await withAuthorNames(client, data ?? []);
+    return { payload: JSON.stringify(enriched) };
   },
 );
 
 export const listBlogCategories = createServerFn({ method: "GET" }).handler(
   async (): Promise<{ payload: string }> => {
     const client = getClient();
-    if (!client) return { payload: "[]" };
+    if (!client) throw new Error("Public blog backend is not configured");
     const { data, error } = await client
       .from("blog_categories")
       .select("id,name,slug")
       .order("name");
     if (error) {
       console.error("[listBlogCategories]", error);
-      return { payload: "[]" };
+      throw error;
     }
     return { payload: JSON.stringify(data ?? []) };
   },

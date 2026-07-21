@@ -17,7 +17,7 @@ export const getPublicSiteSettings = createServerFn({ method: "GET" }).handler(
   async (): Promise<{ data: string }> => {
     const url = process.env.SUPABASE_URL;
     const key = process.env.SUPABASE_PUBLISHABLE_KEY;
-    if (!url || !key) return { data: "{}" };
+    if (!url || !key) throw new Error("Public settings backend is not configured");
     const client = createClient<Database>(url, key, {
       auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
     });
@@ -29,7 +29,7 @@ export const getPublicSiteSettings = createServerFn({ method: "GET" }).handler(
       .maybeSingle();
     if (error) {
       console.error("[getPublicSiteSettings]", error);
-      return { data: "{}" };
+      throw error;
     }
     return { data: JSON.stringify(data?.data ?? {}) };
   },

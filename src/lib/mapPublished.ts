@@ -299,7 +299,7 @@ export function mapBlogPosts(
       excerpt,
       featuredImage: r.featured_image ?? "",
       category: (r.category_id && catMap.get(r.category_id)) || "Umum",
-      author: "Tim ArtikelPro",
+      author: r.author_name?.trim() || "Tim ArtikelPro",
       publishedDate: r.published_at ?? new Date().toISOString(),
       readTime: r.read_time ?? 5,
       tags: r.tags ?? [],

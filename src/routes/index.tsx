@@ -6,10 +6,9 @@ import {
   usePublishedSections,
   usePublishedBlogPosts,
   usePublishedBlogCategories,
-  fetchPublishedSections,
-  fetchPublishedBlogPosts,
-  fetchBlogCategories,
-  PUBLISHED_QUERY_KEY,
+  publishedSectionsQueryOptions,
+  publishedBlogPostsQueryOptions,
+  blogCategoriesQueryOptions,
 } from "@/lib/publishedContent";
 import {
   buildHomepageArrangement,
@@ -27,31 +26,10 @@ export const Route = createFileRoute("/")({
   // dari seo.homepageTitle / seo.homepageDescription (dibaca dari DB).
   // Di sini hanya menambahkan canonical + og:url + JSON-LD spesifik halaman.
   loader: async ({ context }) => {
-    // Prime caches so SSR renders full homepage HTML with real DB content.
-    // Failures fall back to empty arrays → SectionRenderer still mounts,
-    // client re-fetches populate on hydration.
     await Promise.all([
-      context.queryClient
-        .ensureQueryData({
-          queryKey: [...PUBLISHED_QUERY_KEY, "homepage"],
-          queryFn: fetchPublishedSections,
-          staleTime: 30_000,
-        })
-        .catch(() => []),
-      context.queryClient
-        .ensureQueryData({
-          queryKey: [...PUBLISHED_QUERY_KEY, "blog_posts"],
-          queryFn: fetchPublishedBlogPosts,
-          staleTime: 30_000,
-        })
-        .catch(() => []),
-      context.queryClient
-        .ensureQueryData({
-          queryKey: [...PUBLISHED_QUERY_KEY, "blog_categories"],
-          queryFn: fetchBlogCategories,
-          staleTime: 30_000,
-        })
-        .catch(() => []),
+      context.queryClient.fetchQuery(publishedSectionsQueryOptions()),
+      context.queryClient.fetchQuery(publishedBlogPostsQueryOptions()),
+      context.queryClient.fetchQuery(blogCategoriesQueryOptions()),
     ]);
   },
   // Note: title/description/OG/Twitter untuk homepage sudah di-set di __root
@@ -93,8 +71,25 @@ export const Route = createFileRoute("/")({
       },
     ],
   }),
+  pendingComponent: HomePending,
   component: HomePage,
 });
+
+function HomePending() {
+  return (
+    <SiteLayout>
+      <div className="container-narrow py-14">
+        <div className="h-10 w-2/3 animate-pulse rounded-lg bg-muted" />
+        <div className="mt-4 h-4 w-1/2 animate-pulse rounded bg-muted" />
+        <div className="mt-12 grid gap-6 md:grid-cols-3">
+          {Array.from({ length: 6 }, (_, index) => (
+            <div key={index} className="h-40 animate-pulse rounded-[12px] bg-muted" />
+          ))}
+        </div>
+      </div>
+    </SiteLayout>
+  );
+}
 
 function HomePage() {
   const sectionsQ = usePublishedSections();

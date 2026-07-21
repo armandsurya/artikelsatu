@@ -12,8 +12,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { settings as staticSettings } from "@/data/settings";
-import { PUBLISHED_QUERY_KEY } from "@/lib/publishedContent";
-import { fetchPublicSiteSettings } from "@/lib/site-settings.functions";
+import { siteSettingsQueryOptions } from "@/lib/publishedContent";
 import {
   getSeoConfig,
   buildRootMeta,
@@ -113,16 +112,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     }
   },
   loader: async ({ context }) => {
-    try {
-      const settings = await context.queryClient.ensureQueryData({
-        queryKey: [...PUBLISHED_QUERY_KEY, "site_settings"],
-        queryFn: fetchPublicSiteSettings,
-        staleTime: 30_000,
-      });
-      return { settings };
-    } catch {
-      return { settings: {} as Record<string, unknown> };
-    }
+    const settings = await context.queryClient.fetchQuery(siteSettingsQueryOptions());
+    return { settings };
   },
   head: ({ loaderData }) => {
     const s = (loaderData?.settings ?? {}) as Record<string, unknown>;

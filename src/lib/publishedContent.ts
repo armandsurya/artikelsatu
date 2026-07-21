@@ -5,7 +5,7 @@
  * Static files under src/data/* are only used as a fallback while the
  * database is still empty (fresh install) or unreachable.
  */
-import { useQuery, type UseQueryResult } from "@tanstack/react-query";
+import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import type { SectionKey } from "@/data/homepageDefaults";
 
 export type PublishedSectionRow = {
@@ -34,6 +34,7 @@ export type PublishedBlogPostRow = {
   meta_description: string | null;
   canonical_url?: string | null;
   content?: unknown;
+  author_name?: string | null;
 };
 
 export type PublishedCategoryRow = {
@@ -52,11 +53,8 @@ export async function fetchPublishedSections(): Promise<PublishedSectionRow[]> {
   // sides → SSR HTML matches client hydration.
   const { listPublishedSections } = await import("./homepage-public.functions");
   const { payload } = await listPublishedSections();
-  try {
-    return (JSON.parse(payload) as PublishedSectionRow[]) ?? [];
-  } catch {
-    return [];
-  }
+  const parsed = JSON.parse(payload) as unknown;
+  return Array.isArray(parsed) ? (parsed as PublishedSectionRow[]) : [];
 }
 
 export async function fetchSiteSettings(): Promise<SiteSettingsBlob> {
@@ -70,58 +68,82 @@ export async function fetchPublishedBlogPosts(): Promise<PublishedBlogPostRow[]>
   // the RPC returns the same shape from the same DB.
   const { listPublishedPosts } = await import("./blog-public.functions");
   const { payload } = await listPublishedPosts();
-  try {
-    return (JSON.parse(payload) as PublishedBlogPostRow[]) ?? [];
-  } catch {
-    return [];
-  }
+  const parsed = JSON.parse(payload) as unknown;
+  return Array.isArray(parsed) ? (parsed as PublishedBlogPostRow[]) : [];
 }
 
 export async function fetchBlogCategories(): Promise<PublishedCategoryRow[]> {
   const { listBlogCategories } = await import("./blog-public.functions");
   const { payload } = await listBlogCategories();
-  try {
-    return (JSON.parse(payload) as PublishedCategoryRow[]) ?? [];
-  } catch {
-    return [];
-  }
+  const parsed = JSON.parse(payload) as unknown;
+  return Array.isArray(parsed) ? (parsed as PublishedCategoryRow[]) : [];
 }
 
 /* ---------------- Hooks ---------------- */
 
 export const PUBLISHED_QUERY_KEY = ["published"] as const;
+export const PUBLIC_QUERY_STALE_TIME = 0;
+export const PUBLIC_QUERY_GC_TIME = 5 * 60_000;
 
-export function usePublishedSections(): UseQueryResult<PublishedSectionRow[]> {
-  return useQuery({
+export const publishedSectionsQueryOptions = () =>
+  queryOptions({
     queryKey: [...PUBLISHED_QUERY_KEY, "homepage"],
     queryFn: fetchPublishedSections,
-    staleTime: 30_000,
+    staleTime: PUBLIC_QUERY_STALE_TIME,
+    gcTime: PUBLIC_QUERY_GC_TIME,
+    refetchOnMount: false,
   });
-}
 
-export function useSiteSettings(initialData?: SiteSettingsBlob): UseQueryResult<SiteSettingsBlob> {
-  return useQuery({
+export const siteSettingsQueryOptions = () =>
+  queryOptions({
     queryKey: [...PUBLISHED_QUERY_KEY, "site_settings"],
     queryFn: fetchSiteSettings,
-    staleTime: 30_000,
-    initialData,
+    staleTime: PUBLIC_QUERY_STALE_TIME,
+    gcTime: PUBLIC_QUERY_GC_TIME,
+    refetchOnMount: false,
   });
-}
 
-export function usePublishedBlogPosts(): UseQueryResult<PublishedBlogPostRow[]> {
-  return useQuery({
+export const publishedBlogPostsQueryOptions = () =>
+  queryOptions({
     queryKey: [...PUBLISHED_QUERY_KEY, "blog_posts"],
     queryFn: fetchPublishedBlogPosts,
-    staleTime: 30_000,
+    staleTime: PUBLIC_QUERY_STALE_TIME,
+    gcTime: PUBLIC_QUERY_GC_TIME,
+    refetchOnMount: false,
   });
-}
 
-export function usePublishedBlogCategories(): UseQueryResult<PublishedCategoryRow[]> {
-  return useQuery({
+export const blogCategoriesQueryOptions = () =>
+  queryOptions({
     queryKey: [...PUBLISHED_QUERY_KEY, "blog_categories"],
     queryFn: fetchBlogCategories,
-    staleTime: 30_000,
+    staleTime: PUBLIC_QUERY_STALE_TIME,
+    gcTime: PUBLIC_QUERY_GC_TIME,
+    refetchOnMount: false,
   });
+
+export const publishedBlogPostBySlugQueryOptions = (slug: string) =>
+  queryOptions({
+    queryKey: [...PUBLISHED_QUERY_KEY, "blog_post", slug],
+    queryFn: () => fetchPublishedBlogPostBySlug(slug),
+    staleTime: PUBLIC_QUERY_STALE_TIME,
+    gcTime: PUBLIC_QUERY_GC_TIME,
+    refetchOnMount: false,
+  });
+
+export function usePublishedSections() {
+  return useSuspenseQuery(publishedSectionsQueryOptions());
+}
+
+export function useSiteSettings() {
+  return useSuspenseQuery(siteSettingsQueryOptions());
+}
+
+export function usePublishedBlogPosts() {
+  return useSuspenseQuery(publishedBlogPostsQueryOptions());
+}
+
+export function usePublishedBlogCategories() {
+  return useSuspenseQuery(blogCategoriesQueryOptions());
 }
 
 export async function fetchPublishedBlogPostBySlug(
@@ -130,19 +152,9 @@ export async function fetchPublishedBlogPostBySlug(
   const { getPublishedPostBySlug } = await import("./blog-public.functions");
   const { payload } = await getPublishedPostBySlug({ data: { slug } });
   if (!payload) return null;
-  try {
-    return JSON.parse(payload) as PublishedBlogPostRow;
-  } catch {
-    return null;
-  }
+  return JSON.parse(payload) as PublishedBlogPostRow;
 }
 
-export function usePublishedBlogPostBySlug(
-  slug: string,
-): UseQueryResult<PublishedBlogPostRow | null> {
-  return useQuery({
-    queryKey: [...PUBLISHED_QUERY_KEY, "blog_post", slug],
-    queryFn: () => fetchPublishedBlogPostBySlug(slug),
-    staleTime: 30_000,
-  });
+export function usePublishedBlogPostBySlug(slug: string) {
+  return useSuspenseQuery(publishedBlogPostBySlugQueryOptions(slug));
 }
