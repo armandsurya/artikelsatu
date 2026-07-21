@@ -31,6 +31,7 @@ import { Route as AuthenticatedAdminWebsiteHeaderRouteImport } from './routes/_a
 import { Route as AuthenticatedAdminWebsiteFooterRouteImport } from './routes/_authenticated/admin.website.footer'
 import { Route as AuthenticatedAdminBlogNewRouteImport } from './routes/_authenticated/admin.blog.new'
 import { Route as AuthenticatedAdminBlogKategoriRouteImport } from './routes/_authenticated/admin.blog.kategori'
+import { Route as AuthenticatedAdminBlogHeroRouteImport } from './routes/_authenticated/admin.blog.hero'
 import { Route as AuthenticatedAdminBlogIdRouteImport } from './routes/_authenticated/admin.blog.$id'
 import { Route as AuthenticatedAdminWebsiteHomepageIndexRouteImport } from './routes/_authenticated/admin.website.homepage.index'
 import { Route as AuthenticatedAdminWebsiteHomepageSectionRouteImport } from './routes/_authenticated/admin.website.homepage.$section'
@@ -154,6 +155,12 @@ const AuthenticatedAdminBlogKategoriRoute =
     path: '/blog/kategori',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminBlogHeroRoute =
+  AuthenticatedAdminBlogHeroRouteImport.update({
+    id: '/blog/hero',
+    path: '/blog/hero',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminBlogIdRoute =
   AuthenticatedAdminBlogIdRouteImport.update({
     id: '/blog/$id',
@@ -197,6 +204,7 @@ export interface FileRoutesByFullPath {
   '/admin/seo': typeof AuthenticatedAdminSeoRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/admin/blog/$id': typeof AuthenticatedAdminBlogIdRoute
+  '/admin/blog/hero': typeof AuthenticatedAdminBlogHeroRoute
   '/admin/blog/kategori': typeof AuthenticatedAdminBlogKategoriRoute
   '/admin/blog/new': typeof AuthenticatedAdminBlogNewRoute
   '/admin/website/footer': typeof AuthenticatedAdminWebsiteFooterRoute
@@ -223,6 +231,7 @@ export interface FileRoutesByTo {
   '/admin/seo': typeof AuthenticatedAdminSeoRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/admin/blog/$id': typeof AuthenticatedAdminBlogIdRoute
+  '/admin/blog/hero': typeof AuthenticatedAdminBlogHeroRoute
   '/admin/blog/kategori': typeof AuthenticatedAdminBlogKategoriRoute
   '/admin/blog/new': typeof AuthenticatedAdminBlogNewRoute
   '/admin/website/footer': typeof AuthenticatedAdminWebsiteFooterRoute
@@ -252,6 +261,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/seo': typeof AuthenticatedAdminSeoRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/admin/blog/$id': typeof AuthenticatedAdminBlogIdRoute
+  '/_authenticated/admin/blog/hero': typeof AuthenticatedAdminBlogHeroRoute
   '/_authenticated/admin/blog/kategori': typeof AuthenticatedAdminBlogKategoriRoute
   '/_authenticated/admin/blog/new': typeof AuthenticatedAdminBlogNewRoute
   '/_authenticated/admin/website/footer': typeof AuthenticatedAdminWebsiteFooterRoute
@@ -281,6 +291,7 @@ export interface FileRouteTypes {
     | '/admin/seo'
     | '/admin/'
     | '/admin/blog/$id'
+    | '/admin/blog/hero'
     | '/admin/blog/kategori'
     | '/admin/blog/new'
     | '/admin/website/footer'
@@ -307,6 +318,7 @@ export interface FileRouteTypes {
     | '/admin/seo'
     | '/admin'
     | '/admin/blog/$id'
+    | '/admin/blog/hero'
     | '/admin/blog/kategori'
     | '/admin/blog/new'
     | '/admin/website/footer'
@@ -335,6 +347,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/seo'
     | '/_authenticated/admin/'
     | '/_authenticated/admin/blog/$id'
+    | '/_authenticated/admin/blog/hero'
     | '/_authenticated/admin/blog/kategori'
     | '/_authenticated/admin/blog/new'
     | '/_authenticated/admin/website/footer'
@@ -511,6 +524,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminBlogKategoriRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/blog/hero': {
+      id: '/_authenticated/admin/blog/hero'
+      path: '/blog/hero'
+      fullPath: '/admin/blog/hero'
+      preLoaderRoute: typeof AuthenticatedAdminBlogHeroRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/blog/$id': {
       id: '/_authenticated/admin/blog/$id'
       path: '/blog/$id'
@@ -553,6 +573,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminSeoRoute: typeof AuthenticatedAdminSeoRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
   AuthenticatedAdminBlogIdRoute: typeof AuthenticatedAdminBlogIdRoute
+  AuthenticatedAdminBlogHeroRoute: typeof AuthenticatedAdminBlogHeroRoute
   AuthenticatedAdminBlogKategoriRoute: typeof AuthenticatedAdminBlogKategoriRoute
   AuthenticatedAdminBlogNewRoute: typeof AuthenticatedAdminBlogNewRoute
   AuthenticatedAdminWebsiteFooterRoute: typeof AuthenticatedAdminWebsiteFooterRoute
@@ -574,6 +595,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminSeoRoute: AuthenticatedAdminSeoRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
   AuthenticatedAdminBlogIdRoute: AuthenticatedAdminBlogIdRoute,
+  AuthenticatedAdminBlogHeroRoute: AuthenticatedAdminBlogHeroRoute,
   AuthenticatedAdminBlogKategoriRoute: AuthenticatedAdminBlogKategoriRoute,
   AuthenticatedAdminBlogNewRoute: AuthenticatedAdminBlogNewRoute,
   AuthenticatedAdminWebsiteFooterRoute: AuthenticatedAdminWebsiteFooterRoute,
