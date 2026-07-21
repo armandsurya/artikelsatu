@@ -324,7 +324,7 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
           title: data.title,
           slug: data.slug,
           excerpt: data.excerpt ?? "",
-          content: (typeof data.content === "string" ? data.content : "") ?? "",
+          content: normalizeContentHtml(data.content),
           featuredImage: data.featured_image ?? "",
           imageAlt: "",
           imageCaption: "",
