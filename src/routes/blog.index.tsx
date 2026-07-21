@@ -39,6 +39,17 @@ function BlogPage() {
 
   const postsQ = usePublishedBlogPosts();
   const catsQ = usePublishedBlogCategories();
+  const settingsQ = useSiteSettings();
+
+  const hero = useMemo(() => {
+    const blob = (settingsQ.data?.blogHero ?? {}) as {
+      published?: { title?: string; description?: string };
+    };
+    return {
+      title: blob.published?.title?.trim() || DEFAULT_TITLE,
+      description: blob.published?.description?.trim() || DEFAULT_DESC,
+    };
+  }, [settingsQ.data]);
 
   // Single source of truth: public.blog_posts. No static fallback — an empty
   // DB shows the empty state, not seeded/mock data that never syncs back.
