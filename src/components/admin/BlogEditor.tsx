@@ -642,19 +642,27 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
 
   /* Autosave — every 60s, drafts only, requires title + dirty state.
      Never triggers publish; only silently writes as `draft` when the article
-     is already a draft. Skips when user is actively busy or in a modal flow. */
+     is already a draft. Skips when user is actively busy or in a modal flow.
+
+     We route through a ref so the interval always calls the FRESH `handle()`
+     closure (which reads the latest `content`/`title`/etc). Previously the
+     interval captured a stale `handle` from the render when [title, status]
+     last changed, causing autosave to overwrite the row with older content. */
   const busyRef = useRef(busy);
   useEffect(() => {
     busyRef.current = busy;
   }, [busy]);
+  const handleRef = useRef(handle);
+  useEffect(() => {
+    handleRef.current = handle;
+  });
   useEffect(() => {
     const iv = setInterval(() => {
       if (busyRef.current) return;
       if (!dirtyRef.current) return;
       if (!title.trim()) return;
       if (status !== "draft") return; // never overwrite scheduled/published/archived
-      // Fire and forget; handle() manages its own toast/busy states.
-      handle("draft").catch((e) => console.warn("[autosave]", e));
+      handleRef.current("draft").catch((e) => console.warn("[autosave]", e));
     }, 60_000);
     return () => clearInterval(iv);
     // eslint-disable-next-line react-hooks/exhaustive-deps
