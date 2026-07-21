@@ -8,6 +8,10 @@ import {
   usePublishedBlogPosts,
   usePublishedBlogCategories,
   useSiteSettings,
+  fetchPublishedBlogPosts,
+  fetchBlogCategories,
+  fetchSiteSettings,
+  PUBLISHED_QUERY_KEY,
 } from "@/lib/publishedContent";
 import { mapBlogPosts } from "@/lib/mapPublished";
 
@@ -18,6 +22,34 @@ const DEFAULT_DESC =
 const META_TITLE = "Blog — Insight SEO, Content Marketing & Copywriting";
 
 export const Route = createFileRoute("/blog/")({
+  // Prime caches during SSR so first paint uses real DB content instead of
+  // defaults ("Blog ArtikelPro" hero + empty state) that flash before the
+  // client refetch completes.
+  loader: async ({ context }) => {
+    await Promise.all([
+      context.queryClient
+        .ensureQueryData({
+          queryKey: [...PUBLISHED_QUERY_KEY, "blog_posts"],
+          queryFn: fetchPublishedBlogPosts,
+          staleTime: 30_000,
+        })
+        .catch(() => []),
+      context.queryClient
+        .ensureQueryData({
+          queryKey: [...PUBLISHED_QUERY_KEY, "blog_categories"],
+          queryFn: fetchBlogCategories,
+          staleTime: 30_000,
+        })
+        .catch(() => []),
+      context.queryClient
+        .ensureQueryData({
+          queryKey: [...PUBLISHED_QUERY_KEY, "site_settings"],
+          queryFn: fetchSiteSettings,
+          staleTime: 30_000,
+        })
+        .catch(() => ({})),
+    ]);
+  },
   head: () => ({
     meta: [
       { title: META_TITLE },
@@ -29,6 +61,20 @@ export const Route = createFileRoute("/blog/")({
     ],
     links: [{ rel: "canonical", href: "/blog" }],
   }),
+  errorComponent: ({ error }) => (
+    <SiteLayout>
+      <div className="container-narrow py-20 text-center">
+        <p className="text-sm text-muted-foreground">Terjadi kesalahan: {error.message}</p>
+      </div>
+    </SiteLayout>
+  ),
+  notFoundComponent: () => (
+    <SiteLayout>
+      <div className="container-narrow py-20 text-center">
+        <p className="text-sm text-muted-foreground">Halaman blog tidak ditemukan.</p>
+      </div>
+    </SiteLayout>
+  ),
   component: BlogPage,
 });
 
