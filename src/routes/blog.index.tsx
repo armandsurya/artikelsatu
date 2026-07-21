@@ -83,9 +83,9 @@ function BlogPage() {
         <DebugSource label="blog" source="database" />
         <div className="container-narrow py-14">
           <h1 className="text-3xl font-bold tracking-tight text-secondary sm:text-4xl">
-            Blog ArtikelPro
+            {hero.title}
           </h1>
-          <p className="mt-3 max-w-2xl text-base text-muted-foreground">{DESC}</p>
+          <p className="mt-3 max-w-2xl text-base text-muted-foreground">{hero.description}</p>
 
           <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="relative w-full sm:max-w-md">
