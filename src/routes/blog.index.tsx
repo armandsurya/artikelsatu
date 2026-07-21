@@ -4,21 +4,26 @@ import { Search } from "lucide-react";
 import { SiteLayout } from "@/components/layouts/SiteLayout";
 import { BlogCard } from "@/components/cards/BlogCard";
 import { DebugSource } from "@/components/DebugSource";
-import { usePublishedBlogPosts, usePublishedBlogCategories } from "@/lib/publishedContent";
+import {
+  usePublishedBlogPosts,
+  usePublishedBlogCategories,
+  useSiteSettings,
+} from "@/lib/publishedContent";
 import { mapBlogPosts } from "@/lib/mapPublished";
 
 const PAGE_SIZE = 6;
-const TITLE = "Blog — Insight SEO, Content Marketing & Copywriting";
-const DESC =
+const DEFAULT_TITLE = "Blog ArtikelPro";
+const DEFAULT_DESC =
   "Kumpulan artikel dan panduan seputar SEO, penulisan konten, dan strategi digital untuk membantu bisnis Anda bertumbuh.";
+const META_TITLE = "Blog — Insight SEO, Content Marketing & Copywriting";
 
 export const Route = createFileRoute("/blog/")({
   head: () => ({
     meta: [
-      { title: TITLE },
-      { name: "description", content: DESC },
-      { property: "og:title", content: TITLE },
-      { property: "og:description", content: DESC },
+      { title: META_TITLE },
+      { name: "description", content: DEFAULT_DESC },
+      { property: "og:title", content: META_TITLE },
+      { property: "og:description", content: DEFAULT_DESC },
       { property: "og:url", content: "/blog" },
       { property: "og:type", content: "website" },
     ],
