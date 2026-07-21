@@ -121,9 +121,12 @@ function BlogHeroEditor() {
     snapshotRef.current = JSON.stringify(value);
     setStatus("success");
     invalidateSiteSettings(qc);
-    await logActivity(action === "publish" ? "blog_hero_published" : "blog_hero_draft_saved", {
-      title: value.title,
-    });
+    await logActivity(
+      action === "publish" ? "blog_hero_published" : "blog_hero_draft_saved",
+      "site_settings",
+      undefined,
+      { title: value.title },
+    );
     toast.success(action === "publish" ? "Hero Blog dipublikasikan" : "Draft tersimpan");
     setTimeout(() => setStatus("idle"), 1500);
   }
