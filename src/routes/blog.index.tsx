@@ -64,7 +64,7 @@ function BlogPage() {
   return (
     <SiteLayout>
       <section className="relative border-b border-border bg-background">
-        <DebugSource label="blog" source={usingDb ? "database" : "fallback"} />
+        <DebugSource label="blog" source="database" />
         <div className="container-narrow py-14">
           <h1 className="text-3xl font-bold tracking-tight text-secondary sm:text-4xl">
             Blog ArtikelPro
