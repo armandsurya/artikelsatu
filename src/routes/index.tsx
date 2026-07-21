@@ -71,8 +71,25 @@ export const Route = createFileRoute("/")({
       },
     ],
   }),
+  pendingComponent: HomePending,
   component: HomePage,
 });
+
+function HomePending() {
+  return (
+    <SiteLayout>
+      <div className="container-narrow py-14">
+        <div className="h-10 w-2/3 animate-pulse rounded-lg bg-muted" />
+        <div className="mt-4 h-4 w-1/2 animate-pulse rounded bg-muted" />
+        <div className="mt-12 grid gap-6 md:grid-cols-3">
+          {Array.from({ length: 6 }, (_, index) => (
+            <div key={index} className="h-40 animate-pulse rounded-[12px] bg-muted" />
+          ))}
+        </div>
+      </div>
+    </SiteLayout>
+  );
+}
 
 function HomePage() {
   const sectionsQ = usePublishedSections();

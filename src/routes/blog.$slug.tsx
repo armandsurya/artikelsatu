@@ -84,8 +84,30 @@ export const Route = createFileRoute("/blog/$slug")({
       </div>
     </SiteLayout>
   ),
+  pendingComponent: BlogDetailPending,
   component: BlogDetail,
 });
+
+function BlogDetailPending() {
+  return (
+    <SiteLayout>
+      <article className="bg-background">
+        <div className="container-narrow py-14">
+          <div className="h-4 w-32 animate-pulse rounded bg-muted" />
+          <div className="mt-8 h-6 w-24 animate-pulse rounded-full bg-muted" />
+          <div className="mt-4 h-12 w-full max-w-3xl animate-pulse rounded-lg bg-muted" />
+          <div className="mt-4 h-5 w-full max-w-2xl animate-pulse rounded bg-muted" />
+          <div className="mt-10 aspect-[16/9] w-full animate-pulse rounded-[16px] bg-muted" />
+          <div className="mt-10 space-y-3 max-w-3xl">
+            {Array.from({ length: 6 }, (_, index) => (
+              <div key={index} className="h-4 animate-pulse rounded bg-muted" />
+            ))}
+          </div>
+        </div>
+      </article>
+    </SiteLayout>
+  );
+}
 
 function BlogDetail() {
   const { post } = Route.useLoaderData();

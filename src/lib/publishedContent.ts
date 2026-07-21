@@ -91,7 +91,7 @@ export const publishedSectionsQueryOptions = () =>
     queryFn: fetchPublishedSections,
     staleTime: PUBLIC_QUERY_STALE_TIME,
     gcTime: PUBLIC_QUERY_GC_TIME,
-    refetchOnMount: "always",
+    refetchOnMount: false,
   });
 
 export const siteSettingsQueryOptions = () =>
@@ -100,7 +100,7 @@ export const siteSettingsQueryOptions = () =>
     queryFn: fetchSiteSettings,
     staleTime: PUBLIC_QUERY_STALE_TIME,
     gcTime: PUBLIC_QUERY_GC_TIME,
-    refetchOnMount: "always",
+    refetchOnMount: false,
   });
 
 export const publishedBlogPostsQueryOptions = () =>
@@ -109,7 +109,7 @@ export const publishedBlogPostsQueryOptions = () =>
     queryFn: fetchPublishedBlogPosts,
     staleTime: PUBLIC_QUERY_STALE_TIME,
     gcTime: PUBLIC_QUERY_GC_TIME,
-    refetchOnMount: "always",
+    refetchOnMount: false,
   });
 
 export const blogCategoriesQueryOptions = () =>
@@ -118,7 +118,7 @@ export const blogCategoriesQueryOptions = () =>
     queryFn: fetchBlogCategories,
     staleTime: PUBLIC_QUERY_STALE_TIME,
     gcTime: PUBLIC_QUERY_GC_TIME,
-    refetchOnMount: "always",
+    refetchOnMount: false,
   });
 
 export const publishedBlogPostBySlugQueryOptions = (slug: string) =>
@@ -127,7 +127,7 @@ export const publishedBlogPostBySlugQueryOptions = (slug: string) =>
     queryFn: () => fetchPublishedBlogPostBySlug(slug),
     staleTime: PUBLIC_QUERY_STALE_TIME,
     gcTime: PUBLIC_QUERY_GC_TIME,
-    refetchOnMount: "always",
+    refetchOnMount: false,
   });
 
 export function usePublishedSections() {

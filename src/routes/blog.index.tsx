@@ -56,8 +56,32 @@ export const Route = createFileRoute("/blog/")({
       </div>
     </SiteLayout>
   ),
+  pendingComponent: BlogPending,
   component: BlogPage,
 });
+
+function BlogPending() {
+  return (
+    <SiteLayout>
+      <section className="border-b border-border bg-background">
+        <div className="container-narrow py-14">
+          <div className="h-10 w-72 animate-pulse rounded-lg bg-muted" />
+          <div className="mt-4 h-4 w-full max-w-2xl animate-pulse rounded bg-muted" />
+          <div className="mt-8 h-11 w-full max-w-md animate-pulse rounded-[12px] bg-muted" />
+        </div>
+      </section>
+      <section className="bg-background">
+        <div className="container-narrow py-14">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 6 }, (_, index) => (
+              <div key={index} className="h-80 animate-pulse rounded-[16px] bg-muted" />
+            ))}
+          </div>
+        </div>
+      </section>
+    </SiteLayout>
+  );
+}
 
 function BlogPage() {
   const [query, setQuery] = useState("");
