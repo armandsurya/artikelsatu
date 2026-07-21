@@ -52,10 +52,11 @@ export const listPublishedPosts = createServerFn({ method: "GET" }).handler(
     const { data, error } = await client
       .from("blog_posts")
       .select(
-        "id,title,slug,excerpt,featured_image,category_id,tags,author_id,status,read_time,published_at,meta_title,meta_description",
+        "id,title,slug,excerpt,content,featured_image,category_id,tags,author_id,status,read_time,published_at,updated_at,meta_title,meta_description",
       )
       .eq("status", "published")
       .is("deleted_at", null)
+      .lte("published_at", new Date().toISOString())
       .order("published_at", { ascending: false, nullsFirst: false });
     if (error) {
       console.error("[listPublishedPosts]", error);

@@ -248,26 +248,66 @@ const mapCta = (v: CTAData): CTASectionData => ({
 
 /* ---------------- Blog mapping ---------------- */
 
+/**
+ * Extract plain text from stored `content` (jsonb).
+ * Handles legacy `{html:"..."}` shape + modern raw HTML string.
+ */
+function contentToPlainText(raw: unknown): string {
+  const html =
+    typeof raw === "string"
+      ? raw
+      : raw && typeof raw === "object" && "html" in raw
+        ? String((raw as { html: unknown }).html ?? "")
+        : "";
+  if (!html) return "";
+  return html
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/** Auto-excerpt from plain text: cut at word boundary near 160 chars, add "…". */
+function autoExcerpt(text: string, max = 160): string {
+  if (!text) return "";
+  if (text.length <= max) return text;
+  const slice = text.slice(0, max + 1);
+  const cut = slice.lastIndexOf(" ");
+  const body = (cut > 40 ? slice.slice(0, cut) : slice.slice(0, max)).replace(/[,;:.!\-–—\s]+$/, "");
+  return `${body}…`;
+}
+
 export function mapBlogPosts(
   rows: PublishedBlogPostRow[],
   cats: PublishedCategoryRow[],
 ): BlogPost[] {
   const catMap = new Map(cats.map((c) => [c.id, c.name]));
-  return rows.map((r) => ({
-    id: r.id,
-    title: r.title,
-    slug: r.slug,
-    excerpt: r.excerpt ?? "",
-    featuredImage: r.featured_image ?? "",
-    category: (r.category_id && catMap.get(r.category_id)) || "Umum",
-    author: "Tim ArtikelPro",
-    publishedDate: r.published_at ?? new Date().toISOString(),
-    readTime: r.read_time ?? 5,
-    tags: r.tags ?? [],
-    status: "published",
-    metaTitle: r.meta_title ?? undefined,
-    metaDescription: r.meta_description ?? undefined,
-  }));
+  return rows.map((r) => {
+    const cmsExcerpt = (r.excerpt ?? "").trim();
+    const excerpt = cmsExcerpt || autoExcerpt(contentToPlainText(r.content));
+    return {
+      id: r.id,
+      title: r.title,
+      slug: r.slug,
+      excerpt,
+      featuredImage: r.featured_image ?? "",
+      category: (r.category_id && catMap.get(r.category_id)) || "Umum",
+      author: "Tim ArtikelPro",
+      publishedDate: r.published_at ?? new Date().toISOString(),
+      readTime: r.read_time ?? 5,
+      tags: r.tags ?? [],
+      status: "published",
+      metaTitle: r.meta_title ?? undefined,
+      metaDescription: r.meta_description ?? undefined,
+    };
+  });
 }
 
 /* ---------------- Sections list assembly ---------------- */
