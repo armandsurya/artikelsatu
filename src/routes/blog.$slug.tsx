@@ -111,8 +111,15 @@ function BlogDetail() {
       })
     : "";
 
-  // content stored as jsonb (either an HTML string or arbitrary JSON)
-  const contentHtml = typeof post.content === "string" ? post.content : "";
+  // content is `jsonb` — usually a string of raw HTML, but legacy seed rows
+  // used `{html: "..."}`. Migration normalized DB; this stays defensive.
+  const rawContent: unknown = post.content;
+  const contentHtml =
+    typeof rawContent === "string"
+      ? rawContent
+      : rawContent && typeof rawContent === "object" && "html" in rawContent
+        ? String((rawContent as { html: unknown }).html ?? "")
+        : "";
 
   const { data: author } = useQuery({
     queryKey: ["profile", post.author_id],
