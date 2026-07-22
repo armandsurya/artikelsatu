@@ -15,8 +15,11 @@ import type { Database } from "@/integrations/supabase/types";
  */
 export const getPublicSiteSettings = createServerFn({ method: "GET" }).handler(
   async (): Promise<{ data: string }> => {
-    const url = process.env.SUPABASE_URL;
-    const key = process.env.SUPABASE_PUBLISHABLE_KEY;
+    // Fall back to VITE_* (baked at build) so self-hosted Workers without
+    // runtime env vars still function.
+    const url = process.env.SUPABASE_URL ?? import.meta.env.VITE_SUPABASE_URL;
+    const key =
+      process.env.SUPABASE_PUBLISHABLE_KEY ?? import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
     if (!url || !key) throw new Error("Public settings backend is not configured");
     const client = createClient<Database>(url, key, {
       auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
