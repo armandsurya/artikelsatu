@@ -112,8 +112,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     }
   },
   loader: async ({ context }) => {
-    const settings = await context.queryClient.fetchQuery(siteSettingsQueryOptions());
-    return { settings };
+    // Settings adalah data non-kritis (branding/SEO). Jangan sampai kegagalan
+    // fetch di sini menjatuhkan seluruh site menjadi HTTP 500 — fallback ke
+    // objek kosong; komponen sudah punya default statis.
+    try {
+      const settings = await context.queryClient.fetchQuery(siteSettingsQueryOptions());
+      return { settings };
+    } catch (e) {
+      console.error("[root loader] siteSettings fetch failed, using empty fallback", e);
+      return { settings: {} as Record<string, unknown> };
+    }
   },
   head: ({ loaderData }) => {
     const s = (loaderData?.settings ?? {}) as Record<string, unknown>;
