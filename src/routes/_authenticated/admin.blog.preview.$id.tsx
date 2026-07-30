@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { SiteLayout } from "@/components/layouts/SiteLayout";
 import { ArrowLeft, Clock, User, Eye, RefreshCw } from "lucide-react";
 import { sanitizeHtml } from "@/lib/editor/sanitize";
+import { authorDisplayName } from "@/lib/blog/author";
 
 const DRAFT_STORAGE_KEY = "lovable:blog-preview-draft";
 
@@ -216,7 +217,7 @@ function PreviewPage() {
             <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted-foreground">
               <span className="inline-flex items-center gap-1.5">
                 <User className="h-4 w-4" />
-                {authorName ?? "Tim ArtikelPro"}
+                {authorDisplayName(authorName)}
               </span>
               <span className="inline-flex items-center gap-1.5">
                 <Clock className="h-4 w-4" />

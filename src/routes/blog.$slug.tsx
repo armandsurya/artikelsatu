@@ -12,6 +12,7 @@ import { BlogCard } from "@/components/cards/BlogCard";
 import { Clock, User, ArrowLeft } from "lucide-react";
 import { MediaFigure } from "@/components/media/MediaFigure";
 import { sanitizeHtml } from "@/lib/editor/sanitize";
+import { authorDisplayName } from "@/lib/blog/author";
 
 export const Route = createFileRoute("/blog/$slug")({
   loader: async ({ params, context }) => {
@@ -143,7 +144,7 @@ function BlogDetail() {
         ? String((rawContent as { html: unknown }).html ?? "")
         : "";
 
-  const author = post.author_name || "Tim ArtikelPro";
+  const author = authorDisplayName(post.author_name);
 
   return (
     <SiteLayout>

@@ -3,6 +3,7 @@
  * Falls back to static defaults if a section row is missing or contains an
  * empty object. Returns a per-section "source" tag for the debug badge.
  */
+import { authorDisplayName } from "@/lib/blog/author";
 import type { SectionKey } from "@/data/homepageDefaults";
 import { DEFAULTS, SECTION_META_DEFAULTS } from "@/data/homepageDefaults";
 import { splitMeta, DEFAULT_META, type SectionMeta } from "@/lib/admin/sectionMeta";
@@ -299,7 +300,7 @@ export function mapBlogPosts(
       excerpt,
       featuredImage: r.featured_image ?? "",
       category: (r.category_id && catMap.get(r.category_id)) || "Umum",
-      author: r.author_name?.trim() || "Tim ArtikelPro",
+      author: authorDisplayName(r.author_name),
       publishedDate: r.published_at ?? new Date().toISOString(),
       readTime: r.read_time ?? 5,
       tags: r.tags ?? [],
