@@ -32,7 +32,9 @@ async function withAuthorNames<T extends { author_id: string | null }>(
   if (!client || rows.length === 0) return rows.map((row) => ({ ...row, author_name: null }));
   const authorIds = Array.from(new Set(rows.map((row) => row.author_id).filter(Boolean))) as string[];
   if (authorIds.length === 0) return rows.map((row) => ({ ...row, author_name: null }));
-  const { data, error } = await client.from("profiles").select("id,full_name").in("id", authorIds);
+  // profiles is not readable by `anon` (RLS), so public reads go through a
+  // security-definer RPC that only exposes names of published-post authors.
+  const { data, error } = await client.rpc("get_public_author_names", { _ids: authorIds });
   if (error) {
     console.error("[withAuthorNames]", error);
     return rows.map((row) => ({ ...row, author_name: null }));
@@ -40,6 +42,7 @@ async function withAuthorNames<T extends { author_id: string | null }>(
   const names = new Map((data ?? []).map((profile) => [profile.id, profile.full_name]));
   return rows.map((row) => ({ ...row, author_name: row.author_id ? names.get(row.author_id) ?? null : null }));
 }
+
 
 export const getPublishedPostBySlug = createServerFn({ method: "GET" })
   .inputValidator((data: { slug: string }) => data)
