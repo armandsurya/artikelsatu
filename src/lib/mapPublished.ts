@@ -1,9 +1,9 @@
 /**
-import { authorDisplayName } from "@/lib/blog/author";
  * Maps DB payloads (form-shaped, as stored by the CMS) → frontend prop shapes.
  * Falls back to static defaults if a section row is missing or contains an
  * empty object. Returns a per-section "source" tag for the debug badge.
  */
+import { authorDisplayName } from "@/lib/blog/author";
 import type { SectionKey } from "@/data/homepageDefaults";
 import { DEFAULTS, SECTION_META_DEFAULTS } from "@/data/homepageDefaults";
 import { splitMeta, DEFAULT_META, type SectionMeta } from "@/lib/admin/sectionMeta";
