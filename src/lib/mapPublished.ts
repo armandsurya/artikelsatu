@@ -1,4 +1,5 @@
 /**
+import { authorDisplayName } from "@/lib/blog/author";
  * Maps DB payloads (form-shaped, as stored by the CMS) → frontend prop shapes.
  * Falls back to static defaults if a section row is missing or contains an
  * empty object. Returns a per-section "source" tag for the debug badge.
@@ -299,7 +300,7 @@ export function mapBlogPosts(
       excerpt,
       featuredImage: r.featured_image ?? "",
       category: (r.category_id && catMap.get(r.category_id)) || "Umum",
-      author: r.author_name?.trim() || "Tim ArtikelPro",
+      author: authorDisplayName(r.author_name),
       publishedDate: r.published_at ?? new Date().toISOString(),
       readTime: r.read_time ?? 5,
       tags: r.tags ?? [],
