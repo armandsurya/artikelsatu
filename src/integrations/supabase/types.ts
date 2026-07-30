@@ -586,6 +586,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_public_author_names: {
+        Args: { _ids: string[] }
+        Returns: {
+          full_name: string
+          id: string
+        }[]
+      }
       has_any_role: { Args: { _user_id: string }; Returns: boolean }
       has_permission: {
         Args: { _permission: string; _user_id: string }
