@@ -52,7 +52,7 @@ export const getPublishedPostBySlug = createServerFn({ method: "GET" })
     const { data: row, error } = await client
       .from("blog_posts")
       .select(
-        "id,title,slug,excerpt,content,featured_image,category_id,tags,author_id,status,read_time,published_at,updated_at,meta_title,meta_description,canonical_url",
+        "id,title,slug,excerpt,content,featured_image,category_id,tags,focus_keywords,author_id,status,read_time,published_at,updated_at,meta_title,meta_description,canonical_url",
       )
       .eq("slug", data.slug)
       .eq("status", "published")
