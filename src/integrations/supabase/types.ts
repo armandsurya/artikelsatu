@@ -83,6 +83,7 @@ export type Database = {
           created_at: string
           excerpt: string | null
           featured_image: string | null
+          focus_keywords: string[]
           id: string
           meta_description: string | null
           meta_title: string | null
@@ -103,6 +104,7 @@ export type Database = {
           created_at?: string
           excerpt?: string | null
           featured_image?: string | null
+          focus_keywords?: string[]
           id?: string
           meta_description?: string | null
           meta_title?: string | null
@@ -123,6 +125,7 @@ export type Database = {
           created_at?: string
           excerpt?: string | null
           featured_image?: string | null
+          focus_keywords?: string[]
           id?: string
           meta_description?: string | null
           meta_title?: string | null
@@ -155,6 +158,7 @@ export type Database = {
           deleted_at: string | null
           excerpt: string | null
           featured_image: string | null
+          focus_keywords: string[]
           id: string
           last_editor_id: string | null
           meta_description: string | null
@@ -179,6 +183,7 @@ export type Database = {
           deleted_at?: string | null
           excerpt?: string | null
           featured_image?: string | null
+          focus_keywords?: string[]
           id?: string
           last_editor_id?: string | null
           meta_description?: string | null
@@ -203,6 +208,7 @@ export type Database = {
           deleted_at?: string | null
           excerpt?: string | null
           featured_image?: string | null
+          focus_keywords?: string[]
           id?: string
           last_editor_id?: string | null
           meta_description?: string | null

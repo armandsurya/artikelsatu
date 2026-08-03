@@ -14,6 +14,7 @@ export type RevisionSnapshot = {
   meta_description: string | null;
   canonical_url: string | null;
   tags: string[];
+  focus_keywords?: string[];
   category_id: string | null;
   status: PostStatus;
   seo_score: number | null;
@@ -42,6 +43,7 @@ export async function saveRevision(snap: RevisionSnapshot): Promise<void> {
     meta_description: snap.meta_description,
     canonical_url: snap.canonical_url,
     tags: snap.tags,
+    focus_keywords: snap.focus_keywords ?? [],
     category_id: snap.category_id,
     status: snap.status,
     seo_score: snap.seo_score,

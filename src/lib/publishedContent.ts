@@ -25,6 +25,7 @@ export type PublishedBlogPostRow = {
   featured_image: string | null;
   category_id: string | null;
   tags: string[] | null;
+  focus_keywords?: string[] | null;
   author_id: string | null;
   status: string;
   read_time: number | null;
