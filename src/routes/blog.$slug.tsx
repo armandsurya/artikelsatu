@@ -34,10 +34,17 @@ export const Route = createFileRoute("/blog/$slug")({
     const title = p.meta_title || p.title;
     const desc = p.meta_description || p.excerpt || p.title;
     const url = `/blog/${params.slug}`;
+    // Per-article keywords override the global meta keywords (root head).
+    // Empty list = no override, so the global value stays as fallback.
+    const keywords = ((p.focus_keywords as string[] | null) ?? [])
+      .map((k) => k.trim())
+      .filter(Boolean)
+      .join(", ");
     return {
       meta: [
         { title },
         { name: "description", content: desc },
+        ...(keywords ? [{ name: "keywords", content: keywords }] : []),
         { property: "og:title", content: title },
         { property: "og:description", content: desc },
         { property: "og:type", content: "article" },
