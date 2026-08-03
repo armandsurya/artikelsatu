@@ -103,6 +103,21 @@ const TABS: { key: TabKey; label: string; icon: React.ComponentType<{ className?
   { key: "revisi", label: "Revisi", icon: History },
 ];
 
+/** Splits a comma-separated focus keyword input into a clean, de-duplicated list. */
+export function parseKeywords(input: string): string[] {
+  const seen = new Set<string>();
+  return input
+    .split(",")
+    .map((k) => k.trim())
+    .filter((k) => {
+      if (!k) return false;
+      const key = k.toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+}
+
 export function BlogEditor({ mode, id, onSaved }: Props) {
   const navigate = useNavigate();
   const qc = useQueryClient();
@@ -336,7 +351,7 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
           ogDesc: "",
           robotsIndex: "index",
           tags: (data.tags ?? []).join(", "),
-          focusKeyword: "",
+          focusKeyword: (data.focus_keywords ?? []).join(", "),
           publishedAt: data.published_at ? data.published_at.slice(0, 16) : "",
           scheduledAt: data.scheduled_at ? data.scheduled_at.slice(0, 16) : "",
         };
@@ -350,6 +365,7 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
         setMetaDesc(loaded.metaDesc);
         setCanonical(loaded.canonical);
         setTags(loaded.tags);
+        setFocusKeyword(loaded.focusKeyword);
         setStatus(data.status);
         setReadTime(data.read_time ?? 5);
         setPublishedAt(loaded.publishedAt);
@@ -374,6 +390,8 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
       setReadTime(stats.minutes); /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, [stats.minutes]);
 
+  const keywordList = useMemo(() => parseKeywords(focusKeyword), [focusKeyword]);
+
   const seo = useMemo(
     () =>
       analyzeSeo({
@@ -381,9 +399,9 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
         metaTitle: metaTitle || title,
         metaDescription: metaDesc,
         contentHtml: content,
-        focusKeyword,
+        focusKeyword: keywordList[0] ?? "",
       }),
-    [title, metaTitle, metaDesc, content, focusKeyword],
+    [title, metaTitle, metaDesc, content, keywordList],
   );
 
   // Refs let the blocker read the latest values without depending on stale render closures.
@@ -436,8 +454,9 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
       content: stats.words >= 30,
       metaTitle: !!metaTitle.trim(),
       metaDesc: metaDesc.trim().length >= 50 && metaDesc.trim().length <= 160,
+      focusKeyword: parseKeywords(focusKeyword).length > 0,
     }),
-    [title, slug, categoryId, stats.words, metaTitle, metaDesc],
+    [title, slug, categoryId, stats.words, metaTitle, metaDesc, focusKeyword],
   );
   const publishReady = Object.values(checklist).every(Boolean);
   const checklistDone = Object.values(checklist).filter(Boolean).length;
@@ -470,6 +489,7 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
         .split(",")
         .map((t) => t.trim())
         .filter(Boolean),
+      focus_keywords: parseKeywords(focusKeyword),
       status: nextStatus,
       read_time: readTime,
       published_at:
@@ -538,6 +558,7 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
         meta_description: payload.meta_description,
         canonical_url: payload.canonical_url,
         tags: payload.tags,
+        focus_keywords: payload.focus_keywords,
         category_id: payload.category_id,
         status: nextStatus,
         seo_score: payload.seo_score,
@@ -561,6 +582,8 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
       let nextStatus: Status;
       let schedule: string | null = null;
       if (action === "publish") {
+        if (parseKeywords(focusKeyword).length === 0)
+          throw new Error("Focus Keyword wajib diisi sebelum artikel dipublikasikan.");
         if (!publishReady)
           throw new Error("Checklist Publish belum lengkap. Cek tab SEO & Konten.");
         nextStatus = "published";
@@ -568,6 +591,8 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
         if (!scheduledAt) throw new Error("Tentukan tanggal & waktu publish di tab Pengaturan.");
         if (new Date(scheduledAt).getTime() <= Date.now())
           throw new Error("Waktu jadwal harus di masa depan.");
+        if (parseKeywords(focusKeyword).length === 0)
+          throw new Error("Focus Keyword wajib diisi sebelum artikel dijadwalkan.");
         if (!publishReady) throw new Error("Checklist Publish belum lengkap.");
         nextStatus = "scheduled";
         schedule = scheduledAt;
@@ -690,6 +715,7 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
             .split(",")
             .map((t) => t.trim())
             .filter(Boolean),
+          focus_keywords: parseKeywords(focusKeyword),
           status: "draft" as Status,
           read_time: readTime,
           published_at: null,
@@ -1086,14 +1112,35 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
                   {seo.band === "green" ? "Baik" : seo.band === "yellow" ? "Cukup" : "Perbaiki"}
                 </span>
               </div>
-              <Field label="Focus Keyword (opsional)">
+              <Field
+                label="Focus Keyword"
+                hint="Wajib diisi. Pisahkan beberapa keyword dengan koma — dipakai sebagai meta keywords artikel."
+              >
                 <input
                   value={focusKeyword}
                   onChange={(e) => setFocusKeyword(e.target.value)}
-                  className={inputCls}
-                  placeholder="mis. seo blog"
+                  className={`${inputCls} ${keywordList.length === 0 ? "border-red-400" : ""}`}
+                  placeholder="mis. jasa artikel seo, jasa penulis artikel"
+                  required
+                  aria-invalid={keywordList.length === 0}
                 />
               </Field>
+              {keywordList.length === 0 ? (
+                <p className="mt-1 text-xs font-medium text-red-600">
+                  Focus Keyword wajib diisi sebelum artikel dapat dipublikasikan.
+                </p>
+              ) : (
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {keywordList.map((k) => (
+                    <span
+                      key={k}
+                      className="rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground"
+                    >
+                      {k}
+                    </span>
+                  ))}
+                </div>
+              )}
               <ul className="mt-3 space-y-1 text-xs">
                 {seo.checks.map((c) => (
                   <li key={c.key} className="flex items-start justify-between gap-2">
@@ -1616,7 +1663,7 @@ function EditorLiveStats({
 }) {
   const s = useMemo(() => contentStats(html), [html]);
   const density = useMemo(() => {
-    const k = focusKeyword.trim().toLowerCase();
+    const k = (parseKeywords(focusKeyword)[0] ?? "").toLowerCase();
     if (!k) return null;
     const text = html.replace(/<[^>]+>/g, " ").toLowerCase();
     const words = text.split(/\s+/).filter(Boolean);
@@ -1654,7 +1701,7 @@ function EditorLiveStats({
         <StatCell label="Link internal" value={s.internalLinks} />
         <StatCell label="Link eksternal" value={s.externalLinks} />
         <StatCell
-          label={`Density "${focusKeyword.trim() || "—"}"`}
+          label={`Density "${parseKeywords(focusKeyword)[0] ?? "—"}"`}
           value={density === null ? "—" : `${density.toFixed(2)}%`}
           warn={density !== null && (density < 0.5 || density > 3)}
           hint={density === null ? "Isi Focus Keyword di tab SEO" : "Ideal 0.5–3%"}
