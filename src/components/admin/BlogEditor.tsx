@@ -1087,6 +1087,7 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
                   ["Konten ≥ 30 kata", checklist.content],
                   ["Meta Title", checklist.metaTitle],
                   ["Meta Description (50–160)", checklist.metaDesc],
+                  ["Focus Keyword", checklist.focusKeyword],
                 ].map(([label, ok]) => (
                   <li
                     key={label as string}
