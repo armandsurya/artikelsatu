@@ -1,0 +1,2 @@
+ALTER TABLE public.blog_posts ADD COLUMN IF NOT EXISTS focus_keywords text[] NOT NULL DEFAULT '{}'::text[];
+ALTER TABLE public.blog_post_revisions ADD COLUMN IF NOT EXISTS focus_keywords text[] NOT NULL DEFAULT '{}'::text[];
