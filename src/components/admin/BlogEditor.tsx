@@ -30,6 +30,7 @@ import {
   Settings as SettingsIcon,
   ExternalLink,
   X as CloseIcon,
+  Circle,
 } from "lucide-react";
 
 const PREVIEW_DRAFT_KEY = "lovable:blog-preview-draft";
@@ -392,6 +393,7 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
 
   const keywordList = useMemo(() => parseKeywords(focusKeyword), [focusKeyword]);
 
+  const siteOrigin = typeof window !== "undefined" ? window.location.origin : undefined;
   const seo = useMemo(
     () =>
       analyzeSeo({
@@ -399,9 +401,10 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
         metaTitle: metaTitle || title,
         metaDescription: metaDesc,
         contentHtml: content,
-        focusKeyword: keywordList[0] ?? "",
+        focusKeywords: keywordList,
+        siteOrigin,
       }),
-    [title, metaTitle, metaDesc, content, keywordList],
+    [title, metaTitle, metaDesc, content, keywordList, siteOrigin],
   );
 
   // Refs let the blocker read the latest values without depending on stale render closures.
@@ -1146,12 +1149,20 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
                 {seo.checks.map((c) => (
                   <li key={c.key} className="flex items-start justify-between gap-2">
                     <span
-                      className={`flex items-center gap-1.5 ${c.ok ? "text-green-700" : "text-muted-foreground"}`}
+                      className={`flex items-center gap-1.5 ${
+                        c.status === "pass"
+                          ? "text-green-700"
+                          : c.status === "warn"
+                            ? "text-amber-600"
+                            : "text-muted-foreground"
+                      }`}
                     >
-                      {c.ok ? (
+                      {c.status === "pass" ? (
                         <Check className="h-3.5 w-3.5" />
-                      ) : (
+                      ) : c.status === "warn" ? (
                         <AlertCircle className="h-3.5 w-3.5 text-amber-500" />
+                      ) : (
+                        <Circle className="h-3.5 w-3.5 text-muted-foreground/60" />
                       )}
                       {c.label}
                     </span>
