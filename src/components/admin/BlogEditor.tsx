@@ -392,6 +392,7 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
 
   const keywordList = useMemo(() => parseKeywords(focusKeyword), [focusKeyword]);
 
+  const siteOrigin = typeof window !== "undefined" ? window.location.origin : undefined;
   const seo = useMemo(
     () =>
       analyzeSeo({
@@ -399,9 +400,10 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
         metaTitle: metaTitle || title,
         metaDescription: metaDesc,
         contentHtml: content,
-        focusKeyword: keywordList[0] ?? "",
+        focusKeywords: keywordList,
+        siteOrigin,
       }),
-    [title, metaTitle, metaDesc, content, keywordList],
+    [title, metaTitle, metaDesc, content, keywordList, siteOrigin],
   );
 
   // Refs let the blocker read the latest values without depending on stale render closures.
