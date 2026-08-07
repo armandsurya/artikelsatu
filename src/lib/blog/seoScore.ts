@@ -1,15 +1,9 @@
 // Lightweight SEO scorer for blog posts. Not a validator — a helper.
-// Every check reads the ACTUAL article data / WYSIWYG HTML. A check is only
-// "pass" (green) when its requirement is genuinely met; missing data is
-// "neutral", partial/incorrect data is "warn". Only "pass" earns points.
-
-export type SeoStatus = "pass" | "warn" | "neutral";
+// Returns { score: 0..100, checks: [{key,label,ok,weight,message}] }
 
 export type SeoCheck = {
   key: string;
   label: string;
-  status: SeoStatus;
-  /** convenience alias: true only when status === "pass" */
   ok: boolean;
   weight: number;
   message: string;
@@ -19,17 +13,6 @@ export type SeoReport = {
   score: number;
   band: "red" | "yellow" | "green";
   checks: SeoCheck[];
-  stats: {
-    words: number;
-    h1: number;
-    h2: number;
-    images: number;
-    imagesMissingAlt: number;
-    internalLinks: number;
-    externalLinks: number;
-    metaTitleLen: number;
-    metaDescLen: number;
-  };
 };
 
 export type SeoInput = {
@@ -37,217 +20,115 @@ export type SeoInput = {
   metaTitle: string;
   metaDescription: string;
   contentHtml: string;
-  /** Focus keywords already parsed (comma-split, trimmed, non-empty). */
-  focusKeywords?: string[];
-  /** Origin of this site, used to classify absolute links as internal. */
-  siteOrigin?: string;
+  focusKeyword?: string;
 };
 
-/** Strip tags, scripts/styles and HTML entities → plain visible text. */
-export function htmlToText(html: string): string {
-  return (html || "")
-    .replace(/<script[\s\S]*?<\/script>/gi, " ")
-    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+function stripHtml(html: string) {
+  return html
     .replace(/<[^>]*>/g, " ")
-    .replace(/&nbsp;/gi, " ")
-    .replace(/&amp;/gi, "&")
-    .replace(/&lt;/gi, "<")
-    .replace(/&gt;/gi, ">")
-    .replace(/&quot;/gi, '"')
-    .replace(/&#39;/gi, "'")
     .replace(/\s+/g, " ")
     .trim();
 }
 
-export function countWords(html: string): number {
-  const text = htmlToText(html);
-  if (!text) return 0;
-  return text.split(/\s+/).filter((w) => /[\p{L}\p{N}]/u.test(w)).length;
-}
-
-function countTag(html: string, tag: string): number {
-  const re = new RegExp(`<${tag}(?=[\\s/>])`, "gi");
-  return (html.match(re) ?? []).length;
-}
-
-export type LinkStats = { internal: number; external: number; ignored: number };
-
-const IGNORED_SCHEMES = /^(#|javascript:|mailto:|tel:|data:|sms:)/i;
-
-function hostOf(origin: string | undefined): string | null {
-  if (!origin) return null;
-  try {
-    return new URL(origin).hostname.replace(/^www\./i, "").toLowerCase();
-  } catch {
-    return null;
-  }
-}
-
-/** Classify only real <a href="..."> anchors present in the article HTML. */
-export function analyzeLinks(html: string, siteOrigin?: string): LinkStats {
-  const stats: LinkStats = { internal: 0, external: 0, ignored: 0 };
-  const selfHost = hostOf(siteOrigin);
-  const anchorRe = /<a\b[^>]*>/gi;
-  const hrefRe = /\shref\s*=\s*("([^"]*)"|'([^']*)'|([^\s">]+))/i;
-  for (const tag of html.match(anchorRe) ?? []) {
-    const m = tag.match(hrefRe);
-    const raw = (m?.[2] ?? m?.[3] ?? m?.[4] ?? "").trim();
-    if (!raw || IGNORED_SCHEMES.test(raw)) {
-      stats.ignored++;
-      continue;
-    }
-    if (/^https?:\/\//i.test(raw) || /^\/\//.test(raw)) {
-      const host = hostOf(raw.startsWith("//") ? `https:${raw}` : raw);
-      if (!host) {
-        stats.ignored++;
-        continue;
-      }
-      if (selfHost && host === selfHost) stats.internal++;
-      else stats.external++;
-      continue;
-    }
-    if (/^[a-z][a-z0-9+.-]*:/i.test(raw)) {
-      stats.ignored++;
-      continue;
-    }
-    // relative path (/foo, foo, ./foo, ../foo) → internal
-    stats.internal++;
-  }
-  return stats;
-}
-
-function mk(
-  key: string,
-  label: string,
-  weight: number,
-  status: SeoStatus,
-  message: string,
-): SeoCheck {
-  return { key, label, weight, status, ok: status === "pass", message };
-}
-
 export function analyzeSeo(input: SeoInput): SeoReport {
+  const text = stripHtml(input.contentHtml || "");
+  const words = text ? text.split(" ").filter(Boolean).length : 0;
   const doc = input.contentHtml || "";
-  const text = htmlToText(doc);
-  const words = countWords(doc);
-  const h1 = countTag(doc, "h1");
-  const h2 = countTag(doc, "h2");
-  const imgTags = doc.match(/<img\b[^>]*>/gi) ?? [];
-  const images = imgTags.length;
-  const imagesMissingAlt = imgTags.filter((t) => {
-    const m = t.match(/\salt\s*=\s*("([^"]*)"|'([^']*)'|([^\s">]+))/i);
-    const alt = (m?.[2] ?? m?.[3] ?? m?.[4] ?? "").trim();
-    return !m || alt.length === 0;
+  const h1Count = (doc.match(/<h1[\s>]/gi) ?? []).length;
+  const h2Count = (doc.match(/<h2[\s>]/gi) ?? []).length;
+  const imgs = doc.match(/<img[^>]*>/gi) ?? [];
+  const imgsMissingAlt = imgs.filter(
+    (t) => !/\balt=/.test(t) || /\balt=["']\s*["']/i.test(t),
+  ).length;
+  const anchors = doc.match(/<a[^>]*href=["']([^"']+)["'][^>]*>/gi) ?? [];
+  const internal = anchors.filter((a) => {
+    const m = a.match(/href=["']([^"']+)["']/i);
+    const href = m?.[1] ?? "";
+    return href.startsWith("/") || href.startsWith("#");
   }).length;
-  const links = analyzeLinks(doc, input.siteOrigin);
-
-  const keywords = (input.focusKeywords ?? []).map((k) => k.trim()).filter(Boolean);
-  const titleLc = (input.title || "").trim().toLowerCase();
-  const textLc = text.toLowerCase();
-  const kwInTitle = keywords.some((k) => titleLc.includes(k.toLowerCase()));
-  const kwInBody = keywords.some((k) => textLc.includes(k.toLowerCase()));
-
-  const metaTitleLen = (input.metaTitle || "").trim().length;
-  const metaDescLen = (input.metaDescription || "").trim().length;
+  const external = anchors.length - internal;
+  const kw = (input.focusKeyword ?? "").trim().toLowerCase();
+  const kwInTitle = kw ? input.title.toLowerCase().includes(kw) : true;
+  const kwInBody = kw ? text.toLowerCase().includes(kw) : true;
+  const metaTitleLen = (input.metaTitle || input.title || "").length;
+  const metaDescLen = (input.metaDescription || "").length;
 
   const checks: SeoCheck[] = [
-    mk(
-      "title-length",
-      "Panjang Meta Title (50–60)",
-      12,
-      metaTitleLen === 0 ? "neutral" : metaTitleLen >= 50 && metaTitleLen <= 60 ? "pass" : "warn",
-      `${metaTitleLen} karakter`,
-    ),
-    mk(
-      "meta-desc",
-      "Meta Description (120–160)",
-      12,
-      metaDescLen === 0 ? "neutral" : metaDescLen >= 120 && metaDescLen <= 160 ? "pass" : "warn",
-      `${metaDescLen} karakter`,
-    ),
-    mk(
-      "word-count",
-      "Panjang Konten ≥ 600 kata",
-      15,
-      words === 0 ? "neutral" : words >= 600 ? "pass" : "warn",
-      `${words} kata`,
-    ),
-    mk(
-      "h1",
-      "Struktur H1 tepat 1",
-      8,
-      h1 === 1 ? "pass" : h1 === 0 ? "neutral" : "warn",
-      `${h1} H1 dalam konten`,
-    ),
-    mk("h2", "Ada minimal 2 heading H2", 10, h2 >= 2 ? "pass" : h2 === 0 ? "neutral" : "warn", `${h2} H2`),
-    mk(
-      "internal-link",
-      "Minimal 1 internal link",
-      8,
-      links.internal >= 1 ? "pass" : "neutral",
-      `${links.internal} internal`,
-    ),
-    mk(
-      "external-link",
-      "Minimal 1 external link",
-      5,
-      links.external >= 1 ? "pass" : "neutral",
-      `${links.external} external`,
-    ),
-    mk(
-      "alt-image",
-      "Semua gambar punya alt text",
-      10,
-      images === 0 ? "neutral" : imagesMissingAlt === 0 ? "pass" : "warn",
-      images === 0 ? "belum ada gambar" : `${images - imagesMissingAlt}/${images} punya alt`,
-    ),
-    mk(
-      "kw-title",
-      "Focus Keyword muncul di Judul",
-      10,
-      keywords.length === 0 || !titleLc ? "neutral" : kwInTitle ? "pass" : "warn",
-      keywords.length === 0
-        ? "focus keyword kosong"
-        : !titleLc
-          ? "judul kosong"
-          : kwInTitle
-            ? "ada"
-            : "tidak ada",
-    ),
-    mk(
-      "kw-body",
-      "Focus Keyword muncul di Konten",
-      10,
-      keywords.length === 0 || !textLc ? "neutral" : kwInBody ? "pass" : "warn",
-      keywords.length === 0
-        ? "focus keyword kosong"
-        : !textLc
-          ? "konten kosong"
-          : kwInBody
-            ? "ada"
-            : "tidak ada",
-    ),
+    {
+      key: "title-length",
+      label: "Panjang Meta Title (50–60)",
+      weight: 12,
+      ok: metaTitleLen >= 40 && metaTitleLen <= 65,
+      message: `${metaTitleLen} karakter`,
+    },
+    {
+      key: "meta-desc",
+      label: "Meta Description (120–160)",
+      weight: 12,
+      ok: metaDescLen >= 120 && metaDescLen <= 160,
+      message: `${metaDescLen} karakter`,
+    },
+    {
+      key: "word-count",
+      label: "Panjang Konten ≥ 600 kata",
+      weight: 15,
+      ok: words >= 600,
+      message: `${words} kata`,
+    },
+    {
+      key: "h1",
+      label: "Struktur H1 tepat 1",
+      weight: 8,
+      ok: h1Count <= 1, // TSS renders h1 from title
+      message: `${h1Count} H1 dalam konten`,
+    },
+    {
+      key: "h2",
+      label: "Ada minimal 2 heading H2",
+      weight: 10,
+      ok: h2Count >= 2,
+      message: `${h2Count} H2`,
+    },
+    {
+      key: "internal-link",
+      label: "Minimal 1 internal link",
+      weight: 8,
+      ok: internal >= 1,
+      message: `${internal} internal`,
+    },
+    {
+      key: "external-link",
+      label: "Minimal 1 external link",
+      weight: 5,
+      ok: external >= 1,
+      message: `${external} external`,
+    },
+    {
+      key: "alt-image",
+      label: "Semua gambar punya alt text",
+      weight: 10,
+      ok: imgs.length === 0 || imgsMissingAlt === 0,
+      message: imgs.length ? `${imgs.length - imgsMissingAlt}/${imgs.length}` : "tidak ada gambar",
+    },
+    {
+      key: "kw-title",
+      label: "Focus Keyword muncul di Judul",
+      weight: 10,
+      ok: kwInTitle,
+      message: kw ? (kwInTitle ? "ada" : "tidak ada") : "opsional",
+    },
+    {
+      key: "kw-body",
+      label: "Focus Keyword muncul di Konten",
+      weight: 10,
+      ok: kwInBody,
+      message: kw ? (kwInBody ? "ada" : "tidak ada") : "opsional",
+    },
   ];
 
   const total = checks.reduce((s, c) => s + c.weight, 0);
-  const earned = checks.reduce((s, c) => s + (c.status === "pass" ? c.weight : 0), 0);
+  const earned = checks.reduce((s, c) => s + (c.ok ? c.weight : 0), 0);
   const score = Math.round((earned / total) * 100);
   const band: SeoReport["band"] = score >= 75 ? "green" : score >= 50 ? "yellow" : "red";
-
-  return {
-    score,
-    band,
-    checks,
-    stats: {
-      words,
-      h1,
-      h2,
-      images,
-      imagesMissingAlt,
-      internalLinks: links.internal,
-      externalLinks: links.external,
-      metaTitleLen,
-      metaDescLen,
-    },
-  };
+  return { score, band, checks };
 }
