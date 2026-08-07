@@ -30,6 +30,7 @@ import {
   Settings as SettingsIcon,
   ExternalLink,
   X as CloseIcon,
+  Circle,
 } from "lucide-react";
 
 const PREVIEW_DRAFT_KEY = "lovable:blog-preview-draft";
