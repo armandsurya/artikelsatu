@@ -11,7 +11,9 @@ import {
   publishedBlogPostsQueryOptions,
   blogCategoriesQueryOptions,
   siteSettingsQueryOptions,
+  primePublicQuery,
 } from "@/lib/publishedContent";
+
 import { mapBlogPosts } from "@/lib/mapPublished";
 
 const PAGE_SIZE = 6;
@@ -26,11 +28,12 @@ export const Route = createFileRoute("/blog/")({
   // client refetch completes.
   loader: async ({ context }) => {
     await Promise.all([
-      context.queryClient.fetchQuery(publishedBlogPostsQueryOptions()),
-      context.queryClient.fetchQuery(blogCategoriesQueryOptions()),
-      context.queryClient.fetchQuery(siteSettingsQueryOptions()),
+      primePublicQuery(context.queryClient, publishedBlogPostsQueryOptions(), []),
+      primePublicQuery(context.queryClient, blogCategoriesQueryOptions(), []),
+      primePublicQuery(context.queryClient, siteSettingsQueryOptions(), {}),
     ]);
   },
+
   head: () => ({
     meta: [
       { title: META_TITLE },

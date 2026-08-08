@@ -5,8 +5,28 @@
  * Static files under src/data/* are only used as a fallback while the
  * database is still empty (fresh install) or unreachable.
  */
-import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
+import { queryOptions, useSuspenseQuery, type QueryClient } from "@tanstack/react-query";
 import type { SectionKey } from "@/data/homepageDefaults";
+
+/**
+ * Prefetch a public query during SSR without letting a backend hiccup take the
+ * whole page down. On failure we seed the cache with a safe fallback so the
+ * route renders (with defaults/empty state) instead of the global 500 page.
+ */
+export async function primePublicQuery<T>(
+  queryClient: QueryClient,
+  options: { queryKey: readonly unknown[] },
+  fallback: T,
+): Promise<void> {
+  try {
+    await queryClient.fetchQuery(options as never);
+  } catch (error) {
+    console.error("[primePublicQuery] failed:", options.queryKey, error);
+    queryClient.setQueryData(options.queryKey, fallback);
+  }
+}
+
+
 
 export type PublishedSectionRow = {
   section_key: SectionKey;

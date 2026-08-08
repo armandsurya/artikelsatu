@@ -6,6 +6,7 @@ import {
   publishedBlogPostBySlugQueryOptions,
   publishedBlogPostsQueryOptions,
   blogCategoriesQueryOptions,
+  primePublicQuery,
 } from "@/lib/publishedContent";
 import { mapBlogPosts } from "@/lib/mapPublished";
 import { BlogCard } from "@/components/cards/BlogCard";
@@ -16,14 +17,17 @@ import { authorDisplayName } from "@/lib/blog/author";
 
 export const Route = createFileRoute("/blog/$slug")({
   loader: async ({ params, context }) => {
-    const post = await context.queryClient.fetchQuery(publishedBlogPostBySlugQueryOptions(params.slug));
+    const post = await context.queryClient.fetchQuery(
+      publishedBlogPostBySlugQueryOptions(params.slug),
+    );
     if (!post) throw notFound();
     await Promise.all([
-      context.queryClient.fetchQuery(blogCategoriesQueryOptions()),
-      context.queryClient.fetchQuery(publishedBlogPostsQueryOptions()),
+      primePublicQuery(context.queryClient, blogCategoriesQueryOptions(), []),
+      primePublicQuery(context.queryClient, publishedBlogPostsQueryOptions(), []),
     ]);
     return { post };
   },
+
   head: ({ loaderData, params }) => {
     if (!loaderData) {
       return {
