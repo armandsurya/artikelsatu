@@ -9,7 +9,9 @@ import {
   publishedSectionsQueryOptions,
   publishedBlogPostsQueryOptions,
   blogCategoriesQueryOptions,
+  primePublicQuery,
 } from "@/lib/publishedContent";
+
 import {
   buildHomepageArrangement,
   mapPublishedSection,
