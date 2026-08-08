@@ -24,17 +24,15 @@ export const getPublicSiteSettings = createServerFn({ method: "GET" }).handler(
     const client = createClient<Database>(url, key, {
       auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
     });
-    const { data, error } = await client
-      .from("site_settings")
-      .select("data")
-      .order("id")
-      .limit(1)
-      .maybeSingle();
+    // Reads through a security-definer accessor that returns ONLY the public
+    // subset of the settings blob (draft/secret-ish keys are stripped server
+    // side); the table itself is no longer readable by anonymous visitors.
+    const { data, error } = await client.rpc("get_public_site_settings");
     if (error) {
       console.error("[getPublicSiteSettings]", error);
       throw error;
     }
-    return { data: JSON.stringify(data?.data ?? {}) };
+    return { data: JSON.stringify(data ?? {}) };
   },
 );
 
