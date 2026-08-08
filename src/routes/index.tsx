@@ -29,11 +29,12 @@ export const Route = createFileRoute("/")({
   // Di sini hanya menambahkan canonical + og:url + JSON-LD spesifik halaman.
   loader: async ({ context }) => {
     await Promise.all([
-      context.queryClient.fetchQuery(publishedSectionsQueryOptions()),
-      context.queryClient.fetchQuery(publishedBlogPostsQueryOptions()),
-      context.queryClient.fetchQuery(blogCategoriesQueryOptions()),
+      primePublicQuery(context.queryClient, publishedSectionsQueryOptions(), []),
+      primePublicQuery(context.queryClient, publishedBlogPostsQueryOptions(), []),
+      primePublicQuery(context.queryClient, blogCategoriesQueryOptions(), []),
     ]);
   },
+
   // Note: title/description/OG/Twitter untuk homepage sudah di-set di __root
   // dari seo.homepageTitle / seo.homepageDescription (dibaca dari DB).
   // Di sini hanya menambahkan canonical + og:url + JSON-LD spesifik halaman.
