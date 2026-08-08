@@ -599,6 +599,7 @@ export type Database = {
           id: string
         }[]
       }
+      get_public_site_settings: { Args: never; Returns: Json }
       has_any_role: { Args: { _user_id: string }; Returns: boolean }
       has_permission: {
         Args: { _permission: string; _user_id: string }
@@ -612,7 +613,9 @@ export type Database = {
         Returns: boolean
       }
       increment_redirect_hit: { Args: { _source: string }; Returns: undefined }
+      is_content_manager: { Args: { _user_id: string }; Returns: boolean }
       publish_due_scheduled_posts: { Args: never; Returns: number }
+      sanitize_public_settings: { Args: { _obj: Json }; Returns: Json }
     }
     Enums: {
       app_role: "super_admin" | "editor" | "author"
