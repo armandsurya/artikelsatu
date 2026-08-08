@@ -7,7 +7,7 @@ import type { Database } from "@/integrations/supabase/types";
  *
  * Uses the server publishable Supabase client so the fetch works during SSR
  * (the browser client depends on localStorage and silently fails on the
- * worker). Public SELECT policy on `site_settings` makes anon reads safe.
+ * worker). Anon reads go through the sanitized `get_public_site_settings` RPC.
  *
  * Rendered result is written into the same TanStack Query cache key that
  * `useSiteSettings` reads, so client hydration starts from the exact DB
