@@ -11,7 +11,9 @@ import {
   publishedBlogPostsQueryOptions,
   blogCategoriesQueryOptions,
   siteSettingsQueryOptions,
+  primePublicQuery,
 } from "@/lib/publishedContent";
+
 import { mapBlogPosts } from "@/lib/mapPublished";
 
 const PAGE_SIZE = 6;
