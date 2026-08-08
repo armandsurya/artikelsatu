@@ -15,7 +15,7 @@ import type { SectionKey } from "@/data/homepageDefaults";
  */
 export async function primePublicQuery<T>(
   queryClient: QueryClient,
-  options: { queryKey: readonly unknown[]; queryFn: () => Promise<T> },
+  options: { queryKey: readonly unknown[] },
   fallback: T,
 ): Promise<void> {
   try {
@@ -25,6 +25,7 @@ export async function primePublicQuery<T>(
     queryClient.setQueryData(options.queryKey, fallback);
   }
 }
+
 
 
 export type PublishedSectionRow = {
