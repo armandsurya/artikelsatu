@@ -145,6 +145,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     const meta = [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "referrer", content: "origin-when-cross-origin" },
       { name: "author", content: siteName },
       { name: "theme-color", content: "#2563EB" },
       ...buildRootMeta(seo, siteName),
