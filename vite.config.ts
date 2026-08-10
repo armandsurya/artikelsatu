@@ -7,6 +7,12 @@
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
 export default defineConfig({
+  // Hostinger runs the SSR application as a persistent Node process. Without
+  // an explicit self-host target, Nitro falls back to a Cloudflare Worker
+  // bundle, which cannot boot in Hostinger's Node runtime and makes every
+  // dynamic route return HTTP 500 (while static assets still work).
+  // Lovable builds keep enforcing their own Cloudflare target internally.
+  nitro: { preset: "node-server" },
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this
