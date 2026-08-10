@@ -148,6 +148,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "referrer", content: "origin-when-cross-origin" },
       { name: "author", content: siteName },
       { name: "theme-color", content: "#2563EB" },
+      //tambahan
+      {
+        httpEquiv: "Content-Security-Policy",
+        content:
+          "upgrade-insecure-requests; default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' https: wss: blob:; frame-ancestors 'self';",
+      },
+      //---------
       ...buildRootMeta(seo, siteName),
     ];
 
