@@ -1,0 +1,13 @@
+# Semua permintaan /api/* diarahkan ke front controller index.php
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.php [QSA,L]
+
+# Lindungi konfigurasi & kode internal dari akses langsung
+RedirectMatch 404 ^/api/(config|includes|sql)/
+
+# Jangan pernah mengeksekusi PHP di folder unggahan
+<Directory "uploads">
+  php_flag engine off
+</Directory>
