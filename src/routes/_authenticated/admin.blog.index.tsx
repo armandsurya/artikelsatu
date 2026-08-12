@@ -32,7 +32,7 @@ function BlogList() {
       if (q) query = query.ilike("title", `%${q}%`);
       const { data, error } = await query;
       if (error) throw error;
-      return data;
+      return data ?? [];
     },
   });
 
