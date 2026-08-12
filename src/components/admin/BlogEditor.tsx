@@ -515,9 +515,9 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
         .select("id, slug, published_at, updated_at")
         .single();
       if (error) throw error;
-      currentId.current = data.id;
-      saved = data;
-      onSaved?.(data.id);
+      currentId.current = data!.id;
+      saved = data as typeof saved;
+      onSaved?.(data!.id);
     } else {
       const { data, error } = await api
         .from("blog_posts")
@@ -526,7 +526,7 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
         .select("id, slug, published_at, updated_at")
         .single();
       if (error) throw error;
-      saved = data;
+      saved = data as typeof saved;
     }
 
     if (featuredImage)
@@ -724,10 +724,10 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
         .select("id")
         .single();
       if (error) throw error;
-      await logActivity("duplicate_post", "blog_posts", data.id, { source: currentId.current });
+      await logActivity("duplicate_post", "blog_posts", data!.id, { source: currentId.current });
       qc.invalidateQueries({ queryKey: ["blog-posts"] });
       bypassGuardRef.current = true;
-      navigate({ to: "/admin/blog/$id", params: { id: data.id } });
+      navigate({ to: "/admin/blog/$id", params: { id: data!.id } });
     } catch (e: unknown) {
       setToast({ kind: "err", msg: `Gagal duplikat: ${e instanceof Error ? e.message : "error"}` });
     } finally {

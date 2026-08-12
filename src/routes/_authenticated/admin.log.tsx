@@ -24,10 +24,13 @@ function LogPage() {
         ? await api.from("profiles").select("id, full_name").in("id", userIds)
         : { data: [] as { id: string; full_name: string | null }[] };
       const nameMap = new Map((profiles ?? []).map((p) => [p.id, p.full_name]));
-      return (logs ?? []).map((l) => ({
-        ...l,
-        userName: l.user_id ? (nameMap.get(l.user_id) ?? "—") : "sistem",
-      }));
+      return (logs ?? []).map(
+        (l) =>
+          ({
+            ...l,
+            userName: l.user_id ? (nameMap.get(l.user_id) ?? "—") : "sistem",
+          }) as Record<string, any>,
+      );
     },
   });
 

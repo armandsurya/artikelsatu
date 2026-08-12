@@ -98,10 +98,13 @@ function RolesPage() {
         api.from("profiles").select("id, full_name"),
         api.from("user_roles").select("user_id, role"),
       ]);
-      return (profiles ?? []).map((p) => ({
-        ...p,
-        roles: (userRoles ?? []).filter((r) => r.user_id === p.id).map((r) => r.role as Role),
-      }));
+      return (profiles ?? []).map(
+        (p) =>
+          ({
+            ...p,
+            roles: (userRoles ?? []).filter((r) => r.user_id === p.id).map((r) => r.role as Role),
+          }) as Record<string, any>,
+      );
     },
   });
 

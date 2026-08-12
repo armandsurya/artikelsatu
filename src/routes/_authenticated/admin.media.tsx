@@ -152,7 +152,7 @@ function MediaLibraryPage() {
       .from("media_usage")
       .select("media_id")
       .in("media_id", ids);
-    const used = new Set((usage ?? []).map((u: { media_id: string }) => u.media_id));
+    const used = new Set((usage ?? []).map((u) => u.media_id as string));
     const blocked = ids.filter((id) => used.has(id));
     if (
       blocked.length &&
