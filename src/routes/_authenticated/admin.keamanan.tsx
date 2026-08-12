@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/integrations/api/browser";
 import {
   PageHeader,
   Card,
@@ -28,7 +28,7 @@ function Keamanan() {
   const { data: ips = [] } = useQuery({
     queryKey: ["ip-lists"],
     queryFn: async () =>
-      (await supabase.from("ip_lists").select("*").order("created_at", { ascending: false }))
+      (await api.from("ip_lists").select("*").order("created_at", { ascending: false }))
         .data ?? [],
   });
 
@@ -47,12 +47,12 @@ function Keamanan() {
     qc.invalidateQueries({ queryKey: ["ip-lists"] });
   }
   async function removeIp(id: string) {
-    await supabase.from("ip_lists").delete().eq("id", id);
+    await api.from("ip_lists").delete().eq("id", id);
     qc.invalidateQueries({ queryKey: ["ip-lists"] });
   }
   async function signOutAll() {
     if (!confirm("Keluar dari semua perangkat (sesi saat ini)?")) return;
-    await supabase.auth.signOut({ scope: "global" });
+    await api.auth.signOut({ scope: "global" });
     await logActivity("global_signout", "auth");
     location.href = "/auth";
   }

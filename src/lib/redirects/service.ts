@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/integrations/api/browser";
 
 export type RedirectRow = {
   id: string;
@@ -96,7 +96,7 @@ export function resolveRedirect(
 /** Fire-and-forget hit increment. */
 export function recordRedirectHit(source: string): void {
   if (typeof window === "undefined") return;
-  void supabase.rpc("increment_redirect_hit", { _source: source });
+  void api.rpc("increment_redirect_hit", { _source: source });
 }
 
 // ---------------- Validation ----------------

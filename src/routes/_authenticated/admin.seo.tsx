@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/integrations/api/browser";
 import { PageHeader, Card, Field, inputCls, btnPrimary } from "@/components/admin/ui";
 import { MediaPicker } from "@/components/admin/homepage/primitives";
 import { trackMediaUsage, clearMediaUsage } from "@/lib/media/usage";

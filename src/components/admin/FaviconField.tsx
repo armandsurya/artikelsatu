@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { Upload, ImageIcon, Loader2, Trash2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/integrations/api/browser";
 import { slugifyFilename } from "@/lib/media/upload";
 import { MediaLibraryModal } from "@/components/admin/homepage/primitives";
 import { inputCls, labelCls } from "@/components/admin/ui";
@@ -45,22 +45,22 @@ async function uploadFaviconFile(file: File): Promise<{ url: string } | { error:
     path = `${folder}/${name}`;
   }
 
-  const { error: upErr } = await supabase.storage.from("media").upload(path, file, {
+  const { error: upErr } = await api.storage.from("media").upload(path, file, {
     cacheControl: "31536000",
     contentType: finalMime,
     upsert: false,
   });
   if (upErr) return { error: upErr.message };
 
-  const { data: signed, error: signErr } = await supabase.storage
+  const { data: signed, error: signErr } = await api.storage
     .from("media")
     .createSignedUrl(path, 60 * 60 * 24 * 365);
   if (signErr || !signed?.signedUrl) {
-    await supabase.storage.from("media").remove([path]);
+    await api.storage.from("media").remove([path]);
     return { error: signErr?.message ?? "Gagal membuat signed URL." };
   }
 
-  const user = (await supabase.auth.getUser()).data.user;
+  const user = (await api.auth.getUser()).data.user;
   const { data: inserted, error: dbErr } = await supabase
     .from("media")
     .insert({
@@ -74,7 +74,7 @@ async function uploadFaviconFile(file: File): Promise<{ url: string } | { error:
     .select("url")
     .single();
   if (dbErr || !inserted) {
-    await supabase.storage.from("media").remove([path]);
+    await api.storage.from("media").remove([path]);
     return { error: dbErr?.message ?? "Gagal menyimpan metadata." };
   }
   return { url: inserted.url };

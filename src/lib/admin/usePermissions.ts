@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/integrations/api/browser";
 
 export type PermissionKey =
   | "homepage"
@@ -20,12 +20,12 @@ export function usePermissions() {
     queryKey: ["my-permissions"],
     staleTime: 60_000,
     queryFn: async () => {
-      const { data: userRes } = await supabase.auth.getUser();
+      const { data: userRes } = await api.auth.getUser();
       const uid = userRes.user?.id;
       if (!uid) return {};
       const [{ data: myRoles }, { data: rows }] = await Promise.all([
-        supabase.from("user_roles").select("role").eq("user_id", uid),
-        supabase.from("role_permissions").select("role, permission, allowed"),
+        api.from("user_roles").select("role").eq("user_id", uid),
+        api.from("role_permissions").select("role, permission, allowed"),
       ]);
       const roleSet = new Set((myRoles ?? []).map((r) => r.role as string));
       // super_admin bypass

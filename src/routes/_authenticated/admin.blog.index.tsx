@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/integrations/api/browser";
 import { PageHeader, Card, btnPrimary, btnDanger, inputCls } from "@/components/admin/ui";
 import { logActivity } from "@/lib/admin/log";
 import { Plus, Search, Pencil, Trash2 } from "lucide-react";
@@ -38,7 +38,7 @@ function BlogList() {
 
   async function remove(id: string) {
     if (!confirm("Hapus artikel ini (soft delete)?")) return;
-    await supabase.from("blog_posts").update({ deleted_at: new Date().toISOString() }).eq("id", id);
+    await api.from("blog_posts").update({ deleted_at: new Date().toISOString() }).eq("id", id);
     await logActivity("delete_post", "blog_posts", id);
     qc.invalidateQueries({ queryKey: ["blog-posts"] });
     qc.invalidateQueries({ queryKey: ["dashboard-stats"] });

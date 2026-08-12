@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Modal } from "./homepage/primitives";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/integrations/api/browser";
 import { uploadMediaFile, validateFile, formatBytes } from "@/lib/media/upload";
 import { Upload, Link2, Image as ImageIcon, Search, Loader2, CheckCircle2 } from "lucide-react";
 

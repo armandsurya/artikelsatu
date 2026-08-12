@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/integrations/api/browser";
 import { PageHeader, Card } from "@/components/admin/ui";
 
 export const Route = createFileRoute("/_authenticated/admin/log")({
@@ -21,7 +21,7 @@ function LogPage() {
         new Set((logs ?? []).map((l) => l.user_id).filter(Boolean)),
       ) as string[];
       const { data: profiles } = userIds.length
-        ? await supabase.from("profiles").select("id, full_name").in("id", userIds)
+        ? await api.from("profiles").select("id, full_name").in("id", userIds)
         : { data: [] as { id: string; full_name: string | null }[] };
       const nameMap = new Map((profiles ?? []).map((p) => [p.id, p.full_name]));
       return (logs ?? []).map((l) => ({

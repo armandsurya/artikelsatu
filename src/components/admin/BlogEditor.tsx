@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useBlocker, useNavigate } from "@tanstack/react-router";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/integrations/api/browser";
 import { Card, Field, inputCls, labelCls, btnPrimary, btnGhost, btnDanger } from "./ui";
 import { CKEditorField } from "./CKEditorField";
 import { contentStats } from "@/lib/editor/sanitize";
@@ -307,14 +307,14 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
   const { data: categories = [] } = useQuery({
     queryKey: ["categories"],
     queryFn: async () =>
-      (await supabase.from("blog_categories").select("id, name").order("name")).data ?? [],
+      (await api.from("blog_categories").select("id, name").order("name")).data ?? [],
   });
 
   const { data: authorName } = useQuery({
     queryKey: ["profile-name", authorId],
     enabled: !!authorId,
     queryFn: async () =>
-      (await supabase.from("profiles").select("full_name").eq("id", authorId!).maybeSingle()).data
+      (await api.from("profiles").select("full_name").eq("id", authorId!).maybeSingle()).data
         ?.full_name ?? null,
   });
 
@@ -472,7 +472,7 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
     if (uniqueSlug !== slug) setSlug(uniqueSlug);
 
     const nowIso = new Date().toISOString();
-    const { data: user } = await supabase.auth.getUser();
+    const { data: user } = await api.auth.getUser();
     const scheduleIso = opts.schedule ? new Date(opts.schedule).toISOString() : null;
 
     const payload = {
@@ -698,7 +698,7 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
     setBusy("duplicate");
     try {
       const baseSlug = await ensureUniqueSlug(`${slug || slugify(title)}-copy`);
-      const { data: user } = await supabase.auth.getUser();
+      const { data: user } = await api.auth.getUser();
       const { data, error } = await supabase
         .from("blog_posts")
         .insert({

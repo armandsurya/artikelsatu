@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/integrations/api/browser";
 
 export type MediaMeta = {
   id: string;
@@ -57,7 +57,7 @@ export async function updateMediaMetadata(id: string, patch: MediaMetadataPatch)
   if (patch.alt !== undefined) clean.alt = patch.alt?.trim() || null;
   if (patch.caption !== undefined) clean.caption = patch.caption?.trim() || null;
   if (patch.description !== undefined) clean.description = patch.description?.trim() || null;
-  const { error } = await supabase.from("media").update(clean).eq("id", id);
+  const { error } = await api.from("media").update(clean).eq("id", id);
   if (error) throw error;
 }
 

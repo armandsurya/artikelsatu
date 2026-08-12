@@ -5,7 +5,7 @@ import { PUBLISHED_QUERY_KEY } from "@/lib/publishedContent";
 import { trackMediaUsage, clearMediaUsage } from "@/lib/media/usage";
 import { ArrowLeft, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/integrations/api/browser";
 import { logActivity } from "@/lib/admin/log";
 import { Card } from "@/components/admin/ui";
 import { SectionMetaForm } from "./SectionMetaForm";
@@ -93,7 +93,7 @@ export function SectionEditor<T>({
         !v || typeof v !== "object" || Array.isArray(v) || Object.keys(v as object).length === 0;
 
       if (!existing) {
-        await supabase.from("homepage_sections").insert({
+        await api.from("homepage_sections").insert({
           section_key: sectionKey,
           title: meta.title,
           data: defaultRaw as never,
@@ -239,7 +239,7 @@ export function SectionEditor<T>({
     }
     setSaving(true);
     try {
-      const { data: userData, error: userErr } = await supabase.auth.getUser();
+      const { data: userData, error: userErr } = await api.auth.getUser();
       if (userErr || !userData.user) {
         console.error("[saveDraft] no auth session", userErr);
         toast.error("Sesi login berakhir", {
@@ -326,7 +326,7 @@ export function SectionEditor<T>({
     try {
       const payload = joinMeta(sectionMeta, content);
       const nowIso = new Date().toISOString();
-      const { data: userData, error: userErr } = await supabase.auth.getUser();
+      const { data: userData, error: userErr } = await api.auth.getUser();
       if (userErr || !userData.user) {
         console.error("[publish] no auth session", userErr);
         toast.error("Sesi login berakhir", { description: "Silakan login ulang sebelum publish." });
@@ -383,7 +383,7 @@ export function SectionEditor<T>({
         .limit(1)
         .maybeSingle();
       const nextVersion = ((last as { version?: number } | null)?.version ?? 0) + 1;
-      const { error: versionErr } = await supabase.from("homepage_section_versions").insert({
+      const { error: versionErr } = await api.from("homepage_section_versions").insert({
         section_key: sectionKey,
         version: nextVersion,
         title,

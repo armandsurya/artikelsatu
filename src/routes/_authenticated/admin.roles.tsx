@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useMemo, useState, useEffect } from "react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/integrations/api/browser";
 import { PageHeader, Card, btnPrimary, btnGhost } from "@/components/admin/ui";
 import { logActivity } from "@/lib/admin/log";
 import { Save, RotateCcw } from "lucide-react";
@@ -95,8 +95,8 @@ function RolesPage() {
     queryKey: ["users-with-roles-list"],
     queryFn: async () => {
       const [{ data: profiles }, { data: userRoles }] = await Promise.all([
-        supabase.from("profiles").select("id, full_name"),
-        supabase.from("user_roles").select("user_id, role"),
+        api.from("profiles").select("id, full_name"),
+        api.from("user_roles").select("user_id, role"),
       ]);
       return (profiles ?? []).map((p) => ({
         ...p,
@@ -107,7 +107,7 @@ function RolesPage() {
 
   async function setRole(userId: string, role: Role, on: boolean) {
     if (on) {
-      const { error } = await supabase.from("user_roles").insert({ user_id: userId, role });
+      const { error } = await api.from("user_roles").insert({ user_id: userId, role });
       if (error) return toast.error(error.message);
     } else {
       const { error } = await supabase

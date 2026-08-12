@@ -13,7 +13,7 @@ import {
   ImageOff,
   RefreshCw,
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/integrations/api/browser";
 import {
   PageHeader,
   Card,
@@ -165,8 +165,8 @@ function MediaLibraryPage() {
 
     const rowsToDelete = rows.filter((r) => ids.includes(r.id));
     for (const r of rowsToDelete) {
-      await supabase.storage.from("media").remove([r.path]);
-      await supabase.from("media").delete().eq("id", r.id);
+      await api.storage.from("media").remove([r.path]);
+      await api.from("media").delete().eq("id", r.id);
       await logActivity("delete_media", "media", r.id, { name: r.name });
     }
     setSelection(new Set());
@@ -471,8 +471,8 @@ function DetailDrawer({
     )
       return;
     if (!list.length && !window.confirm("Hapus file ini secara permanen?")) return;
-    await supabase.storage.from("media").remove([media.path]);
-    await supabase.from("media").delete().eq("id", media.id);
+    await api.storage.from("media").remove([media.path]);
+    await api.from("media").delete().eq("id", media.id);
     await logActivity("delete_media", "media", media.id, { name: media.name });
     toast.success("File dihapus.");
     onChanged();

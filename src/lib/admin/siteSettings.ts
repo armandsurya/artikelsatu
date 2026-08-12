@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/integrations/api/browser";
 import type { QueryClient } from "@tanstack/react-query";
 import { PUBLISHED_QUERY_KEY } from "@/lib/publishedContent";
 

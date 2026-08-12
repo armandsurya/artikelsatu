@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { ChevronDown, History, RotateCw } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/integrations/api/browser";
 
 export type VersionRow = {
   id: string;
