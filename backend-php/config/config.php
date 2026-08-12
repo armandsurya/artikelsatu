@@ -34,6 +34,10 @@ return [
     'jwt_secret'      => env_value('JWT_SECRET', 'ganti-secret-ini-dengan-string-acak-32-karakter'),
     'jwt_ttl'         => (int) env_value('JWT_TTL', '3600'),         // detik (access token)
     'refresh_ttl'     => (int) env_value('REFRESH_TTL', '2592000'),  // detik (30 hari)
+    // Token internal untuk request server-to-server (SSR / server function).
+    // Kosongkan bila tidak dipakai.
+    'service_token'   => env_value('API_SERVICE_TOKEN', ''),
+    'debug'           => env_value('APP_DEBUG', '0') === '1',
     'allow_signup'    => env_value('ALLOW_SIGNUP', '1') === '1',     // hanya untuk admin pertama
 
     // --- Storage / uploads --------------------------------------------

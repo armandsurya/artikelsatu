@@ -78,6 +78,20 @@ function format_user(array $row): array
     ];
 }
 
+/**
+ * Request internal server-to-server (SSR / server function) yang membawa
+ * X-Service-Token yang cocok dengan konfigurasi. Setara service role.
+ */
+function is_service_request(): bool
+{
+    $expected = app_config()['service_token'] ?? '';
+    if ($expected === '') {
+        return false;
+    }
+    $given = $_SERVER['HTTP_X_SERVICE_TOKEN'] ?? '';
+    return $given !== '' && hash_equals((string) $expected, (string) $given);
+}
+
 /** ID user login atau null. */
 function current_user_id(): ?string
 {
@@ -104,18 +118,27 @@ function user_roles(?string $userId): array
 /** Padanan fungsi SQL has_role(). */
 function has_role(?string $userId, string $role): bool
 {
+    if (is_service_request()) {
+        return true;
+    }
     return in_array($role, user_roles($userId), true);
 }
 
 /** Padanan fungsi SQL has_any_role(). */
 function has_any_role(?string $userId): bool
 {
+    if (is_service_request()) {
+        return true;
+    }
     return user_roles($userId) !== [];
 }
 
 /** Padanan is_content_manager(): peran yang boleh mengelola konten CMS. */
 function is_content_manager(?string $userId): bool
 {
+    if (is_service_request()) {
+        return true;
+    }
     return array_intersect(['super_admin', 'editor', 'author'], user_roles($userId)) !== [];
 }
 
@@ -145,6 +168,9 @@ function has_permission(?string $userId, string $permission): bool
 function require_content_manager(): string
 {
     $userId = current_user_id();
+    if ($userId === null && is_service_request()) {
+        return 'service';
+    }
     if ($userId === null) {
         json_error('Unauthorized', 401);
     }
@@ -158,6 +184,9 @@ function require_content_manager(): string
 function require_super_admin(): string
 {
     $userId = current_user_id();
+    if ($userId === null && is_service_request()) {
+        return 'service';
+    }
     if ($userId === null) {
         json_error('Unauthorized', 401);
     }
