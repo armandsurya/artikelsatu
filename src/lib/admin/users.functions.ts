@@ -6,7 +6,7 @@ import type { Database } from "@/integrations/supabase/types";
 type Role = "super_admin" | "editor" | "author";
 const ROLES: readonly Role[] = ["super_admin", "editor", "author"] as const;
 
-type AuthCtx = { supabase: SupabaseClient<Database>; userId: string };
+type AuthCtx = { api: SupabaseClient<Database>; userId: string };
 
 async function requireSuperAdmin(context: AuthCtx) {
   const { data, error } = await context.api.rpc("has_role", {

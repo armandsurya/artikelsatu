@@ -21,7 +21,7 @@ function BlogList() {
   const { data: posts = [] } = useQuery({
     queryKey: ["blog-posts", q, status],
     queryFn: async () => {
-      let query = supabase
+      let query = api
         .from("blog_posts")
         .select(
           "id, title, slug, status, updated_at, scheduled_at, seo_score, category_id, blog_categories(name)",

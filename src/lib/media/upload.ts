@@ -151,7 +151,7 @@ export async function uploadMediaFile(
 
   // Ensure no collision
   for (let i = 2; i < 20; i++) {
-    const { data: existing } = await supabase
+    const { data: existing } = await api
       .from("media")
       .select("id")
       .eq("path", path)
@@ -181,7 +181,7 @@ export async function uploadMediaFile(
 
   // DB insert
   const user = (await api.auth.getUser()).data.user;
-  const { data: inserted, error: dbErr } = await supabase
+  const { data: inserted, error: dbErr } = await api
     .from("media")
     .insert({
       name: finalName,
@@ -220,7 +220,7 @@ export async function uploadMediaFile(
 export async function replaceMediaFile(mediaId: string, file: File): Promise<UploadResult> {
   const invalid = validateFile(file);
   if (invalid) return { ok: false, step: "validation", message: invalid.message };
-  const { data: row, error: rowErr } = await supabase
+  const { data: row, error: rowErr } = await api
     .from("media")
     .select("*")
     .eq("id", mediaId)
@@ -243,7 +243,7 @@ export async function replaceMediaFile(mediaId: string, file: File): Promise<Upl
     .from("media")
     .createSignedUrl(row.path, SIGNED_URL_TTL);
 
-  const { data: updated, error: dbErr } = await supabase
+  const { data: updated, error: dbErr } = await api
     .from("media")
     .update({
       mime_type: mime,

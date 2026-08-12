@@ -11,14 +11,14 @@ import { PUBLISHED_QUERY_KEY } from "@/lib/publishedContent";
  * ordered/limit(1) shape works for both without hard-coding an id.
  */
 export async function loadSiteSettings<T = Record<string, unknown>>(): Promise<T> {
-  const { data } = await supabase
+  const { data } = await api
     .from("site_settings")
     .select("*")
     .order("id")
     .limit(1)
     .maybeSingle();
   if (!data) {
-    const inserted = await supabase
+    const inserted = await api
       .from("site_settings")
       .insert({ data: {} as never })
       .select("*")
@@ -31,7 +31,7 @@ export async function loadSiteSettings<T = Record<string, unknown>>(): Promise<T
 export async function patchSiteSettings(
   patch: Record<string, unknown>,
 ): Promise<{ error: { message: string; code?: string; hint?: string } | null }> {
-  const { data: row, error: readErr } = await supabase
+  const { data: row, error: readErr } = await api
     .from("site_settings")
     .select("*")
     .order("id")
@@ -42,7 +42,7 @@ export async function patchSiteSettings(
     return { error: { message: readErr.message, code: readErr.code } };
   }
   if (!row) {
-    const { data, error } = await supabase
+    const { data, error } = await api
       .from("site_settings")
       .insert({ data: patch as never })
       .select();
@@ -60,7 +60,7 @@ export async function patchSiteSettings(
     return { error: null };
   }
   const merged = { ...((row.data as Record<string, unknown>) ?? {}), ...patch };
-  const { data, error } = await supabase
+  const { data, error } = await api
     .from("site_settings")
     .update({ data: merged as never })
     .eq("id", row.id)

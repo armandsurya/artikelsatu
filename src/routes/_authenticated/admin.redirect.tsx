@@ -92,7 +92,7 @@ function RedirectPage() {
   }
 
   async function toggleActive(row: RedirectRow) {
-    const { error } = await supabase
+    const { error } = await api
       .from("redirects")
       .update({ active: !row.active })
       .eq("id", row.id);
@@ -141,7 +141,7 @@ function RedirectPage() {
       toast.error(err);
       return;
     }
-    const { error } = await supabase
+    const { error } = await api
       .from("redirects")
       .update({
         source: draft.source.trim(),

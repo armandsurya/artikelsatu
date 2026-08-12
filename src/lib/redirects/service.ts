@@ -55,7 +55,7 @@ export function splitPathAndSearch(input: string): { path: string; search: strin
 }
 
 export async function fetchActiveRedirects(): Promise<RedirectRow[]> {
-  const { data, error } = await supabase
+  const { data, error } = await api
     .from("redirects")
     .select(
       "id, source, destination, code, active, hits, last_hit_at, notes, preserve_query, created_at, updated_at",
@@ -66,7 +66,7 @@ export async function fetchActiveRedirects(): Promise<RedirectRow[]> {
 }
 
 export async function fetchAllRedirects(): Promise<RedirectRow[]> {
-  const { data, error } = await supabase
+  const { data, error } = await api
     .from("redirects")
     .select(
       "id, source, destination, code, active, hits, last_hit_at, notes, preserve_query, created_at, updated_at",

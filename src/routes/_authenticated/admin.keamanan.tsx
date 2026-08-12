@@ -34,7 +34,7 @@ function Keamanan() {
 
   async function addIp() {
     if (!ip) return;
-    const { error } = await supabase
+    const { error } = await api
       .from("ip_lists")
       .insert({ ip, list_type: type, note: note || null });
     if (error) {

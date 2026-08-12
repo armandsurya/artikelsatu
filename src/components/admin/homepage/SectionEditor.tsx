@@ -80,7 +80,7 @@ export function SectionEditor<T>({
   /* ---------- initial load ---------- */
   useEffect(() => {
     (async () => {
-      const { data: existing } = await supabase
+      const { data: existing } = await api
         .from("homepage_sections")
         .select("*")
         .eq("section_key", sectionKey)
@@ -123,7 +123,7 @@ export function SectionEditor<T>({
 
         // Backfill the DB with frontend defaults so subsequent loads are stable.
         if (draftEmpty || pubEmpty) {
-          await supabase
+          await api
             .from("homepage_sections")
             .update({
               data: published as never,
@@ -136,7 +136,7 @@ export function SectionEditor<T>({
 
         applyRow({ ...row, draft_data: draft, data: published });
         if (row.last_saved_by) {
-          const { data: prof } = await supabase
+          const { data: prof } = await api
             .from("profiles")
             .select("full_name")
             .eq("id", row.last_saved_by)
@@ -256,7 +256,7 @@ export function SectionEditor<T>({
         title,
         payloadSize: JSON.stringify(payload).length,
       });
-      const { data: updated, error } = await supabase
+      const { data: updated, error } = await api
         .from("homepage_sections")
         .update({
           title,
@@ -339,7 +339,7 @@ export function SectionEditor<T>({
         payloadSize: JSON.stringify(payload).length,
       });
 
-      const { data: updated, error } = await supabase
+      const { data: updated, error } = await api
         .from("homepage_sections")
         .update({
           title,
@@ -375,7 +375,7 @@ export function SectionEditor<T>({
       }
 
       // Version bump: next version number = max + 1
-      const { data: last } = await supabase
+      const { data: last } = await api
         .from("homepage_section_versions")
         .select("version")
         .eq("section_key", sectionKey)

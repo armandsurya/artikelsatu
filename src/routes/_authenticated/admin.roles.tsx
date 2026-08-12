@@ -47,7 +47,7 @@ function RolesPage() {
   const { data: rows = [], isLoading } = useQuery<Row[]>({
     queryKey: ["role-permissions"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await api
         .from("role_permissions")
         .select("role, permission, allowed");
       if (error) throw error;
@@ -77,7 +77,7 @@ function RolesPage() {
           allowed: role === "super_admin" ? true : !!matrix[role][p.key],
         })),
       );
-      const { error } = await supabase
+      const { error } = await api
         .from("role_permissions")
         .upsert(payload, { onConflict: "role,permission" });
       if (error) throw error;
@@ -110,7 +110,7 @@ function RolesPage() {
       const { error } = await api.from("user_roles").insert({ user_id: userId, role });
       if (error) return toast.error(error.message);
     } else {
-      const { error } = await supabase
+      const { error } = await api
         .from("user_roles")
         .delete()
         .eq("user_id", userId)

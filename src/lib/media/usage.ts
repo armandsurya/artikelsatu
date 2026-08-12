@@ -29,7 +29,7 @@ export async function trackMediaUsage(
   field: string,
 ): Promise<void> {
   // Always clear existing for this slot
-  await supabase
+  await api
     .from("media_usage")
     .delete()
     .eq("context", context)
@@ -37,7 +37,7 @@ export async function trackMediaUsage(
     .eq("field", field);
   const mediaId = await findMediaIdByUrl(mediaUrl);
   if (!mediaId) return;
-  await supabase
+  await api
     .from("media_usage")
     .upsert(
       { media_id: mediaId, context, context_id: contextId, field },
@@ -56,7 +56,7 @@ export async function clearMediaUsage(
 }
 
 export async function getMediaUsage(mediaId: string): Promise<UsageRow[]> {
-  const { data } = await supabase
+  const { data } = await api
     .from("media_usage")
     .select("*")
     .eq("media_id", mediaId)

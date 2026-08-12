@@ -34,7 +34,7 @@ async function uploadFaviconFile(file: File): Promise<{ url: string } | { error:
   let name = slugifyFilename(file.name, ext);
   let path = `${folder}/${name}`;
   for (let i = 2; i < 30; i++) {
-    const { data: existing } = await supabase
+    const { data: existing } = await api
       .from("media")
       .select("id")
       .eq("path", path)
@@ -61,7 +61,7 @@ async function uploadFaviconFile(file: File): Promise<{ url: string } | { error:
   }
 
   const user = (await api.auth.getUser()).data.user;
-  const { data: inserted, error: dbErr } = await supabase
+  const { data: inserted, error: dbErr } = await api
     .from("media")
     .insert({
       name,

@@ -96,7 +96,7 @@ function BlogHeroEditor() {
     const nowIso = new Date().toISOString();
     let byName: string | undefined;
     if (user) {
-      const { data: prof } = await supabase
+      const { data: prof } = await api
         .from("profiles")
         .select("full_name")
         .eq("id", user.id)

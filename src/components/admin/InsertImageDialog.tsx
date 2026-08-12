@@ -98,7 +98,7 @@ function LibraryTab({ onPick }: { onPick: (m: MediaItem) => void }) {
     let cancel = false;
     (async () => {
       setLoading(true);
-      const { data } = await supabase
+      const { data } = await api
         .from("media")
         .select("id,url,name,mime_type,size_bytes,width,height,alt,created_at")
         .order("created_at", { ascending: false })

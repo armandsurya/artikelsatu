@@ -76,7 +76,7 @@ function MediaLibraryPage() {
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ["media", "all"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await api
         .from("media")
         .select("*")
         .order("created_at", { ascending: false });
@@ -148,7 +148,7 @@ function MediaLibraryPage() {
     const ids = Array.from(selection);
     if (!ids.length) return;
     // Check usage
-    const { data: usage } = await supabase
+    const { data: usage } = await api
       .from("media_usage")
       .select("media_id")
       .in("media_id", ids);
@@ -433,7 +433,7 @@ function DetailDrawer({
 
   async function save() {
     setSaving(true);
-    const { error } = await supabase
+    const { error } = await api
       .from("media")
       .update({ name, alt, title, caption, description })
       .eq("id", media.id);

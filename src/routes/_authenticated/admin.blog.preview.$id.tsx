@@ -77,7 +77,7 @@ function PreviewPage() {
     queryKey: ["blog-preview", id, reloadTick],
     enabled: !isDraftSentinel || (isDraftSentinel && !draft && id !== "draft"),
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await api
         .from("blog_posts")
         .select("*, blog_categories(name)")
         .eq("id", id)
@@ -93,7 +93,7 @@ function PreviewPage() {
     enabled: !!(draft && draft.category_id && !draft.category_name),
     queryFn: async () =>
       (
-        await supabase
+        await api
           .from("blog_categories")
           .select("name")
           .eq("id", draft!.category_id!)

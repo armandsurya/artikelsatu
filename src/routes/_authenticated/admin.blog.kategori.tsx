@@ -27,7 +27,7 @@ function Kategori() {
   async function add() {
     if (!name) return;
     const finalSlug = slug || slugify(name);
-    const { error } = await supabase
+    const { error } = await api
       .from("blog_categories")
       .insert({ name, slug: finalSlug, description: desc || null });
     if (error) {

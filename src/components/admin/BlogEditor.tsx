@@ -66,7 +66,7 @@ async function ensureUniqueSlug(base: string, ignoreId?: string) {
   let candidate = base || "artikel";
   let i = 2;
   while (true) {
-    const { data, error } = await supabase
+    const { data, error } = await api
       .from("blog_posts")
       .select("id")
       .eq("slug", candidate)
@@ -320,7 +320,7 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
 
   useEffect(() => {
     if (mode !== "edit" || !id) return;
-    supabase
+    api
       .from("blog_posts")
       .select("*")
       .eq("id", id)
@@ -509,7 +509,7 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
 
     let saved: { id: string; slug: string; published_at: string | null; updated_at: string };
     if (!currentId.current) {
-      const { data, error } = await supabase
+      const { data, error } = await api
         .from("blog_posts")
         .insert(payload)
         .select("id, slug, published_at, updated_at")
@@ -519,7 +519,7 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
       saved = data;
       onSaved?.(data.id);
     } else {
-      const { data, error } = await supabase
+      const { data, error } = await api
         .from("blog_posts")
         .update(payload)
         .eq("id", currentId.current)
@@ -699,7 +699,7 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
     try {
       const baseSlug = await ensureUniqueSlug(`${slug || slugify(title)}-copy`);
       const { data: user } = await api.auth.getUser();
-      const { data, error } = await supabase
+      const { data, error } = await api
         .from("blog_posts")
         .insert({
           title: `${title} (Copy)`,
@@ -1457,7 +1457,7 @@ function FeaturedMediaMetadataEditor({ url, articleTitle }: { url: string; artic
   } = useQuery({
     queryKey: ["media-by-url", url],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data } = await api
         .from("media")
         .select(
           "id,url,name,title,alt,caption,description,mime_type,width,height,size_bytes,created_at,updated_at",
@@ -1522,7 +1522,7 @@ function FeaturedMediaMetadataEditor({ url, articleTitle }: { url: string; artic
       return;
     }
     setSaving(true);
-    const { error } = await supabase
+    const { error } = await api
       .from("media")
       .update({
         title: title.trim() || null,

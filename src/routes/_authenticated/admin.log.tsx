@@ -12,7 +12,7 @@ function LogPage() {
   const { data: rows = [] } = useQuery({
     queryKey: ["activity-log"],
     queryFn: async () => {
-      const { data: logs } = await supabase
+      const { data: logs } = await api
         .from("activity_log")
         .select("*")
         .order("created_at", { ascending: false })

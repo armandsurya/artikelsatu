@@ -28,7 +28,7 @@ export function VersionPanel({
   useEffect(() => {
     (async () => {
       setLoading(true);
-      const { data } = await supabase
+      const { data } = await api
         .from("homepage_section_versions")
         .select("id, version, title, data, note, created_at, created_by")
         .eq("section_key", sectionKey)

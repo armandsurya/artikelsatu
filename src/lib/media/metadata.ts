@@ -23,7 +23,7 @@ export const MEDIA_LIMITS = { alt: 125, caption: 300, title: 120 } as const;
 /** Look up a media row by its public URL. Returns null when not managed by Media Library. */
 export async function fetchMediaByUrl(url: string | null | undefined): Promise<MediaMeta | null> {
   if (!url) return null;
-  const { data } = await supabase
+  const { data } = await api
     .from("media")
     .select(
       "id,url,name,title,alt,caption,description,mime_type,width,height,size_bytes,uploaded_by,created_at,updated_at",

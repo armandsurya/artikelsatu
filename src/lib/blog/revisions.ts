@@ -23,7 +23,7 @@ export type RevisionSnapshot = {
 
 export async function saveRevision(snap: RevisionSnapshot): Promise<void> {
   const { data: user } = await api.auth.getUser();
-  const { data: last } = await supabase
+  const { data: last } = await api
     .from("blog_post_revisions")
     .select("revision_number")
     .eq("post_id", snap.post_id)
@@ -54,7 +54,7 @@ export async function saveRevision(snap: RevisionSnapshot): Promise<void> {
 }
 
 export async function listRevisions(postId: string) {
-  const { data, error } = await supabase
+  const { data, error } = await api
     .from("blog_post_revisions")
     .select("id, revision_number, title, status, reason, author_id, created_at, seo_score")
     .eq("post_id", postId)
@@ -64,7 +64,7 @@ export async function listRevisions(postId: string) {
 }
 
 export async function getRevision(id: string) {
-  const { data, error } = await supabase
+  const { data, error } = await api
     .from("blog_post_revisions")
     .select("*")
     .eq("id", id)
