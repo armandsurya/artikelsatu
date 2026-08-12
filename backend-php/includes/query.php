@@ -87,6 +87,9 @@ function build_where(array $def, array $filters): array
  */
 function enforce_read_policy(string $table, array $def): array
 {
+    if (is_service_request()) {
+        return []; // request internal server-to-server: tanpa pembatasan
+    }
     $userId = current_user_id();
     $staff  = is_content_manager($userId);
 
@@ -140,6 +143,9 @@ function enforce_write_policy(string $table, array $def): string
         case 'self':
         case 'insert_self':
             $userId = current_user_id();
+            if ($userId === null && is_service_request()) {
+                return 'service';
+            }
             if ($userId === null) {
                 json_error('Unauthorized', 401);
             }
