@@ -1,6 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { createClient } from "@supabase/supabase-js";
-import type { Database } from "@/integrations/supabase/types";
+import { createServerApiClient } from "@/integrations/api/server";
 
 /**
  * SSR-safe reader for the singleton `site_settings` blob.
@@ -15,15 +14,7 @@ import type { Database } from "@/integrations/supabase/types";
  */
 export const getPublicSiteSettings = createServerFn({ method: "GET" }).handler(
   async (): Promise<{ data: string }> => {
-    // Fall back to VITE_* (baked at build) so self-hosted Workers without
-    // runtime env vars still function.
-    const url = process.env.SUPABASE_URL ?? import.meta.env.VITE_SUPABASE_URL;
-    const key =
-      process.env.SUPABASE_PUBLISHABLE_KEY ?? import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-    if (!url || !key) throw new Error("Public settings backend is not configured");
-    const client = createClient<Database>(url, key, {
-      auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
-    });
+    const client = createServerApiClient();
     // Reads through a security-definer accessor that returns ONLY the public
     // subset of the settings blob (draft/secret-ish keys are stripped server
     // side); the table itself is no longer readable by anonymous visitors.

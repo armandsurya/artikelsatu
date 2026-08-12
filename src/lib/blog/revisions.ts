@@ -1,5 +1,5 @@
 import { api } from "@/integrations/api/browser";
-import type { Database } from "@/integrations/supabase/types";
+import type { Database } from "@/integrations/api/types";
 
 type PostStatus = Database["public"]["Enums"]["post_status"];
 

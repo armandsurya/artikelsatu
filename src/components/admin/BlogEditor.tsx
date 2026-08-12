@@ -34,7 +34,7 @@ import {
 
 const PREVIEW_DRAFT_KEY = "lovable:blog-preview-draft";
 const PREVIEW_WINDOW_NAME = "lovable-blog-preview";
-import type { Database } from "@/integrations/supabase/types";
+import type { Database } from "@/integrations/api/types";
 
 type Props = { mode: "new" | "edit"; id?: string; onSaved?: (id: string) => void };
 type Status = Database["public"]["Enums"]["post_status"];

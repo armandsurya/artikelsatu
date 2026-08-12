@@ -1,6 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { createClient } from "@supabase/supabase-js";
-import type { Database } from "@/integrations/supabase/types";
+import { createServerApiClient } from "@/integrations/api/server";
 
 /**
  * SSR-safe blog readers.
@@ -16,13 +15,7 @@ import type { Database } from "@/integrations/supabase/types";
  */
 
 function getClient() {
-  const url = process.env.SUPABASE_URL ?? import.meta.env.VITE_SUPABASE_URL;
-  const key =
-    process.env.SUPABASE_PUBLISHABLE_KEY ?? import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-  if (!url || !key) return null;
-  return createClient<Database>(url, key, {
-    auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
-  });
+  return createServerApiClient();
 }
 
 async function withAuthorNames<T extends { author_id: string | null }>(
@@ -30,7 +23,9 @@ async function withAuthorNames<T extends { author_id: string | null }>(
   rows: T[],
 ): Promise<(T & { author_name: string | null })[]> {
   if (!client || rows.length === 0) return rows.map((row) => ({ ...row, author_name: null }));
-  const authorIds = Array.from(new Set(rows.map((row) => row.author_id).filter(Boolean))) as string[];
+  const authorIds = Array.from(
+    new Set(rows.map((row) => row.author_id).filter(Boolean)),
+  ) as string[];
   if (authorIds.length === 0) return rows.map((row) => ({ ...row, author_name: null }));
   // profiles is not readable by `anon` (RLS), so public reads go through a
   // security-definer RPC that only exposes names of published-post authors.
@@ -39,7 +34,9 @@ async function withAuthorNames<T extends { author_id: string | null }>(
     console.error("[withAuthorNames]", error);
     return rows.map((row) => ({ ...row, author_name: null }));
   }
-  const names = new Map((data ?? []).map((profile) => [profile.id, profile.full_name]));
+  const names = new Map(
+    (data ?? []).map((profile) => [profile.id as string, profile.full_name as string | null]),
+  );
   return rows.map((row) => ({ ...row, author_name: row.author_id ? names.get(row.author_id) ?? null : null }));
 }
 
@@ -64,7 +61,7 @@ export const getPublishedPostBySlug = createServerFn({ method: "GET" })
       throw error;
     }
     if (!row) return { payload: null };
-    const [enriched] = await withAuthorNames(client, [row]);
+    const [enriched] = await withAuthorNames(client, [row as never]);
     return { payload: JSON.stringify(enriched) };
   });
 
@@ -85,7 +82,7 @@ export const listPublishedPosts = createServerFn({ method: "GET" }).handler(
       console.error("[listPublishedPosts]", error);
       throw error;
     }
-    const enriched = await withAuthorNames(client, data ?? []);
+    const enriched = await withAuthorNames(client, (data ?? []) as never[]);
     return { payload: JSON.stringify(enriched) };
   },
 );
