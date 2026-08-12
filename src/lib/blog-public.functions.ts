@@ -29,15 +29,19 @@ async function withAuthorNames<T extends { author_id: string | null }>(
   if (authorIds.length === 0) return rows.map((row) => ({ ...row, author_name: null }));
   // profiles is not readable by `anon` (RLS), so public reads go through a
   // security-definer RPC that only exposes names of published-post authors.
-  const { data, error } = await client.rpc("get_public_author_names", { _ids: authorIds });
+  const { data, error } = await client.rpc<{ id: string; full_name: string | null }[]>(
+    "get_public_author_names",
+    { _ids: authorIds },
+  );
   if (error) {
     console.error("[withAuthorNames]", error);
     return rows.map((row) => ({ ...row, author_name: null }));
   }
-  const names = new Map(
-    (data ?? []).map((profile) => [profile.id as string, profile.full_name as string | null]),
-  );
-  return rows.map((row) => ({ ...row, author_name: row.author_id ? names.get(row.author_id) ?? null : null }));
+  const names = new Map((data ?? []).map((profile) => [profile.id, profile.full_name]));
+  return rows.map((row) => ({
+    ...row,
+    author_name: row.author_id ? (names.get(row.author_id) ?? null) : null,
+  }));
 }
 
 
