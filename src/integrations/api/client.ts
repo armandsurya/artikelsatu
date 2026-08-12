@@ -9,7 +9,9 @@
 import { AUTH_STORAGE_KEY, apiBaseUrl, serviceToken } from "./config";
 
 export type ApiError = { message: string; code?: string; hint?: string; details?: string };
-export type ApiResult<T> = { data: T; error: ApiError | null; count: number | null };
+/** Baris generik dari database (kolom bebas, seperti hasil PostgREST). */
+export type ApiRow = Record<string, any>;
+export type ApiResult<T> = { data: T | null; error: ApiError | null; count: number | null };
 
 export type ApiUser = {
   id: string;
@@ -163,7 +165,7 @@ export function createApiClient(options: ApiClientOptions = {}) {
 
   /* ------------------------------ query builder ---------------------------- */
 
-  class QueryBuilder implements PromiseLike<ApiResult<any>> {
+  class QueryBuilder<TResult = ApiRow[]> implements PromiseLike<ApiResult<TResult>> {
     private filters: Filter[] = [];
     private orders: OrderSpec[] = [];
     private selectStr = "*";
@@ -261,14 +263,14 @@ export function createApiClient(options: ApiClientOptions = {}) {
       return this;
     }
 
-    single() {
+    single(): QueryBuilder<ApiRow> {
       this.singleFlag = true;
-      return this;
+      return this as unknown as QueryBuilder<ApiRow>;
     }
 
-    maybeSingle() {
+    maybeSingle(): QueryBuilder<ApiRow> {
       this.maybeSingleFlag = true;
-      return this;
+      return this as unknown as QueryBuilder<ApiRow>;
     }
 
     private payload() {
@@ -289,7 +291,7 @@ export function createApiClient(options: ApiClientOptions = {}) {
       };
     }
 
-    private async run(): Promise<ApiResult<any>> {
+    private async run(): Promise<ApiResult<TResult>> {
       const endpoint =
         this.mode === "select"
           ? "/rest/select"
@@ -301,8 +303,8 @@ export function createApiClient(options: ApiClientOptions = {}) {
       return request(endpoint, this.payload());
     }
 
-    then<TResult1 = ApiResult<any>, TResult2 = never>(
-      onfulfilled?: ((value: ApiResult<any>) => TResult1 | PromiseLike<TResult1>) | null,
+    then<TResult1 = ApiResult<TResult>, TResult2 = never>(
+      onfulfilled?: ((value: ApiResult<TResult>) => TResult1 | PromiseLike<TResult1>) | null,
       onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,
     ): PromiseLike<TResult1 | TResult2> {
       return this.run().then(onfulfilled, onrejected);
@@ -414,10 +416,10 @@ export function createApiClient(options: ApiClientOptions = {}) {
 
   return {
     from(table: string) {
-      return new QueryBuilder(table) as any;
+      return new QueryBuilder(table);
     },
-    async rpc(name: string, args?: Record<string, unknown>) {
-      return request(`/rpc/${name}`, { args: args ?? {} });
+    async rpc<T = any>(name: string, args?: Record<string, unknown>): Promise<ApiResult<T>> {
+      return request(`/rpc/${name}`, { args: args ?? {} }) as Promise<ApiResult<T>>;
     },
     storage: { from: storageBucket },
     auth,
