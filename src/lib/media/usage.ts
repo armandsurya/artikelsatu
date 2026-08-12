@@ -1,4 +1,4 @@
-import { api } from "@/integrations/api/browser";
+import { supabase } from "@/integrations/supabase/client";
 
 export type UsageContext = "homepage_section" | "blog_post" | "site_settings" | "seo";
 
@@ -14,7 +14,7 @@ export type UsageRow = {
 /** Look up media by URL to get its id. Returns null when the URL isn't managed by Media Library. */
 export async function findMediaIdByUrl(url: string): Promise<string | null> {
   if (!url) return null;
-  const { data } = await api.from("media").select("id").eq("url", url).maybeSingle();
+  const { data } = await supabase.from("media").select("id").eq("url", url).maybeSingle();
   return (data as { id: string } | null)?.id ?? null;
 }
 
@@ -29,7 +29,7 @@ export async function trackMediaUsage(
   field: string,
 ): Promise<void> {
   // Always clear existing for this slot
-  await api
+  await supabase
     .from("media_usage")
     .delete()
     .eq("context", context)
@@ -37,7 +37,7 @@ export async function trackMediaUsage(
     .eq("field", field);
   const mediaId = await findMediaIdByUrl(mediaUrl);
   if (!mediaId) return;
-  await api
+  await supabase
     .from("media_usage")
     .upsert(
       { media_id: mediaId, context, context_id: contextId, field },
@@ -50,13 +50,13 @@ export async function clearMediaUsage(
   contextId: string,
   field?: string,
 ): Promise<void> {
-  let q = api.from("media_usage").delete().eq("context", context).eq("context_id", contextId);
+  let q = supabase.from("media_usage").delete().eq("context", context).eq("context_id", contextId);
   if (field) q = q.eq("field", field);
   await q;
 }
 
 export async function getMediaUsage(mediaId: string): Promise<UsageRow[]> {
-  const { data } = await api
+  const { data } = await supabase
     .from("media_usage")
     .select("*")
     .eq("media_id", mediaId)

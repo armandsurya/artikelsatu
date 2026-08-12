@@ -10,7 +10,7 @@ import {
   Image as ImageIcon,
   Search,
 } from "lucide-react";
-import { api } from "@/integrations/api/browser";
+import { supabase } from "@/integrations/supabase/client";
 
 /* ---------- Field primitives ---------- */
 
@@ -529,7 +529,7 @@ export function MediaLibraryModal({
 
   async function load() {
     setLoading(true);
-    const { data } = await api
+    const { data } = await supabase
       .from("media")
       .select("id,url,name,mime_type,size_bytes,width,height,alt,created_at")
       .order("created_at", { ascending: false })

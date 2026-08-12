@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { api } from "@/integrations/api/browser";
+import { supabase } from "@/integrations/supabase/client";
 import { PageHeader, Card } from "@/components/admin/ui";
 import {
   FileText,
@@ -26,7 +26,7 @@ function Dashboard() {
     refetchOnWindowFocus: true,
     queryFn: async () => {
       const base = () =>
-        api
+        supabase
           .from("blog_posts")
           .select("*", { count: "exact", head: true })
           .is("deleted_at", null);
@@ -36,14 +36,14 @@ function Dashboard() {
           base().eq("status", "draft"),
           base().eq("status", "published"),
           base().eq("status", "scheduled"),
-          api
+          supabase
             .from("blog_posts")
             .select("*", { count: "exact", head: true })
             .not("deleted_at", "is", null),
-          api.from("blog_categories").select("*", { count: "exact", head: true }),
-          api.from("media").select("size_bytes"),
-          api.from("profiles").select("*", { count: "exact", head: true }),
-          api
+          supabase.from("blog_categories").select("*", { count: "exact", head: true }),
+          supabase.from("media").select("size_bytes"),
+          supabase.from("profiles").select("*", { count: "exact", head: true }),
+          supabase
             .from("activity_log")
             .select("id, action, entity, created_at, user_id")
             .order("created_at", { ascending: false })

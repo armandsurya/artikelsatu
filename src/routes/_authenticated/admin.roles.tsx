@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useMemo, useState, useEffect } from "react";
 import { toast } from "sonner";
-import { api } from "@/integrations/api/browser";
+import { supabase } from "@/integrations/supabase/client";
 import { PageHeader, Card, btnPrimary, btnGhost } from "@/components/admin/ui";
 import { logActivity } from "@/lib/admin/log";
 import { Save, RotateCcw } from "lucide-react";
@@ -47,7 +47,7 @@ function RolesPage() {
   const { data: rows = [], isLoading } = useQuery<Row[]>({
     queryKey: ["role-permissions"],
     queryFn: async () => {
-      const { data, error } = await api
+      const { data, error } = await supabase
         .from("role_permissions")
         .select("role, permission, allowed");
       if (error) throw error;
@@ -77,7 +77,7 @@ function RolesPage() {
           allowed: role === "super_admin" ? true : !!matrix[role][p.key],
         })),
       );
-      const { error } = await api
+      const { error } = await supabase
         .from("role_permissions")
         .upsert(payload, { onConflict: "role,permission" });
       if (error) throw error;
@@ -95,25 +95,22 @@ function RolesPage() {
     queryKey: ["users-with-roles-list"],
     queryFn: async () => {
       const [{ data: profiles }, { data: userRoles }] = await Promise.all([
-        api.from("profiles").select("id, full_name"),
-        api.from("user_roles").select("user_id, role"),
+        supabase.from("profiles").select("id, full_name"),
+        supabase.from("user_roles").select("user_id, role"),
       ]);
-      return (profiles ?? []).map(
-        (p) =>
-          ({
-            ...p,
-            roles: (userRoles ?? []).filter((r) => r.user_id === p.id).map((r) => r.role as Role),
-          }) as Record<string, any>,
-      );
+      return (profiles ?? []).map((p) => ({
+        ...p,
+        roles: (userRoles ?? []).filter((r) => r.user_id === p.id).map((r) => r.role as Role),
+      }));
     },
   });
 
   async function setRole(userId: string, role: Role, on: boolean) {
     if (on) {
-      const { error } = await api.from("user_roles").insert({ user_id: userId, role });
+      const { error } = await supabase.from("user_roles").insert({ user_id: userId, role });
       if (error) return toast.error(error.message);
     } else {
-      const { error } = await api
+      const { error } = await supabase
         .from("user_roles")
         .delete()
         .eq("user_id", userId)

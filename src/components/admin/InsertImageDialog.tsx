@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Modal } from "./homepage/primitives";
-import { api } from "@/integrations/api/browser";
+import { supabase } from "@/integrations/supabase/client";
 import { uploadMediaFile, validateFile, formatBytes } from "@/lib/media/upload";
 import { Upload, Link2, Image as ImageIcon, Search, Loader2, CheckCircle2 } from "lucide-react";
 
@@ -98,7 +98,7 @@ function LibraryTab({ onPick }: { onPick: (m: MediaItem) => void }) {
     let cancel = false;
     (async () => {
       setLoading(true);
-      const { data } = await api
+      const { data } = await supabase
         .from("media")
         .select("id,url,name,mime_type,size_bytes,width,height,alt,created_at")
         .order("created_at", { ascending: false })

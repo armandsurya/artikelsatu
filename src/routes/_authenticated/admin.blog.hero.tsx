@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Loader2, Save, Rocket, CheckCircle2, AlertCircle, RotateCcw } from "lucide-react";
-import { api } from "@/integrations/api/browser";
+import { supabase } from "@/integrations/supabase/client";
 import { PageHeader, Card, Field, inputCls, btnPrimary, btnGhost } from "@/components/admin/ui";
 import {
   loadSiteSettings,
@@ -91,12 +91,12 @@ function BlogHeroEditor() {
       return;
     }
     setStatus(action === "publish" ? "publishing" : "saving");
-    const { data: userData } = await api.auth.getUser();
+    const { data: userData } = await supabase.auth.getUser();
     const user = userData.user;
     const nowIso = new Date().toISOString();
     let byName: string | undefined;
     if (user) {
-      const { data: prof } = await api
+      const { data: prof } = await supabase
         .from("profiles")
         .select("full_name")
         .eq("id", user.id)

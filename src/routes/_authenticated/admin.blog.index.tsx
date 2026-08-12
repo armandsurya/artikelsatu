@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { api } from "@/integrations/api/browser";
+import { supabase } from "@/integrations/supabase/client";
 import { PageHeader, Card, btnPrimary, btnDanger, inputCls } from "@/components/admin/ui";
 import { logActivity } from "@/lib/admin/log";
 import { Plus, Search, Pencil, Trash2 } from "lucide-react";
@@ -21,7 +21,7 @@ function BlogList() {
   const { data: posts = [] } = useQuery({
     queryKey: ["blog-posts", q, status],
     queryFn: async () => {
-      let query = api
+      let query = supabase
         .from("blog_posts")
         .select(
           "id, title, slug, status, updated_at, scheduled_at, seo_score, category_id, blog_categories(name)",
@@ -32,13 +32,13 @@ function BlogList() {
       if (q) query = query.ilike("title", `%${q}%`);
       const { data, error } = await query;
       if (error) throw error;
-      return data ?? [];
+      return data;
     },
   });
 
   async function remove(id: string) {
     if (!confirm("Hapus artikel ini (soft delete)?")) return;
-    await api.from("blog_posts").update({ deleted_at: new Date().toISOString() }).eq("id", id);
+    await supabase.from("blog_posts").update({ deleted_at: new Date().toISOString() }).eq("id", id);
     await logActivity("delete_post", "blog_posts", id);
     qc.invalidateQueries({ queryKey: ["blog-posts"] });
     qc.invalidateQueries({ queryKey: ["dashboard-stats"] });

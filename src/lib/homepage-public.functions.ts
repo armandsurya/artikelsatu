@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
-import { createServerApiClient } from "@/integrations/api/server";
+import { createClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
 
 /**
  * SSR-safe reader for published homepage sections.
@@ -15,7 +16,13 @@ import { createServerApiClient } from "@/integrations/api/server";
  */
 export const listPublishedSections = createServerFn({ method: "GET" }).handler(
   async (): Promise<{ payload: string }> => {
-    const client = createServerApiClient();
+    const url = process.env.SUPABASE_URL ?? import.meta.env.VITE_SUPABASE_URL;
+    const key =
+      process.env.SUPABASE_PUBLISHABLE_KEY ?? import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+    if (!url || !key) throw new Error("Published homepage backend is not configured");
+    const client = createClient<Database>(url, key, {
+      auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
+    });
     const { data, error } = await client
       .from("homepage_sections")
       .select("section_key,title,sort_order,is_visible,data,last_published_at")

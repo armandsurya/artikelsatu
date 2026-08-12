@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useBlocker, useNavigate } from "@tanstack/react-router";
-import { api } from "@/integrations/api/browser";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, Field, inputCls, labelCls, btnPrimary, btnGhost, btnDanger } from "./ui";
 import { CKEditorField } from "./CKEditorField";
 import { contentStats } from "@/lib/editor/sanitize";
@@ -34,7 +34,7 @@ import {
 
 const PREVIEW_DRAFT_KEY = "lovable:blog-preview-draft";
 const PREVIEW_WINDOW_NAME = "lovable-blog-preview";
-import type { Database } from "@/integrations/api/types";
+import type { Database } from "@/integrations/supabase/types";
 
 type Props = { mode: "new" | "edit"; id?: string; onSaved?: (id: string) => void };
 type Status = Database["public"]["Enums"]["post_status"];
@@ -66,7 +66,7 @@ async function ensureUniqueSlug(base: string, ignoreId?: string) {
   let candidate = base || "artikel";
   let i = 2;
   while (true) {
-    const { data, error } = await api
+    const { data, error } = await supabase
       .from("blog_posts")
       .select("id")
       .eq("slug", candidate)
@@ -307,20 +307,20 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
   const { data: categories = [] } = useQuery({
     queryKey: ["categories"],
     queryFn: async () =>
-      (await api.from("blog_categories").select("id, name").order("name")).data ?? [],
+      (await supabase.from("blog_categories").select("id, name").order("name")).data ?? [],
   });
 
   const { data: authorName } = useQuery({
     queryKey: ["profile-name", authorId],
     enabled: !!authorId,
     queryFn: async () =>
-      (await api.from("profiles").select("full_name").eq("id", authorId!).maybeSingle()).data
+      (await supabase.from("profiles").select("full_name").eq("id", authorId!).maybeSingle()).data
         ?.full_name ?? null,
   });
 
   useEffect(() => {
     if (mode !== "edit" || !id) return;
-    api
+    supabase
       .from("blog_posts")
       .select("*")
       .eq("id", id)
@@ -472,7 +472,7 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
     if (uniqueSlug !== slug) setSlug(uniqueSlug);
 
     const nowIso = new Date().toISOString();
-    const { data: user } = await api.auth.getUser();
+    const { data: user } = await supabase.auth.getUser();
     const scheduleIso = opts.schedule ? new Date(opts.schedule).toISOString() : null;
 
     const payload = {
@@ -509,24 +509,24 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
 
     let saved: { id: string; slug: string; published_at: string | null; updated_at: string };
     if (!currentId.current) {
-      const { data, error } = await api
+      const { data, error } = await supabase
         .from("blog_posts")
         .insert(payload)
         .select("id, slug, published_at, updated_at")
         .single();
       if (error) throw error;
-      currentId.current = data!.id;
-      saved = data as typeof saved;
-      onSaved?.(data!.id);
+      currentId.current = data.id;
+      saved = data;
+      onSaved?.(data.id);
     } else {
-      const { data, error } = await api
+      const { data, error } = await supabase
         .from("blog_posts")
         .update(payload)
         .eq("id", currentId.current)
         .select("id, slug, published_at, updated_at")
         .single();
       if (error) throw error;
-      saved = data as typeof saved;
+      saved = data;
     }
 
     if (featuredImage)
@@ -698,8 +698,8 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
     setBusy("duplicate");
     try {
       const baseSlug = await ensureUniqueSlug(`${slug || slugify(title)}-copy`);
-      const { data: user } = await api.auth.getUser();
-      const { data, error } = await api
+      const { data: user } = await supabase.auth.getUser();
+      const { data, error } = await supabase
         .from("blog_posts")
         .insert({
           title: `${title} (Copy)`,
@@ -724,10 +724,10 @@ export function BlogEditor({ mode, id, onSaved }: Props) {
         .select("id")
         .single();
       if (error) throw error;
-      await logActivity("duplicate_post", "blog_posts", data!.id, { source: currentId.current });
+      await logActivity("duplicate_post", "blog_posts", data.id, { source: currentId.current });
       qc.invalidateQueries({ queryKey: ["blog-posts"] });
       bypassGuardRef.current = true;
-      navigate({ to: "/admin/blog/$id", params: { id: data!.id } });
+      navigate({ to: "/admin/blog/$id", params: { id: data.id } });
     } catch (e: unknown) {
       setToast({ kind: "err", msg: `Gagal duplikat: ${e instanceof Error ? e.message : "error"}` });
     } finally {
@@ -1457,7 +1457,7 @@ function FeaturedMediaMetadataEditor({ url, articleTitle }: { url: string; artic
   } = useQuery({
     queryKey: ["media-by-url", url],
     queryFn: async () => {
-      const { data } = await api
+      const { data } = await supabase
         .from("media")
         .select(
           "id,url,name,title,alt,caption,description,mime_type,width,height,size_bytes,created_at,updated_at",
@@ -1522,7 +1522,7 @@ function FeaturedMediaMetadataEditor({ url, articleTitle }: { url: string; artic
       return;
     }
     setSaving(true);
-    const { error } = await api
+    const { error } = await supabase
       .from("media")
       .update({
         title: title.trim() || null,

@@ -1,4 +1,4 @@
-import { api } from "@/integrations/api/browser";
+import { supabase } from "@/integrations/supabase/client";
 
 export type RedirectRow = {
   id: string;
@@ -55,7 +55,7 @@ export function splitPathAndSearch(input: string): { path: string; search: strin
 }
 
 export async function fetchActiveRedirects(): Promise<RedirectRow[]> {
-  const { data, error } = await api
+  const { data, error } = await supabase
     .from("redirects")
     .select(
       "id, source, destination, code, active, hits, last_hit_at, notes, preserve_query, created_at, updated_at",
@@ -66,7 +66,7 @@ export async function fetchActiveRedirects(): Promise<RedirectRow[]> {
 }
 
 export async function fetchAllRedirects(): Promise<RedirectRow[]> {
-  const { data, error } = await api
+  const { data, error } = await supabase
     .from("redirects")
     .select(
       "id, source, destination, code, active, hits, last_hit_at, notes, preserve_query, created_at, updated_at",
@@ -96,7 +96,7 @@ export function resolveRedirect(
 /** Fire-and-forget hit increment. */
 export function recordRedirectHit(source: string): void {
   if (typeof window === "undefined") return;
-  void api.rpc("increment_redirect_hit", { _source: source });
+  void supabase.rpc("increment_redirect_hit", { _source: source });
 }
 
 // ---------------- Validation ----------------

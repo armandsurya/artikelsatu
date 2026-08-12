@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { api } from "@/integrations/api/browser";
+import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Lock } from "lucide-react";
 
 export const Route = createFileRoute("/auth")({
@@ -22,7 +22,7 @@ function AuthPage() {
   const [info, setInfo] = useState<string | null>(null);
 
   useEffect(() => {
-    api.auth.getSession().then(({ data }) => {
+    supabase.auth.getSession().then(({ data }) => {
       if (data.session) navigate({ to: "/admin" });
     });
   }, [navigate]);
@@ -34,16 +34,16 @@ function AuthPage() {
     setInfo(null);
     try {
       if (mode === "signin") {
-        const { error } = await api.auth.signInWithPassword({ email, password });
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        await api.from("activity_log").insert({
-          user_id: (await api.auth.getUser()).data.user?.id,
+        await supabase.from("activity_log").insert({
+          user_id: (await supabase.auth.getUser()).data.user?.id,
           action: "login",
           entity: "auth",
         });
         navigate({ to: "/admin" });
       } else {
-        const { error } = await api.auth.signUp({
+        const { error } = await supabase.auth.signUp({
           email,
           password,
           options: {

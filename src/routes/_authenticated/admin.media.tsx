@@ -13,7 +13,7 @@ import {
   ImageOff,
   RefreshCw,
 } from "lucide-react";
-import { api } from "@/integrations/api/browser";
+import { supabase } from "@/integrations/supabase/client";
 import {
   PageHeader,
   Card,
@@ -76,7 +76,7 @@ function MediaLibraryPage() {
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ["media", "all"],
     queryFn: async () => {
-      const { data, error } = await api
+      const { data, error } = await supabase
         .from("media")
         .select("*")
         .order("created_at", { ascending: false });
@@ -148,11 +148,11 @@ function MediaLibraryPage() {
     const ids = Array.from(selection);
     if (!ids.length) return;
     // Check usage
-    const { data: usage } = await api
+    const { data: usage } = await supabase
       .from("media_usage")
       .select("media_id")
       .in("media_id", ids);
-    const used = new Set((usage ?? []).map((u) => u.media_id as string));
+    const used = new Set((usage ?? []).map((u: { media_id: string }) => u.media_id));
     const blocked = ids.filter((id) => used.has(id));
     if (
       blocked.length &&
@@ -165,8 +165,8 @@ function MediaLibraryPage() {
 
     const rowsToDelete = rows.filter((r) => ids.includes(r.id));
     for (const r of rowsToDelete) {
-      await api.storage.from("media").remove([r.path]);
-      await api.from("media").delete().eq("id", r.id);
+      await supabase.storage.from("media").remove([r.path]);
+      await supabase.from("media").delete().eq("id", r.id);
       await logActivity("delete_media", "media", r.id, { name: r.name });
     }
     setSelection(new Set());
@@ -433,7 +433,7 @@ function DetailDrawer({
 
   async function save() {
     setSaving(true);
-    const { error } = await api
+    const { error } = await supabase
       .from("media")
       .update({ name, alt, title, caption, description })
       .eq("id", media.id);
@@ -471,8 +471,8 @@ function DetailDrawer({
     )
       return;
     if (!list.length && !window.confirm("Hapus file ini secara permanen?")) return;
-    await api.storage.from("media").remove([media.path]);
-    await api.from("media").delete().eq("id", media.id);
+    await supabase.storage.from("media").remove([media.path]);
+    await supabase.from("media").delete().eq("id", media.id);
     await logActivity("delete_media", "media", media.id, { name: media.name });
     toast.success("File dihapus.");
     onChanged();

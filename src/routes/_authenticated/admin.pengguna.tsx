@@ -20,7 +20,7 @@ import {
   sendPasswordReset,
   toggleBan,
 } from "@/lib/admin/users.functions";
-import { api } from "@/integrations/api/browser";
+import { supabase } from "@/integrations/supabase/client";
 import { Trash2, KeyRound, UserPlus, Ban, CheckCircle2, Pencil, X } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/pengguna")({
@@ -42,7 +42,7 @@ function Pengguna() {
 
   const [meId, setMeId] = useState<string>("");
   useEffect(() => {
-    api.auth.getUser().then(({ data }) => setMeId(data.user?.id ?? ""));
+    supabase.auth.getUser().then(({ data }) => setMeId(data.user?.id ?? ""));
   }, []);
 
   const {

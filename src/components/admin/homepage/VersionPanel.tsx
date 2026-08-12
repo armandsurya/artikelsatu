@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { ChevronDown, History, RotateCw } from "lucide-react";
-import { api } from "@/integrations/api/browser";
+import { supabase } from "@/integrations/supabase/client";
 
 export type VersionRow = {
   id: string;
@@ -28,7 +28,7 @@ export function VersionPanel({
   useEffect(() => {
     (async () => {
       setLoading(true);
-      const { data } = await api
+      const { data } = await supabase
         .from("homepage_section_versions")
         .select("id, version, title, data, note, created_at, created_by")
         .eq("section_key", sectionKey)

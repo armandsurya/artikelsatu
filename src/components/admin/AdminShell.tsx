@@ -18,7 +18,7 @@ import {
   Menu as MenuIcon,
   KeyRound,
 } from "lucide-react";
-import { api } from "@/integrations/api/browser";
+import { supabase } from "@/integrations/supabase/client";
 import { usePermissions, type PermissionKey } from "@/lib/admin/usePermissions";
 
 type Item = {
@@ -73,16 +73,16 @@ export function AdminShell({ children }: { children: ReactNode }) {
   const visibleNav = NAV.filter((item) => !item.perm || perms?.[item.perm]);
 
   useEffect(() => {
-    api.auth.getUser().then(({ data }) => setEmail(data.user?.email ?? ""));
+    supabase.auth.getUser().then(({ data }) => setEmail(data.user?.email ?? ""));
   }, []);
 
   async function signOut() {
-    await api.from("activity_log").insert({
-      user_id: (await api.auth.getUser()).data.user?.id,
+    await supabase.from("activity_log").insert({
+      user_id: (await supabase.auth.getUser()).data.user?.id,
       action: "logout",
       entity: "auth",
     });
-    await api.auth.signOut();
+    await supabase.auth.signOut();
     navigate({ to: "/auth" });
   }
 

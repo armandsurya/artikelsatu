@@ -1,4 +1,4 @@
-import { api } from "@/integrations/api/browser";
+import { supabase } from "@/integrations/supabase/client";
 
 export const ALLOWED_MIME = [
   "image/jpeg",
@@ -151,7 +151,7 @@ export async function uploadMediaFile(
 
   // Ensure no collision
   for (let i = 2; i < 20; i++) {
-    const { data: existing } = await api
+    const { data: existing } = await supabase
       .from("media")
       .select("id")
       .eq("path", path)
@@ -163,7 +163,7 @@ export async function uploadMediaFile(
   }
 
   // Storage upload
-  const { error: upErr } = await api.storage.from("media").upload(path, blob, {
+  const { error: upErr } = await supabase.storage.from("media").upload(path, blob, {
     cacheControl: "31536000",
     contentType: mime,
     upsert: false,
@@ -171,17 +171,17 @@ export async function uploadMediaFile(
   if (upErr) return { ok: false, step: "storage", message: upErr.message };
 
   // Signed URL (bucket is private)
-  const { data: signed, error: signErr } = await api.storage
+  const { data: signed, error: signErr } = await supabase.storage
     .from("media")
     .createSignedUrl(path, SIGNED_URL_TTL);
   if (signErr || !signed?.signedUrl) {
-    await api.storage.from("media").remove([path]);
+    await supabase.storage.from("media").remove([path]);
     return { ok: false, step: "sign", message: signErr?.message ?? "Gagal membuat signed URL." };
   }
 
   // DB insert
-  const user = (await api.auth.getUser()).data.user;
-  const { data: inserted, error: dbErr } = await api
+  const user = (await supabase.auth.getUser()).data.user;
+  const { data: inserted, error: dbErr } = await supabase
     .from("media")
     .insert({
       name: finalName,
@@ -196,7 +196,7 @@ export async function uploadMediaFile(
     .select("*")
     .single();
   if (dbErr || !inserted) {
-    await api.storage.from("media").remove([path]);
+    await supabase.storage.from("media").remove([path]);
     return { ok: false, step: "database", message: dbErr?.message ?? "Gagal menyimpan metadata." };
   }
 
@@ -220,7 +220,7 @@ export async function uploadMediaFile(
 export async function replaceMediaFile(mediaId: string, file: File): Promise<UploadResult> {
   const invalid = validateFile(file);
   if (invalid) return { ok: false, step: "validation", message: invalid.message };
-  const { data: row, error: rowErr } = await api
+  const { data: row, error: rowErr } = await supabase
     .from("media")
     .select("*")
     .eq("id", mediaId)
@@ -231,7 +231,7 @@ export async function replaceMediaFile(mediaId: string, file: File): Promise<Upl
   const { blob, mime } = await compressImage(file);
   const { width, height } = await readDimensions(blob);
 
-  const { error: upErr } = await api.storage.from("media").upload(row.path, blob, {
+  const { error: upErr } = await supabase.storage.from("media").upload(row.path, blob, {
     cacheControl: "31536000",
     contentType: mime,
     upsert: true,
@@ -239,11 +239,11 @@ export async function replaceMediaFile(mediaId: string, file: File): Promise<Upl
   if (upErr) return { ok: false, step: "storage", message: upErr.message };
 
   // Signed URL may change token — refresh it
-  const { data: signed } = await api.storage
+  const { data: signed } = await supabase.storage
     .from("media")
     .createSignedUrl(row.path, SIGNED_URL_TTL);
 
-  const { data: updated, error: dbErr } = await api
+  const { data: updated, error: dbErr } = await supabase
     .from("media")
     .update({
       mime_type: mime,
