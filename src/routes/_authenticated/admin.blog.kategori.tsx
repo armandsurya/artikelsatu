@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/integrations/api/browser";
 import { PageHeader, Card, Field, inputCls, btnPrimary, btnDanger } from "@/components/admin/ui";
 import { logActivity, slugify } from "@/lib/admin/log";
 import { Plus, Trash2 } from "lucide-react";
@@ -20,14 +20,14 @@ function Kategori() {
   const { data: cats = [] } = useQuery({
     queryKey: ["categories-all"],
     queryFn: async () =>
-      (await supabase.from("blog_categories").select("*").order("created_at", { ascending: false }))
+      (await api.from("blog_categories").select("*").order("created_at", { ascending: false }))
         .data ?? [],
   });
 
   async function add() {
     if (!name) return;
     const finalSlug = slug || slugify(name);
-    const { error } = await supabase
+    const { error } = await api
       .from("blog_categories")
       .insert({ name, slug: finalSlug, description: desc || null });
     if (error) {
@@ -42,7 +42,7 @@ function Kategori() {
   }
   async function remove(id: string) {
     if (!confirm("Hapus kategori?")) return;
-    await supabase.from("blog_categories").delete().eq("id", id);
+    await api.from("blog_categories").delete().eq("id", id);
     await logActivity("delete_category", "blog_categories", id);
     qc.invalidateQueries({ queryKey: ["categories-all"] });
   }

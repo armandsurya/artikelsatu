@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/integrations/api/browser";
 import { PageHeader, Card, Field, inputCls, btnPrimary, btnDanger } from "@/components/admin/ui";
 import { logActivity } from "@/lib/admin/log";
 import { Plus, Trash2, Pencil, Save, X, Search } from "lucide-react";
@@ -68,7 +68,7 @@ function RedirectPage() {
       return;
     }
     setSaving(true);
-    const { error } = await supabase.from("redirects").insert({
+    const { error } = await api.from("redirects").insert({
       source: source.trim(),
       destination: destination.trim(),
       code,
@@ -92,7 +92,7 @@ function RedirectPage() {
   }
 
   async function toggleActive(row: RedirectRow) {
-    const { error } = await supabase
+    const { error } = await api
       .from("redirects")
       .update({ active: !row.active })
       .eq("id", row.id);
@@ -106,7 +106,7 @@ function RedirectPage() {
 
   async function remove(row: RedirectRow) {
     if (!confirm(`Hapus redirect ${row.source} → ${row.destination}?`)) return;
-    const { error } = await supabase.from("redirects").delete().eq("id", row.id);
+    const { error } = await api.from("redirects").delete().eq("id", row.id);
     if (error) {
       toast.error(error.message);
       return;
@@ -141,7 +141,7 @@ function RedirectPage() {
       toast.error(err);
       return;
     }
-    const { error } = await supabase
+    const { error } = await api
       .from("redirects")
       .update({
         source: draft.source.trim(),

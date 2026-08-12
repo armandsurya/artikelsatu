@@ -5,7 +5,7 @@ import { PUBLISHED_QUERY_KEY } from "@/lib/publishedContent";
 import { trackMediaUsage, clearMediaUsage } from "@/lib/media/usage";
 import { ArrowLeft, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/integrations/api/browser";
 import { logActivity } from "@/lib/admin/log";
 import { Card } from "@/components/admin/ui";
 import { SectionMetaForm } from "./SectionMetaForm";
@@ -80,7 +80,7 @@ export function SectionEditor<T>({
   /* ---------- initial load ---------- */
   useEffect(() => {
     (async () => {
-      const { data: existing } = await supabase
+      const { data: existing } = await api
         .from("homepage_sections")
         .select("*")
         .eq("section_key", sectionKey)
@@ -93,7 +93,7 @@ export function SectionEditor<T>({
         !v || typeof v !== "object" || Array.isArray(v) || Object.keys(v as object).length === 0;
 
       if (!existing) {
-        await supabase.from("homepage_sections").insert({
+        await api.from("homepage_sections").insert({
           section_key: sectionKey,
           title: meta.title,
           data: defaultRaw as never,
@@ -123,7 +123,7 @@ export function SectionEditor<T>({
 
         // Backfill the DB with frontend defaults so subsequent loads are stable.
         if (draftEmpty || pubEmpty) {
-          await supabase
+          await api
             .from("homepage_sections")
             .update({
               data: published as never,
@@ -136,7 +136,7 @@ export function SectionEditor<T>({
 
         applyRow({ ...row, draft_data: draft, data: published });
         if (row.last_saved_by) {
-          const { data: prof } = await supabase
+          const { data: prof } = await api
             .from("profiles")
             .select("full_name")
             .eq("id", row.last_saved_by)
@@ -239,7 +239,7 @@ export function SectionEditor<T>({
     }
     setSaving(true);
     try {
-      const { data: userData, error: userErr } = await supabase.auth.getUser();
+      const { data: userData, error: userErr } = await api.auth.getUser();
       if (userErr || !userData.user) {
         console.error("[saveDraft] no auth session", userErr);
         toast.error("Sesi login berakhir", {
@@ -256,7 +256,7 @@ export function SectionEditor<T>({
         title,
         payloadSize: JSON.stringify(payload).length,
       });
-      const { data: updated, error } = await supabase
+      const { data: updated, error } = await api
         .from("homepage_sections")
         .update({
           title,
@@ -326,7 +326,7 @@ export function SectionEditor<T>({
     try {
       const payload = joinMeta(sectionMeta, content);
       const nowIso = new Date().toISOString();
-      const { data: userData, error: userErr } = await supabase.auth.getUser();
+      const { data: userData, error: userErr } = await api.auth.getUser();
       if (userErr || !userData.user) {
         console.error("[publish] no auth session", userErr);
         toast.error("Sesi login berakhir", { description: "Silakan login ulang sebelum publish." });
@@ -339,7 +339,7 @@ export function SectionEditor<T>({
         payloadSize: JSON.stringify(payload).length,
       });
 
-      const { data: updated, error } = await supabase
+      const { data: updated, error } = await api
         .from("homepage_sections")
         .update({
           title,
@@ -375,7 +375,7 @@ export function SectionEditor<T>({
       }
 
       // Version bump: next version number = max + 1
-      const { data: last } = await supabase
+      const { data: last } = await api
         .from("homepage_section_versions")
         .select("version")
         .eq("section_key", sectionKey)
@@ -383,7 +383,7 @@ export function SectionEditor<T>({
         .limit(1)
         .maybeSingle();
       const nextVersion = ((last as { version?: number } | null)?.version ?? 0) + 1;
-      const { error: versionErr } = await supabase.from("homepage_section_versions").insert({
+      const { error: versionErr } = await api.from("homepage_section_versions").insert({
         section_key: sectionKey,
         version: nextVersion,
         title,

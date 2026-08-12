@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/integrations/api/browser";
 import { SiteLayout } from "@/components/layouts/SiteLayout";
 import { ArrowLeft, Clock, User, Eye, RefreshCw } from "lucide-react";
 import { sanitizeHtml } from "@/lib/editor/sanitize";
@@ -77,7 +77,7 @@ function PreviewPage() {
     queryKey: ["blog-preview", id, reloadTick],
     enabled: !isDraftSentinel || (isDraftSentinel && !draft && id !== "draft"),
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await api
         .from("blog_posts")
         .select("*, blog_categories(name)")
         .eq("id", id)
@@ -93,7 +93,7 @@ function PreviewPage() {
     enabled: !!(draft && draft.category_id && !draft.category_name),
     queryFn: async () =>
       (
-        await supabase
+        await api
           .from("blog_categories")
           .select("name")
           .eq("id", draft!.category_id!)
@@ -138,7 +138,7 @@ function PreviewPage() {
     queryKey: ["profile", post?.author_id],
     enabled: !!post?.author_id,
     queryFn: async () =>
-      (await supabase.from("profiles").select("full_name").eq("id", post!.author_id!).maybeSingle())
+      (await api.from("profiles").select("full_name").eq("id", post!.author_id!).maybeSingle())
         .data?.full_name ?? null,
   });
 
@@ -244,7 +244,7 @@ function PreviewPage() {
           </div>
           {post.tags && post.tags.length > 0 && (
             <div className="mt-10 flex max-w-3xl flex-wrap gap-2">
-              {post.tags.map((t) => (
+              {post.tags.map((t: string) => (
                 <span
                   key={t}
                   className="rounded-full border border-border px-2.5 py-1 text-xs text-muted-foreground"

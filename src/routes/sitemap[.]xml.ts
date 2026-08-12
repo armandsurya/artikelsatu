@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type {} from "@tanstack/react-start";
-import { createClient } from "@supabase/supabase-js";
-import type { Database } from "@/integrations/supabase/types";
+import { createServerApiClient } from "@/integrations/api/server";
 
 // TODO: replace with your project URL once a project name or custom domain is set.
 const BASE_URL: string = "";
@@ -18,12 +17,7 @@ function originFromRequest(request: Request): string {
 type Entry = { path: string; lastmod?: string; changefreq?: string; priority?: string };
 
 async function fetchPublishedBlogEntries(): Promise<Entry[]> {
-  const url = process.env.SUPABASE_URL;
-  const key = process.env.SUPABASE_PUBLISHABLE_KEY;
-  if (!url || !key) return [];
-  const client = createClient<Database>(url, key, {
-    auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
-  });
+  const client = createServerApiClient();
   const { data, error } = await client
     .from("blog_posts")
     .select("slug, updated_at, published_at")

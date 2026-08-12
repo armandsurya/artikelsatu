@@ -99,6 +99,79 @@ function handle_rpc(string $name, array $args): never
             json_ok(has_permission($userId, (string) ($args['_permission'] ?? '')));
         }
 
+
+        // ---------------------------------------------------------------
+        // Manajemen pengguna (hanya super admin / request internal).
+        // ---------------------------------------------------------------
+        case 'admin_list_users': {
+            require_super_admin();
+            $stmt = db()->query(
+                'SELECT id, email, user_metadata, created_at, last_sign_in_at,
+                        email_confirmed_at, banned_until
+                   FROM users ORDER BY created_at DESC LIMIT 200'
+            );
+            $users = array_map(static function (array $row): array {
+                $row['user_metadata'] = json_decode((string) ($row['user_metadata'] ?? '{}'), true) ?: [];
+                foreach (['created_at', 'last_sign_in_at', 'email_confirmed_at', 'banned_until'] as $field) {
+                    $row[$field] = to_iso8601($row[$field]);
+                }
+                return $row;
+            }, $stmt->fetchAll());
+            json_ok($users);
+        }
+
+        case 'admin_create_user': {
+            require_super_admin();
+            $email    = strtolower(trim((string) ($args['_email'] ?? '')));
+            $password = (string) ($args['_password'] ?? '');
+            $fullName = trim((string) ($args['_full_name'] ?? ''));
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                json_error('Email tidak valid', 400);
+            }
+            if (strlen($password) < 8) {
+                json_error('Password minimal 8 karakter', 400);
+            }
+            $exists = db()->prepare('SELECT 1 FROM users WHERE email = ? LIMIT 1');
+            $exists->execute([$email]);
+            if ($exists->fetchColumn()) {
+                json_error('Email sudah terdaftar', 409, 'user_already_exists');
+            }
+            json_ok(['id' => create_user_record($email, $password, $fullName ?: null)]);
+        }
+
+        case 'admin_delete_user': {
+            require_super_admin();
+            $id = (string) ($args['_user_id'] ?? '');
+            db()->prepare('DELETE FROM users WHERE id = ?')->execute([$id]);
+            json_ok(true);
+        }
+
+        case 'admin_set_ban': {
+            require_super_admin();
+            $id  = (string) ($args['_user_id'] ?? '');
+            $ban = !empty($args['_ban']);
+            db()->prepare('UPDATE users SET banned_until = ? WHERE id = ?')
+                ->execute([$ban ? gmdate('Y-m-d H:i:s', time() + 100 * 365 * 86400) : null, $id]);
+            if ($ban) {
+                db()->prepare('DELETE FROM auth_sessions WHERE user_id = ?')->execute([$id]);
+            }
+            json_ok(true);
+        }
+
+        case 'admin_set_password': {
+            require_super_admin();
+            $id       = (string) ($args['_user_id'] ?? '');
+            $password = (string) ($args['_password'] ?? '');
+            if (strlen($password) < 8) {
+                json_error('Password minimal 8 karakter', 400);
+            }
+            db()->prepare('UPDATE users SET password_hash = ? WHERE id = ?')
+                ->execute([password_hash($password, PASSWORD_DEFAULT), $id]);
+            // Paksa login ulang di semua perangkat.
+            db()->prepare('DELETE FROM auth_sessions WHERE user_id = ?')->execute([$id]);
+            json_ok(true);
+        }
+
         // Statistik klik redirect (boleh dipanggil publik, hanya menaikkan counter).
         case 'increment_redirect_hit': {
             $stmt = db()->prepare(

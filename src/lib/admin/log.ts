@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/integrations/api/browser";
 
 export async function logActivity(
   action: string,
@@ -6,9 +6,9 @@ export async function logActivity(
   entity_id?: string,
   meta?: Record<string, unknown>,
 ) {
-  const { data } = await supabase.auth.getUser();
+  const { data } = await api.auth.getUser();
   if (!data.user) return;
-  await supabase.from("activity_log").insert({
+  await api.from("activity_log").insert({
     user_id: data.user.id,
     action,
     entity: entity ?? null,

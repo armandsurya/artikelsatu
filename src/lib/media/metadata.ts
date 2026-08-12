@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/integrations/api/browser";
 
 export type MediaMeta = {
   id: string;
@@ -23,7 +23,7 @@ export const MEDIA_LIMITS = { alt: 125, caption: 300, title: 120 } as const;
 /** Look up a media row by its public URL. Returns null when not managed by Media Library. */
 export async function fetchMediaByUrl(url: string | null | undefined): Promise<MediaMeta | null> {
   if (!url) return null;
-  const { data } = await supabase
+  const { data } = await api
     .from("media")
     .select(
       "id,url,name,title,alt,caption,description,mime_type,width,height,size_bytes,uploaded_by,created_at,updated_at",
@@ -57,7 +57,7 @@ export async function updateMediaMetadata(id: string, patch: MediaMetadataPatch)
   if (patch.alt !== undefined) clean.alt = patch.alt?.trim() || null;
   if (patch.caption !== undefined) clean.caption = patch.caption?.trim() || null;
   if (patch.description !== undefined) clean.description = patch.description?.trim() || null;
-  const { error } = await supabase.from("media").update(clean).eq("id", id);
+  const { error } = await api.from("media").update(clean).eq("id", id);
   if (error) throw error;
 }
 

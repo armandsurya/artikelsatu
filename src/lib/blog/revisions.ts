@@ -1,5 +1,5 @@
-import { supabase } from "@/integrations/supabase/client";
-import type { Database } from "@/integrations/supabase/types";
+import { api } from "@/integrations/api/browser";
+import type { Database } from "@/integrations/api/types";
 
 type PostStatus = Database["public"]["Enums"]["post_status"];
 
@@ -22,8 +22,8 @@ export type RevisionSnapshot = {
 };
 
 export async function saveRevision(snap: RevisionSnapshot): Promise<void> {
-  const { data: user } = await supabase.auth.getUser();
-  const { data: last } = await supabase
+  const { data: user } = await api.auth.getUser();
+  const { data: last } = await api
     .from("blog_post_revisions")
     .select("revision_number")
     .eq("post_id", snap.post_id)
@@ -31,7 +31,7 @@ export async function saveRevision(snap: RevisionSnapshot): Promise<void> {
     .limit(1)
     .maybeSingle();
   const next = (last?.revision_number ?? 0) + 1;
-  const { error } = await supabase.from("blog_post_revisions").insert({
+  const { error } = await api.from("blog_post_revisions").insert({
     post_id: snap.post_id,
     revision_number: next,
     title: snap.title,
@@ -54,7 +54,7 @@ export async function saveRevision(snap: RevisionSnapshot): Promise<void> {
 }
 
 export async function listRevisions(postId: string) {
-  const { data, error } = await supabase
+  const { data, error } = await api
     .from("blog_post_revisions")
     .select("id, revision_number, title, status, reason, author_id, created_at, seo_score")
     .eq("post_id", postId)
@@ -64,7 +64,7 @@ export async function listRevisions(postId: string) {
 }
 
 export async function getRevision(id: string) {
-  const { data, error } = await supabase
+  const { data, error } = await api
     .from("blog_post_revisions")
     .select("*")
     .eq("id", id)

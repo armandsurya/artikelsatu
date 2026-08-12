@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/integrations/api/browser";
 import { PageHeader, Card, Field, inputCls, btnPrimary } from "@/components/admin/ui";
 import { MediaPicker } from "@/components/admin/homepage/primitives";
 import { trackMediaUsage, clearMediaUsage } from "@/lib/media/usage";
@@ -58,7 +58,7 @@ function SEO() {
   const { data, isLoading } = useQuery({
     queryKey: ["seo-settings-full"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await api
         .from("site_settings")
         .select("data")
         .eq("id", 1)
@@ -87,7 +87,7 @@ function SEO() {
 
     setStatus("saving");
     try {
-      const { data: row, error: readErr } = await supabase
+      const { data: row, error: readErr } = await api
         .from("site_settings")
         .select("data")
         .eq("id", 1)
@@ -95,7 +95,7 @@ function SEO() {
       if (readErr) throw readErr;
       const current = (row?.data as Record<string, unknown>) ?? {};
       const merged = { ...current, seo: d };
-      const { error } = await supabase
+      const { error } = await api
         .from("site_settings")
         .update({ data: merged as never })
         .eq("id", 1);
