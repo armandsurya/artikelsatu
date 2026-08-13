@@ -12,7 +12,10 @@ export default defineConfig({
   // bundle, which cannot boot in Hostinger's Node runtime and makes every
   // dynamic route return HTTP 500 (while static assets still work).
   // Lovable builds keep enforcing their own Cloudflare target internally.
-  nitro: { preset: "node-server" },
+  // inlineDynamicImports disables Rolldown's server code-splitting. Without it the
+  // node-server build emits two mutually-importing SSR chunks and crashes on boot
+  // with "createMiddleware is not a function" (circular chunk initialization).
+  nitro: { preset: "node-server", inlineDynamicImports: true },
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this
