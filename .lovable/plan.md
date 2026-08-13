@@ -1,126 +1,48 @@
-# Redesign Media → Digital Asset Management (DAM)
+# Fix: Hostinger SSR crash `createMiddleware is not a function`
 
-Tujuan: Media menjadi WordPress-style Media Library yang dipakai seluruh editor (Homepage, Blog, Header, Footer, SEO) sebagai satu-satunya sumber gambar.
+## Root cause (confirmed by inspecting the installed build toolchain)
 
----
+The crash is not a source bug and not a version mismatch. It is a **circular chunk initialization** problem created by the way the Node build splits the server bundle.
 
-## 1. Perubahan Struktur Menu (Sidebar)
+- The project builds with **Vite 8 (Rolldown)**.
+- Nitro's Rolldown path splits everything in `node_modules` into per-package chunks (`output.codeSplitting.groups` matching `node_modules`). Confirmed in `node_modules/nitro/dist/vite.mjs` (lines 32-44).
+- TanStack Start's server runtime lands across two of those chunks. One chunk defines `createMiddleware`, the other evaluates `defaultCsrfMiddleware = createCsrfMiddleware(...)` **at module top level**. Because the two chunks import each other, the CSRF module runs before `createMiddleware` is initialized -> `TypeError: createMiddleware is not a function`.
+- On Lovable/Cloudflare this never happens: the Lovable config forces a worker-style preset where `inlineDynamicImports: true`, and Nitro then sets `codeSplitting = false`, emitting one server file with no cycle.
+- Hostinger uses `nitro: { preset: "node-server" }` (set in `vite.config.ts`), and the Node preset keeps code splitting on — hence the two-chunk cycle only in that build.
 
-`src/components/admin/AdminShell.tsx`:
-- Pindahkan **Media** dari sub-menu Blog menjadi menu utama level 1.
-- Urutan final: Dashboard · Website · Blog · **Media** · SEO · Redirect URL · Pengguna · Role & Permission · Pengaturan · Keamanan · Log Aktivitas.
+## Versions verified (all internally consistent — not the cause)
 
----
+- vite 8.0.16 (Rolldown)
+- nitro 3.0.260603-beta
+- @lovable.dev/vite-tanstack-config 2.12.0
+- @tanstack/react-start 1.168.42 (pins its own sub-packages exactly: start-server-core 1.169.25, start-client-core 1.170.21, react-router 1.170.25)
+- bun.lock resolves a single copy of each TanStack package — no duplicate/skewed installs
 
-## 2. Skema Database (migration)
+## Files/configuration involved
 
-Tambah kolom pada tabel `media` (yang sudah ada: `id, name, path, url, mime_type, size_bytes, uploaded_by, created_at`):
+- `vite.config.ts` — the `nitro: { preset: "node-server" }` option
+- `node_modules/nitro/dist/vite.mjs` — Rolldown chunking behaviour (read-only, not edited)
+- No application source file is at fault; `src/start.ts`, `src/server.ts` and middleware code stay untouched
 
-- `alt text` · `title text` · `caption text` · `description text`
-- `width int` · `height int`
-- `updated_at timestamptz default now()` + trigger `set_updated_at`
+## Safest fix
 
-Tabel baru `media_usage` untuk melacak "digunakan di mana":
-- `id, media_id (FK media on delete restrict), context text` (mis. `homepage_section`, `blog_post`, `site_settings`, `seo`), `context_id text` (mis. `hero`, uuid blog, `header`), `field text` (mis. `image`, `og_image`), `created_at`
-- Unique `(media_id, context, context_id, field)`
+Disable server-side code splitting for the Node build so the SSR runtime is emitted as one module:
 
-Grants + RLS (baca semua authenticated; tulis super_admin via `has_role`).
+```ts
+nitro: { preset: "node-server", inlineDynamicImports: true }
+```
 
-Storage: bucket `media` sudah ada (private). Tetap gunakan signed URL 1 tahun.
+Nitro maps this to `codeSplitting: false` on the Rolldown output, which removes the chunk cycle entirely. This changes only build output shape — no runtime behaviour, no data flow, no dependency changes.
 
----
+Fallback if the single-file output causes any other issue: pin Vite back to 7 (Rollup bundler, different chunk algorithm). This is heavier and only used if step 1 does not resolve it.
 
-## 3. Upload Pipeline (audit + rewrite)
+## Steps
 
-File: `src/lib/media/upload.ts` (baru)
+1. Edit `vite.config.ts` to add `inlineDynamicImports: true` to the nitro options (with a short comment explaining why).
+2. Run a local production build with the Node preset and verify `.output/server/` contains a single `index.mjs` with no cross-importing `server-*.mjs` chunk pair.
+3. Boot the built server locally and curl `/` and `/blog` — expect HTTP 200 and no `createMiddleware` error.
+4. Report results; you then redeploy from GitHub on Hostinger.
 
-Alur:
-1. **Validation** (client): whitelist mime = `jpg/jpeg/png/webp/svg+xml/gif/avif`; max 5 MB; tolak dengan pesan spesifik.
-2. **Slugify filename** SEO-friendly: `slugify(originalName-without-ext) + '.' + ext`, contoh `hero-homepage.webp`. Jika bentrok tambah `-2`, `-3`.
-3. **Compression** (optional, client-side): jpg/png/webp diproses via `<canvas>` (`createImageBitmap` → resize maks 2560px sisi terpanjang → `canvas.toBlob('image/webp', 0.85)`); svg & gif dilewati.
-4. **Read dimensions** via `createImageBitmap` sebelum upload.
-5. **Storage upload** ke bucket `media` (path: `YYYY/MM/<slug>`).
-6. **Create signed URL** (1 tahun).
-7. **Insert row** ke `media` dengan seluruh metadata.
-8. Error handling: bedakan Storage error, DB error, Permission (RLS) error, ukuran, format — surface pesan asli.
+## Does it require dependency changes?
 
----
-
-## 4. Halaman `/admin/media` (redesign penuh)
-
-File: `src/routes/_authenticated/admin.media.tsx` + komponen di `src/components/admin/media/`.
-
-- **Toolbar**: Upload (drag-drop area juga), Search, Filter (type, uploaded by, tanggal), Sort (newest/oldest/name/size), Multi-select toggle.
-- **Grid card**: thumbnail, nama, ukuran (KB/MB), dimensi (WxH), tanggal, mime badge, checkbox multi-select.
-- **Pagination** 40/halaman.
-- **Bulk**: Delete (dengan cek `media_usage`), Download (zip via `JSZip`).
-- **Detail drawer** (klik card):
-  - Preview besar
-  - Form editable: ALT, Title, Caption, Description, Rename (semuanya dengan tombol **Save**, bukan auto-save)
-  - Info read-only: URL, Path, Ukuran, Dimensi, Uploaded By, Created At, Updated At
-  - Tombol: Copy URL, Copy Path, Replace file (upload baru ke path lama → URL tetap), Delete
-  - Panel "Dipakai di": list dari `media_usage` dengan link ke context.
-
----
-
-## 5. Media Picker (reusable)
-
-File: `src/components/admin/media/MediaPicker.tsx` (Dialog + grid Media Library + tab Upload).
-
-Ganti seluruh input URL/upload di editor:
-- `src/components/admin/homepage/forms.tsx` — Hero image, CTA background, dsb (field bertipe image).
-- `src/components/admin/BlogEditor.tsx` — Featured image, OG image, konten Tiptap (image button).
-- `src/routes/_authenticated/admin.website.header.tsx` — Logo.
-- `src/routes/_authenticated/admin.website.footer.tsx` — Logo.
-- `src/routes/_authenticated/admin.seo.tsx` — OG image, schema image.
-
-Setiap kali picker memilih image, panggil helper `trackMediaUsage(mediaId, context, contextId, field)` yang meng-upsert baris `media_usage`. Saat field diganti/dikosongkan, hapus baris usage sebelumnya.
-
----
-
-## 6. Replace tanpa mengubah URL
-
-`replaceMedia(mediaId, newFile)`:
-1. Validate + compress.
-2. `storage.update(existingPath, newFile, { upsert: true })` — path & URL tetap.
-3. Update kolom `size_bytes, width, height, mime_type, updated_at`.
-4. Invalidate cache `['media']` + `PUBLISHED_QUERY_KEY` supaya frontend refetch (browser bust cache via `?v=updated_at`).
-
----
-
-## 7. Delete guard
-
-Sebelum delete, query `media_usage` untuk `media_id`. Bila ada:
-- Tampilkan dialog dengan daftar context+link.
-- Butuh konfirmasi "Hapus paksa" yang juga menghapus referensi.
-Bila kosong: hapus storage + row.
-
----
-
-## 8. Frontend
-
-Tidak ada perubahan besar. Semua field image di CMS sudah berbentuk URL yang tersimpan di `homepage_sections.data`, `blog_posts.featured_image`, `site_settings`, dsb. Frontend hanya membaca URL tersebut — sekarang URL itu selalu berasal dari `media.url`.
-
----
-
-## 9. Verifikasi
-
-- Playwright: upload file 3MB PNG → cek muncul di grid, dimensi terbaca, ALT bisa disave, picker di editor Hero menampilkan image yang sama, delete diblokir jika usage tercatat.
-- Manual: build hijau (`bun run build` dijalankan otomatis oleh harness).
-
----
-
-## Detail teknis singkat
-
-- Kompresi client-side menghindari kebutuhan sharp/ffmpeg di Worker (tidak didukung).
-- Signed URL 1 tahun disimpan di `media.url`; replace tidak mengubah path → URL stabil.
-- `media_usage` mencegah orphan reference & jadi dasar fitur "Usage".
-- Semua write via `supabase` client biasa; RLS super_admin sudah ada (via `has_role`).
-
-## Cakupan file (perkiraan)
-
-- Migration: 1 file baru (kolom + tabel usage + policies + trigger).
-- Baru: `src/lib/media/upload.ts`, `src/lib/media/usage.ts`, `src/components/admin/media/{MediaGrid,MediaCard,MediaDetailDrawer,MediaPicker,MediaUploader}.tsx`, `src/components/admin/media/ImageField.tsx`.
-- Edit: `AdminShell.tsx`, `admin.media.tsx`, editor Homepage forms, BlogEditor, admin header/footer/seo routes.
-
-Setelah rencana disetujui, mulai dari migration (butuh approval terpisah) lalu pipeline upload, halaman Media, MediaPicker, integrasi editor, dan verifikasi.
+No. Configuration only (`vite.config.ts`). Dependency versions stay locked exactly as they are today.
