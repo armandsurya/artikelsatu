@@ -15,7 +15,8 @@ export default defineConfig({
   // inlineDynamicImports disables Rolldown's server code-splitting. Without it the
   // node-server build emits two mutually-importing SSR chunks and crashes on boot
   // with "createMiddleware is not a function" (circular chunk initialization).
-  nitro: { preset: "node-server", inlineDynamicImports: true },
+  // (option is valid for nitro but not in the wrapper's narrower type)
+  nitro: { preset: "node-server", inlineDynamicImports: true } as { preset: string },
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this
