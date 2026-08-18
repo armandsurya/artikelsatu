@@ -10,6 +10,7 @@ import {
 } from "@/lib/publishedContent";
 import { mapBlogPosts } from "@/lib/mapPublished";
 import { BlogCard } from "@/components/cards/BlogCard";
+import { RelatedSidebar } from "@/components/blog/RelatedSidebar";
 import { Clock, User, ArrowLeft } from "lucide-react";
 import { MediaFigure } from "@/components/media/MediaFigure";
 import { sanitizeHtml } from "@/lib/editor/sanitize";
