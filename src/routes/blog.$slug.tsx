@@ -171,56 +171,64 @@ function BlogDetail() {
           >
             <ArrowLeft className="h-4 w-4" /> Kembali ke Blog
           </Link>
-          <div className="mt-6 max-w-3xl">
-            <span className="inline-flex rounded-full bg-accent px-2.5 py-1 text-xs font-medium text-accent-foreground">
-              {categoryName}
-            </span>
-            <h1 className="mt-4 text-3xl font-bold tracking-tight text-secondary sm:text-4xl">
-              {post.title}
-            </h1>
-            {post.excerpt && <p className="mt-4 text-lg text-muted-foreground">{post.excerpt}</p>}
-            <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted-foreground">
-              <span className="inline-flex items-center gap-1.5">
-                <User className="h-4 w-4" />
-                {author}
-              </span>
-              <span className="inline-flex items-center gap-1.5">
-                <Clock className="h-4 w-4" />
-                {post.read_time ?? 5} menit baca
-              </span>
-              {date && <span>{date}</span>}
-            </div>
-          </div>
-
-          {post.featured_image && (
-            <MediaFigure
-              src={post.featured_image}
-              fallbackAlt={post.title}
-              className="mt-10"
-              imgClassName="aspect-[16/9] w-full rounded-[16px] border border-border object-cover"
-            />
-          )}
-
-          <div className="article-body mt-10 max-w-3xl">
-            {contentHtml ? (
-              <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(contentHtml) }} />
-            ) : (
-              <p className="text-muted-foreground">Konten artikel belum tersedia.</p>
-            )}
-          </div>
-
-          {post.tags && post.tags.length > 0 && (
-            <div className="mt-10 flex max-w-3xl flex-wrap gap-2">
-              {post.tags.map((t: string) => (
-                <span
-                  key={t}
-                  className="rounded-full border border-border px-2.5 py-1 text-xs text-muted-foreground"
-                >
-                  #{t}
+          <div className="mt-6 grid gap-10 lg:grid-cols-[minmax(0,1fr)_300px]">
+            <div className="min-w-0">
+              <div className="max-w-3xl">
+                <span className="inline-flex rounded-full bg-accent px-2.5 py-1 text-xs font-medium text-accent-foreground">
+                  {categoryName}
                 </span>
-              ))}
+                <h1 className="mt-4 text-3xl font-bold tracking-tight text-secondary sm:text-4xl">
+                  {post.title}
+                </h1>
+                {post.excerpt && (
+                  <p className="mt-4 text-lg text-muted-foreground">{post.excerpt}</p>
+                )}
+                <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted-foreground">
+                  <span className="inline-flex items-center gap-1.5">
+                    <User className="h-4 w-4" />
+                    {author}
+                  </span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <Clock className="h-4 w-4" />
+                    {post.read_time ?? 5} menit baca
+                  </span>
+                  {date && <span>{date}</span>}
+                </div>
+              </div>
+
+              {post.featured_image && (
+                <MediaFigure
+                  src={post.featured_image}
+                  fallbackAlt={post.title}
+                  className="mt-10"
+                  imgClassName="aspect-[16/9] w-full rounded-[16px] border border-border object-cover"
+                />
+              )}
+
+              <div className="article-body mt-10 max-w-3xl">
+                {contentHtml ? (
+                  <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(contentHtml) }} />
+                ) : (
+                  <p className="text-muted-foreground">Konten artikel belum tersedia.</p>
+                )}
+              </div>
+
+              {post.tags && post.tags.length > 0 && (
+                <div className="mt-10 flex max-w-3xl flex-wrap gap-2">
+                  {post.tags.map((t: string) => (
+                    <span
+                      key={t}
+                      className="rounded-full border border-border px-2.5 py-1 text-xs text-muted-foreground"
+                    >
+                      #{t}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
-          )}
+
+            <RelatedSidebar posts={related} />
+          </div>
         </div>
       </article>
 
