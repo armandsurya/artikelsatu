@@ -89,7 +89,8 @@ function BlogPending() {
 }
 
 function BlogPage() {
-  const [query, setQuery] = useState("");
+  const { q: initialQuery } = Route.useSearch();
+  const [query, setQuery] = useState(initialQuery ?? "");
   const [category, setCategory] = useState("Semua");
   const [page, setPage] = useState(1);
 
