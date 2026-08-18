@@ -233,18 +233,6 @@ function BlogDetail() {
         </div>
       </article>
 
-      {related.length > 0 && (
-        <section className="border-t border-border bg-accent/40">
-          <div className="container-narrow py-14">
-            <h2 className="text-xl font-semibold text-secondary">Artikel Terkait</h2>
-            <div className="mt-6 grid gap-6 md:grid-cols-3">
-              {related.map((p) => (
-                <BlogCard key={p.id} post={p} />
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
     </SiteLayout>
   );
 }
