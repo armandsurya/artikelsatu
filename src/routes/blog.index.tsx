@@ -23,6 +23,8 @@ const DEFAULT_DESC =
 const META_TITLE = "Blog — Insight SEO, Content Marketing & Copywriting";
 
 export const Route = createFileRoute("/blog/")({
+  validateSearch: (search: Record<string, unknown>): { q?: string } =>
+    typeof search.q === "string" && search.q.trim() ? { q: search.q } : {},
   // Prime caches during SSR so first paint uses real DB content instead of
   // defaults ("Blog ArtikelPro" hero + empty state) that flash before the
   // client refetch completes.
@@ -87,7 +89,8 @@ function BlogPending() {
 }
 
 function BlogPage() {
-  const [query, setQuery] = useState("");
+  const { q: initialQuery } = Route.useSearch();
+  const [query, setQuery] = useState(initialQuery ?? "");
   const [category, setCategory] = useState("Semua");
   const [page, setPage] = useState(1);
 
