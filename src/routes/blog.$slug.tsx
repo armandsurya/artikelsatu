@@ -133,7 +133,11 @@ function BlogDetail() {
   const related = mapBlogPosts(
     (allPosts.data ?? [])
       .filter((r) => r.id !== post.id && r.category_id === post.category_id)
-      .slice(0, 3),
+      .sort(
+        (a, b) =>
+          new Date(b.published_at ?? 0).getTime() - new Date(a.published_at ?? 0).getTime(),
+      )
+      .slice(0, 5),
     cats.data ?? [],
   );
 
