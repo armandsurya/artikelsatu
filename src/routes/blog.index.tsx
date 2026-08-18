@@ -23,9 +23,8 @@ const DEFAULT_DESC =
 const META_TITLE = "Blog — Insight SEO, Content Marketing & Copywriting";
 
 export const Route = createFileRoute("/blog/")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    q: typeof search.q === "string" && search.q.trim() ? search.q : undefined,
-  }),
+  validateSearch: (search: Record<string, unknown>): { q?: string } =>
+    typeof search.q === "string" && search.q.trim() ? { q: search.q } : {},
   // Prime caches during SSR so first paint uses real DB content instead of
   // defaults ("Blog ArtikelPro" hero + empty state) that flash before the
   // client refetch completes.
