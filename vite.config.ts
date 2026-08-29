@@ -30,5 +30,15 @@ export default defineConfig({
       // (Hostinger) builds with its own chunking pipeline instead of Nitro's.
       rollupOptions: { treeshake: false },
     },
+    environments: {
+      // Belt-and-braces: even if the host's build pipeline ignores the Nitro
+      // preset above, emit the SSR bundle as a single module so no two server
+      // chunks can import each other in a cycle.
+      ssr: {
+        build: {
+          rollupOptions: { output: { inlineDynamicImports: true } },
+        },
+      },
+    },
   },
 });

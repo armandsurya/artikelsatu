@@ -1,5 +1,7 @@
 import "./lib/error-capture";
 
+import serverEntry from "@tanstack/react-start/server-entry";
+
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
 
@@ -7,15 +9,14 @@ type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
 };
 
-let serverEntryPromise: Promise<ServerEntry> | undefined;
-
-async function getServerEntry(): Promise<ServerEntry> {
-  if (!serverEntryPromise) {
-    serverEntryPromise = import("@tanstack/react-start/server-entry").then(
-      (m) => (m.default ?? m) as ServerEntry,
-    );
-  }
-  return serverEntryPromise;
+// NOTE: this import is intentionally STATIC. A dynamic import() made the bundler
+// emit the TanStack server runtime as a separate SSR chunk; on hosts that keep
+// server code-splitting on (Hostinger / node-server), that chunk was emitted
+// without the shared bundler runtime helpers and the process crashed on boot with
+// "__exportAll is not a function" / "createMiddleware is not a function".
+function getServerEntry(): ServerEntry {
+  return ((serverEntry as { default?: ServerEntry })?.default ??
+    serverEntry) as unknown as ServerEntry;
 }
 
 // h3 swallows in-handler throws into a normal 500 Response with body
