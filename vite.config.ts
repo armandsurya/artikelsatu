@@ -13,13 +13,22 @@ export default defineConfig({
   // dynamic route return HTTP 500 (while static assets still work).
   // Lovable builds keep enforcing their own Cloudflare target internally.
   // inlineDynamicImports disables Rolldown's server code-splitting. Without it the
-  // node-server build emits two mutually-importing SSR chunks and crashes on boot
-  // with "createMiddleware is not a function" (circular chunk initialization).
+  // node-server build emits multiple mutually-importing SSR chunks; Rolldown then
+  // drops shared runtime helpers from a chunk and the server crashes on boot with
+  // "createMiddleware is not a function" / "__exportAll is not a function".
   // (option is valid for nitro but not in the wrapper's narrower type)
   nitro: { preset: "node-server", inlineDynamicImports: true } as { preset: string },
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this
     server: { entry: "server" },
+  },
+  vite: {
+    build: {
+      // Rolldown's tree-shaking + identifier deconfliction can drop shared runtime
+      // helpers (__exportAll, createMiddleware) from split SSR chunks when a host
+      // (Hostinger) builds with its own chunking pipeline instead of Nitro's.
+      rollupOptions: { treeshake: false },
+    },
   },
 });
