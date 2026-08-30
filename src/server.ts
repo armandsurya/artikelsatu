@@ -2,7 +2,7 @@ import "./lib/error-capture";
 
 import serverEntry from "@tanstack/react-start/server-entry";
 
-import { consumeLastCapturedError } from "./lib/error-capture";
+import { consumeLastCapturedError, isClientAbort } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
 
 type ServerEntry = {
