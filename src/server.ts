@@ -2,7 +2,7 @@ import "./lib/error-capture";
 
 import serverEntry from "@tanstack/react-start/server-entry";
 
-import { consumeLastCapturedError } from "./lib/error-capture";
+import { consumeLastCapturedError, isClientAbort } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
 
 type ServerEntry = {
@@ -47,21 +47,9 @@ function isH3SwallowedErrorBody(body: string): boolean {
   }
 }
 
-// A client that navigates away / reloads mid-SSR aborts the socket. Node surfaces
-// this as `Error: aborted` (ECONNRESET) — it is not an application error.
-function isClientAbort(error: unknown): boolean {
-  const seen = new Set<unknown>();
-  let current: unknown = error;
-  while (current && typeof current === "object" && !seen.has(current)) {
-    seen.add(current);
-    const err = current as { code?: unknown; message?: unknown; cause?: unknown };
-    if (err.code === "ECONNRESET" || err.code === "ABORT_ERR" || err.message === "aborted") {
-      return true;
-    }
-    current = err.cause;
-  }
-  return false;
-}
+// Client-abort detection lives in ./lib/error-capture so the global listeners
+// and this wrapper agree on what counts as "the peer hung up".
+
 
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
