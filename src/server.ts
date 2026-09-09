@@ -50,9 +50,33 @@ function isH3SwallowedErrorBody(body: string): boolean {
 // Client-abort detection lives in ./lib/error-capture so the global listeners
 // and this wrapper agree on what counts as "the peer hung up".
 
+function maybeWwwRedirect(request: Request): Response | null {
+  // Hostinger may expose the public host via standard headers; fall back to the
+  // request URL itself. Redirect any www. variant to the bare domain so search
+  // engines do not index duplicate content under two hostnames.
+  const url = new URL(request.url);
+  const host =
+    request.headers.get("x-forwarded-host") ??
+    request.headers.get("host") ??
+    url.host;
+  if (!host.toLowerCase().startsWith("www.")) return null;
+
+  const proto =
+    request.headers.get("x-forwarded-proto") ??
+    (url.protocol === "https:" ? "https" : "http");
+  const target = new URL(url.pathname + url.search, `${proto}://${host}`);
+  target.host = host.slice(4);
+  return new Response(null, {
+    status: 301,
+    headers: { location: target.toString() },
+  });
+}
 
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
+    const wwwRedirect = maybeWwwRedirect(request);
+    if (wwwRedirect) return wwwRedirect;
+
     try {
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
